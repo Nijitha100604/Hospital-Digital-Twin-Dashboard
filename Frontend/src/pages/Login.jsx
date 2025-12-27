@@ -32,7 +32,7 @@ function Login({setUToken}) {
         <h2 className="text-white text-2xl font-bold mb-4">DASHBOARD</h2>
     </div>
 
-    <div className="flex flex-col justify-center items-center border border-fuchsia-400 rounded-lg px-5 py-5 w-9/12 max-w-sm">
+    <div className="flex flex-col justify-center items-center border border-fuchsia-400 rounded-lg px-5 py-5 w-9/12 max-w-sm shadow-sm shadow-fuchsia-500">
         <h1 className="text-white font-bold text-xl mb-4">LOGIN</h1>
         <div className="flex flex-col gap-4 mb-8 w-full">
             {/* Email Field */}

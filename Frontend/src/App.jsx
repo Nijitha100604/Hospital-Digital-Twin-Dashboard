@@ -51,7 +51,7 @@ import StaffProfile from './pages/staff_management/StaffProfile';
 function App() {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [uToken, setUToken] = useState(false)
+  const [uToken, setUToken] = useState(true)
 
   return uToken ? (
     <div>

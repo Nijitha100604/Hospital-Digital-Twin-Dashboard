@@ -6,6 +6,7 @@ import { FaMicroscope } from "react-icons/fa";
 import { FaCogs } from "react-icons/fa";
 import { FaUserNurse } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
+import { NavLink } from 'react-router-dom';
 
 function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
   return (
@@ -13,9 +14,10 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
       className={`
         fixed md:static top-0 left-0
         mt-16 md:mt-16 
-        w-52 min-h-screen
+        w-52 h-screen
         bg-white border border-gray-300 
         py-4 z-40
+        overflow-y-auto hide-scrollbar
         transition-transform duration-300
         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
     `}>
@@ -33,15 +35,46 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
 
       <div className="flex gap-2 px-4">
         <FaUsers size={22} className="text-gray-500"/>
-        <p className="font-semibold text-md text-gray-500 mb-2">PATIENT SERVICES</p>
+        <p className="font-semibold text-md text-gray-500 mb-2">PATIENT SERVICE</p>
       </div>
       
       <ul className="items-center">
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Patient List</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Add New Patient</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Patient Profile</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Appointment Booking</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Discharge Summary</li>
+
+        <NavLink to="/"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+        Patient List
+        </NavLink>
+
+        <NavLink to="/add-new-patient"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+        Add New Patient
+        </NavLink>
+
+        <NavLink to="/patient-profile"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+        Patient Profile
+        </NavLink>
+
+        <NavLink to="/all-appointments"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+        Appointment Booking
+        </NavLink>
+
+        <NavLink to="/discharge-summary"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+        Discharge Summary
+        </NavLink>
+
       </ul>
 
     </div>
@@ -55,11 +88,42 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
       </div>
 
       <ul className="items-center">
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Department List</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Bed Availability</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Facility Map</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Cleaning Schedule</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Report Issue</li>
+        
+        <NavLink to="/departments-list"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+        Department List
+        </NavLink>
+
+        <NavLink to="/bed-availability"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+        Bed Availability
+        </NavLink>
+
+        <NavLink to="/facility-map"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+        Facility Map
+        </NavLink>
+
+        <NavLink to="/cleaning-schedule-list"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+        Cleaning Schedule
+        </NavLink>
+
+        <NavLink to="/issues-list"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+        Report issues
+        </NavLink>
+
       </ul>
 
     </div>
@@ -73,11 +137,42 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
       </div>
 
       <ul className="items-center">
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Medicine Stock</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Add Medicine</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Stock Alerts</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Suppliers</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Purchase Orders</li>
+        
+        <NavLink to="/medicine-stocks"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Medicine Stock
+        </NavLink>
+
+        <NavLink to="/add-new-medicine"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Add Medicine
+        </NavLink>
+
+        <NavLink to="/stock-alerts"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Stock Alerts
+        </NavLink>
+
+        <NavLink to="/suppliers-list"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Suppliers
+        </NavLink>
+
+        <NavLink to="/purchase-order"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Purchase Order
+        </NavLink>
+
       </ul>
 
     </div>
@@ -91,10 +186,35 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
       </div>
 
       <ul className="items-center">
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Equipment List</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Add New Equipment</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Calibration Schedule</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Maintenace Log</li>
+        
+        <NavLink to="/equipment-list"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Equipment List
+        </NavLink>
+
+        <NavLink to="/add-equipment"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Add New Equipment
+        </NavLink>
+
+        <NavLink to="/calibration-schedule-list"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Calibration Schedule
+        </NavLink>
+
+        <NavLink to="/maintenance-log"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Maintenance Log
+        </NavLink>
+
       </ul>
 
     </div>
@@ -108,10 +228,35 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
       </div>
 
       <ul className="items-center">
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Lab Reports</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Results Entry</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Patient-Wise Reports</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Upload Report</li>
+       
+        <NavLink to="/lab-reports-list"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Lab Reports
+        </NavLink>
+
+        <NavLink to="/lab-results-entry"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Results Entry
+        </NavLink>
+
+        <NavLink to="/patient-wise-reports"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Patient-Wise Reports
+        </NavLink>
+
+        <NavLink to="/upload-report"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Upload Report
+        </NavLink>
+
       </ul>
 
     </div>
@@ -125,11 +270,42 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
       </div>
 
       <ul className="items-center">
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Staff List</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Add New Staff</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Staff Profile</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Shift Planner</li>
-        <li className="hover:font-semibold text-sm text-gray-800 cursor-pointer px-4 py-1">Attendance and Leave</li>
+        
+        <NavLink to="/staff-list"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Staff List
+        </NavLink>
+
+        <NavLink to="/add-staff"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Add Staff
+        </NavLink>
+
+        <NavLink to="/staff-profile"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Staff Profile
+        </NavLink>
+
+        <NavLink to="/shift-planner"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Shift Planner
+        </NavLink>
+
+        <NavLink to="/leave-management"
+          onClick={() => window.scrollTo(0, 0)}
+          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
+          Attendance and Leave
+        </NavLink>
+
       </ul>
 
     </div>
