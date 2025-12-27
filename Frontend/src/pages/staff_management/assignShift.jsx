@@ -1,9 +1,9 @@
 import React from 'react'
 
-function assignShift() {
+function AssignShift() {
   return (
-    <div>assignShift</div>
+    <div>AssignShift</div>
   )
 }
 
-export default assignShift
+export default AssignShift

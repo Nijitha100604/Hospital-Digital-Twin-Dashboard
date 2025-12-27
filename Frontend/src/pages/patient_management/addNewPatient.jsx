@@ -1,9 +1,9 @@
 import React from 'react'
 
-function addNewPatient() {
+function AddNewPatient() {
   return (
-    <div>addNewPatient</div>
+    <div>AddNewPatient</div>
   )
 }
 
-export default addNewPatient
+export default AddNewPatient

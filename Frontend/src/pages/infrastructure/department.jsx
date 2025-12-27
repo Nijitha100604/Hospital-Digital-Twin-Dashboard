@@ -1,9 +1,9 @@
 import React from 'react'
 
-function department() {
+function Department() {
   return (
-    <div>department</div>
+    <div>Department</div>
   )
 }
 
-export default department
+export default Department

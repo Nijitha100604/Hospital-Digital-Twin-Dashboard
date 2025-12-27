@@ -1,9 +1,9 @@
 import React from 'react'
 
-function stockAlerts() {
+function StockAlerts() {
   return (
-    <div>stockAlerts</div>
+    <div>StockAlerts</div>
   )
 }
 
-export default stockAlerts
+export default StockAlerts

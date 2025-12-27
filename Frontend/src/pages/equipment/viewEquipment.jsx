@@ -1,9 +1,9 @@
 import React from 'react'
 
-function viewEquipment() {
+function ViewEquipment() {
   return (
-    <div>viewEquipment</div>
+    <div>ViewEquipment</div>
   )
 }
 
-export default viewEquipment
+export default ViewEquipment

@@ -1,9 +1,9 @@
 import React from 'react'
 
-function bedAvailability() {
+function BedAvailability() {
   return (
-    <div>bedAvailability</div>
+    <div>BedAvailability</div>
   )
 }
 
-export default bedAvailability
+export default BedAvailability

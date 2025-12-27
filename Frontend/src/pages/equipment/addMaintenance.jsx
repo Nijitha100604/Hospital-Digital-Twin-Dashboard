@@ -1,9 +1,9 @@
 import React from 'react'
 
-function addMaintenance() {
+function AddMaintenance() {
   return (
-    <div>addMaintenance</div>
+    <div>AddMaintenance</div>
   )
 }
 
-export default addMaintenance
+export default AddMaintenance

@@ -1,9 +1,9 @@
 import React from 'react'
 
-function labResultsEntry() {
+function LabResultsEntry() {
   return (
-    <div>labResultsEntry</div>
+    <div>LabResultsEntry</div>
   )
 }
 
-export default labResultsEntry
+export default LabResultsEntry

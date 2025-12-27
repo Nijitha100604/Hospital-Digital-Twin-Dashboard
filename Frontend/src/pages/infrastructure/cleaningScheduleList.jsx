@@ -1,9 +1,9 @@
 import React from 'react'
 
-function cleaningScheduleList() {
+function CleaningScheduleList() {
   return (
-    <div>cleaningScheduleList</div>
+    <div>CleaningScheduleList</div>
   )
 }
 
-export default cleaningScheduleList
+export default CleaningScheduleList

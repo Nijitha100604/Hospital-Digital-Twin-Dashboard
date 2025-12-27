@@ -1,9 +1,9 @@
 import React from 'react'
 
-function suppliersList() {
+function SuppliersList() {
   return (
-    <div>suppliersList</div>
+    <div>SuppliersList</div>
   )
 }
 
-export default suppliersList
+export default SuppliersList

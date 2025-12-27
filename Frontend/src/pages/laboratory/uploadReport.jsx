@@ -1,9 +1,9 @@
 import React from 'react'
 
-function uploadReport() {
+function UploadReport() {
   return (
-    <div>uploadReport</div>
+    <div>UploadReport</div>
   )
 }
 
-export default uploadReport
+export default UploadReport

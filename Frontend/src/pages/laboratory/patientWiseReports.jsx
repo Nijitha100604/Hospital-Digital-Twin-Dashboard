@@ -1,9 +1,9 @@
 import React from 'react'
 
-function patientWiseReports() {
+function PatientWiseReports() {
   return (
-    <div>patientWiseReports</div>
+    <div>PatientWiseReports</div>
   )
 }
 
-export default patientWiseReports
+export default PatientWiseReports

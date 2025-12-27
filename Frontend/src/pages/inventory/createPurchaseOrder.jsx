@@ -1,9 +1,9 @@
 import React from 'react'
 
-function createPurchaseOrder() {
+function CreatePurchaseOrder() {
   return (
-    <div>createPurchaseOrder</div>
+    <div>CreatePurchaseOrder</div>
   )
 }
 
-export default createPurchaseOrder
+export default CreatePurchaseOrder

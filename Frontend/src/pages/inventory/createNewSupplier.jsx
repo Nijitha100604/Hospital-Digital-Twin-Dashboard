@@ -1,9 +1,9 @@
 import React from 'react'
 
-function createNewSupplier() {
+function CreateNewSupplier() {
   return (
-    <div>createNewSupplier</div>
+    <div>CreateNewSupplier</div>
   )
 }
 
-export default createNewSupplier
+export default CreateNewSupplier

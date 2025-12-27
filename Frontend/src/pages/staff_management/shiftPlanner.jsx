@@ -1,9 +1,9 @@
 import React from 'react'
 
-function shiftPlanner() {
+function ShiftPlanner() {
   return (
-    <div>shiftPlanner</div>
+    <div>ShiftPlanner</div>
   )
 }
 
-export default shiftPlanner
+export default ShiftPlanner

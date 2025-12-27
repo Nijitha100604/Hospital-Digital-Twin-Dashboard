@@ -1,9 +1,9 @@
 import React from 'react'
 
-function facilityMap() {
+function FacilityMap() {
   return (
-    <div>facilityMap</div>
+    <div>FacilityMap</div>
   )
 }
 
-export default facilityMap
+export default FacilityMap

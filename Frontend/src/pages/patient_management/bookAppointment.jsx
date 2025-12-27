@@ -1,9 +1,9 @@
 import React from 'react'
 
-function bookAppointment() {
+function BookAppointment() {
   return (
-    <div>bookAppointment</div>
+    <div>BookAppointment</div>
   )
 }
 
-export default bookAppointment
+export default BookAppointment

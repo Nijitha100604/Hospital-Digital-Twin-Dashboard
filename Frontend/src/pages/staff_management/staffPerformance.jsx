@@ -1,9 +1,9 @@
 import React from 'react'
 
-function staffPerformance() {
+function StaffPerformance() {
   return (
-    <div>staffPerformance</div>
+    <div>StaffPerformance</div>
   )
 }
 
-export default staffPerformance
+export default StaffPerformance

@@ -1,9 +1,9 @@
 import React from 'react'
 
-function staffProfile() {
+function StaffProfile() {
   return (
-    <div>staffProfile</div>
+    <div>StaffProfile</div>
   )
 }
 
-export default staffProfile
+export default StaffProfile

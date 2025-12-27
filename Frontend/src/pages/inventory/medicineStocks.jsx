@@ -1,9 +1,9 @@
 import React from 'react'
 
-function medicineStocks() {
+function MedicineStocks() {
   return (
-    <div>medicineStocks</div>
+    <div>MedicineStocks</div>
   )
 }
 
-export default medicineStocks
+export default MedicineStocks

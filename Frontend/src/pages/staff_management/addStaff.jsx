@@ -1,9 +1,9 @@
 import React from 'react'
 
-function addStaff() {
+function AddStaff() {
   return (
-    <div>addStaff</div>
+    <div>AddStaff</div>
   )
 }
 
-export default addStaff
+export default AddStaff

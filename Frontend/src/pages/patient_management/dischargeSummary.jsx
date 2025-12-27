@@ -1,9 +1,9 @@
 import React from 'react'
 
-function dischargeSummary() {
+function DischargeSummary() {
   return (
-    <div>dischargeSummary</div>
+    <div>DischargeSummary</div>
   )
 }
 
-export default dischargeSummary
+export default DischargeSummary

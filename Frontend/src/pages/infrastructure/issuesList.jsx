@@ -1,9 +1,9 @@
 import React from 'react'
 
-function issuesList() {
+function IssuesList() {
   return (
-    <div>issuesList</div>
+    <div>IssuesList</div>
   )
 }
 
-export default issuesList
+export default IssuesList

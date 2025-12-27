@@ -1,9 +1,9 @@
 import React from 'react'
 
-function viewAppointment() {
+function ViewAppointment() {
   return (
-    <div>viewAppointment</div>
+    <div>ViewAppointment</div>
   )
 }
 
-export default viewAppointment
+export default ViewAppointment

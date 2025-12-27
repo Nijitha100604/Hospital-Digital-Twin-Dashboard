@@ -1,9 +1,9 @@
 import React from 'react'
 
-function maintenanceLog() {
+function MaintenanceLog() {
   return (
-    <div>maintenanceLog</div>
+    <div>MaintenanceLog</div>
   )
 }
 
-export default maintenanceLog
+export default MaintenanceLog

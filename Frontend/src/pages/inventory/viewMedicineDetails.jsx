@@ -1,9 +1,9 @@
 import React from 'react'
 
-function viewMedicineDetails() {
+function ViewMedicineDetails() {
   return (
-    <div>viewMedicineDetails</div>
+    <div>ViewMedicineDetails</div>
   )
 }
 
-export default viewMedicineDetails
+export default ViewMedicineDetails

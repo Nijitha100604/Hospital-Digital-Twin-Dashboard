@@ -1,9 +1,9 @@
 import React from 'react'
 
-function departmentsList() {
+function DepartmentsList() {
   return (
-    <div>departmentsList</div>
+    <div>DepartmentsList</div>
   )
 }
 
-export default departmentsList
+export default DepartmentsList

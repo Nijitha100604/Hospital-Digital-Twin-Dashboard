@@ -1,9 +1,9 @@
 import React from 'react'
 
-function createSchedule() {
+function CreateSchedule() {
   return (
-    <div>createSchedule</div>
+    <div>CreateSchedule</div>
   )
 }
 
-export default createSchedule
+export default CreateSchedule

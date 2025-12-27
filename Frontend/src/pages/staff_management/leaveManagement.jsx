@@ -1,9 +1,9 @@
 import React from 'react'
 
-function leaveManagement() {
+function LeaveManagement() {
   return (
-    <div>leaveManagement</div>
+    <div>LeaveManagement</div>
   )
 }
 
-export default leaveManagement
+export default LeaveManagement
