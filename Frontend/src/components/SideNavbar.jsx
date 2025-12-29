@@ -12,9 +12,10 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
   return (
     <div 
       className={`
-        fixed md:static top-0 left-0
+        md:sticky md:top-16
+        fixed top-0 left-0
         mt-16 md:mt-16 
-        w-52 h-screen
+        w-52 min-h-screen
         bg-white border border-gray-300 
         py-4 z-40
         overflow-y-auto hide-scrollbar
