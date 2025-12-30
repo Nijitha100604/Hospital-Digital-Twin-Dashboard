@@ -58,14 +58,6 @@ function PatientProfile() {
         <p className="text-gray-500 text-sm">Complete Patient Information</p>
       </div>
 
-      <div className="relative w-80">
-        <FaSearch className="absolute left-3 top-3/6 -translate-y-1/2 text-sm pointer-events-none text-gray-500"/>
-        <input 
-          type="text" 
-          placeholder = "Search by Patient Name or Patient ID"
-          className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-fuchsia-700 bg-gray-300 rounded-lg"
-        />
-      </div>
 
     </div>
 
