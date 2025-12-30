@@ -29,11 +29,12 @@ import IssuesList from './pages/infrastructure/IssuesList';
 import AddNewMedicine from './pages/inventory/AddNewMedicine';
 import CreateNewSupplier from './pages/inventory/CreateNewSupplier';
 import CreatePurchaseOrder from './pages/inventory/CreatePurchaseOrder';
-import MedicineStocks from './pages/inventory/MedicineStocks';
+import MedicineStocks from './pages/inventory/medicineStocks';
+import EditMedicineDetails from './pages/inventory/editMedicineDetails'
 import PurchaseOrder from './pages/inventory/PurchaseOrder';
 import StockAlerts from './pages/inventory/StockAlerts';
 import SuppliersList from './pages/inventory/SuppliersList';
-import ViewMedicineDetails from './pages/inventory/ViewMedicineDetails';
+import ViewMedicineDetails from './pages/inventory/viewMedicineDetails';
 import LabReportsList from './pages/laboratory/LabReportsList';
 import LabResultsEntry from './pages/laboratory/LabResultsEntry';
 import PatientWiseReports from './pages/laboratory/PatientWiseReports';
@@ -105,7 +106,10 @@ function App() {
         <Route path='/purchase-order' element={<PurchaseOrder />}/>
         <Route path='/stock-alerts' element={<StockAlerts />}/>
         <Route path='/suppliers-list' element={<SuppliersList />}/>
-        <Route path='/view-medicine-details' element={<ViewMedicineDetails />}/>
+        <Route path="/medicine-details/:id" element={<ViewMedicineDetails />}/>
+        <Route path="/edit-medicine/:id" element={<EditMedicineDetails />}/>
+
+
 
         {/* Laboratory */}
         <Route path='/lab-reports-list' element={<LabReportsList />}/>
