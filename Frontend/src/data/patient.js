@@ -90,3 +90,112 @@ export const patient_records = [
     "visitMode": "In Person"
   }
 ]
+
+export const patient_data = {
+  "patientId": "P000123",
+  "name": "Ananya Rao",
+  "contactNumber": "9876543210",
+  "age": 29,
+  "gender": "Female",
+  "bloodGroup": "O+ve",
+  "registeredDate": "15 Dec 2025",
+  "guardian": {
+    "name": "Ramesh Rao",
+    "contactNumber": "9123456780"
+  },
+  "address": "123 Main Street, Highway Road, Chicago, 643109",
+  "vitalParameters":[
+    {
+      "name" : "Blood Pressure",
+      "value": "118/76",
+      "unit": "mm/Hg",
+      "status": "Normal"
+    },
+    {
+      "name" : "Heart Rate",
+      "value": "54",
+      "unit": "BPM",
+      "status": "Below Normal"
+    },
+    {
+      "name" : "Temperature",
+      "value": "99.6",
+      "unit": "F",
+      "status": "Elevated"
+    },
+    {
+      "name" : "Glucose",
+      "value": "182",
+      "unit": "mg/dl",
+      "status": "Critical"
+    },
+    {
+      "name" : "SpO2",
+      "value": "98",
+      "unit": "%",
+      "status": "Below Normal"
+    }
+  ],
+  "medicalInformation": {
+    "allergies": [
+      "Penicillin",
+      "Dust",
+      "Berries",
+      "Pollen"
+    ],
+    "medicalHistory": [
+      "Asthma",
+      "Seasonal Allergic Rhinitis",
+      "Type 2 Diabetes Milletus"
+    ]
+  },
+  "admissionDetails":[ 
+    {
+    "bedNo": "B-14",
+    "ward": "General Ward",
+    "block": "Block A",
+    "admittedDays": 4,
+    "admittedDate": "12 Jun 2025"
+    } 
+  ],
+  "visitHistory": [
+    {
+      "date": "16 Nov 2025",
+      "doctor": "Dr. Priya Menon",
+      "diagnosis": "Acute Bronchitis",
+      "remarks": "Prescribed antibiotics and nebulization"
+    },
+    {
+      "date": "18 Nov 2025",
+      "doctor": "Dr. Arun Kumar",
+      "diagnosis": "Improving respiratory condition",
+      "remarks": "Reduced medication dosage"
+    }
+  ],
+  "labReports": [
+    {
+      "testName": "Complete Blood Count",
+      "reportNumber": "LR0001",
+      "status": "Normal",
+      "date": "16 Nov 2024",
+      "conductedBy": "John Doe",
+      "completed": true
+    },
+    {
+      "testName": "Chest X-Ray",
+      "reportNumber": "LR002",
+      "status": "Abnormal",
+      "date": "17 Dec 2024",
+      "conductedBy": "John Doe",
+      "completed": true
+    },
+    {
+      "testName": "Blood Glucose",
+      "reportNumber": "LR003",
+      "status": "Normal",
+      "date": "18 Nov 2025",
+      "conductedBy": "John Doe",
+      "completed": true
+    }
+  ]
+}

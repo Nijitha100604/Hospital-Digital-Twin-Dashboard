@@ -71,6 +71,7 @@ function App() {
         {/* patient management routes */}
         <Route path="/" element={uToken ? <PatientList /> : <Navigate to="/login" />}/>
         <Route path='/patient-profile/:id' element={<PatientProfile />}/>
+        <Route path='/patient-profile' element={<PatientProfile />}/>
         <Route path='/add-new-patient' element={<AddNewPatient />}/>
         <Route path='/book-appointment' element={<BookAppointment />}/>
         <Route path='/all-appointments' element={<AllAppointments />}/>

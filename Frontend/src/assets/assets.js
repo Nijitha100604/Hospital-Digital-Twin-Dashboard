@@ -15,7 +15,7 @@ import Amoxicillin from './medicines/amoxicillin.jpg'
 import Losartan from "./medicines/losartan.png";
 import Ibuprofen from "./medicines/ibuprofen.jpg";
 import Insulin from "./medicines/insulin_Glargine.jpg";
-
+import heart_rate from './heart-rate.png';
 
 
 export const assets = {
@@ -35,5 +35,6 @@ export const assets = {
     Amoxicillin,
     Ibuprofen,
     Insulin,
-    Losartan
+    Losartan,
+    heart_rate
 }
