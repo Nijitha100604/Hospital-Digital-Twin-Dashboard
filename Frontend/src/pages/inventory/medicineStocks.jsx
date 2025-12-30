@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { assets } from "../../assets/assets";
 
 import {
@@ -11,6 +12,7 @@ import {
   FaHospitalUser,
   FaBell,
   FaPlus,
+  FaFilter,
 } from "react-icons/fa";
 import { medicine_records } from "../../data/medicine";
 
@@ -21,6 +23,9 @@ const MedicineStocks = () => {
 
   /* ---------- Helpers ---------- */
   const today = new Date();
+
+  // Initialize navigate
+  const navigate = useNavigate();
 
   const isExpiringSoon = (dateStr) => {
     const expiry = new Date(dateStr);
@@ -67,7 +72,6 @@ const MedicineStocks = () => {
 
   return (
     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
-
       {/* Header + Actions */}
       <div className="flex flex-col md:flex-row justify-between mb-5 gap-4">
         <div>
@@ -91,10 +95,14 @@ const MedicineStocks = () => {
             </span>
           </button>
 
-          <button className="flex items-center gap-2 px-4 py-2 bg-fuchsia-700 hover:bg-fuchsia-800 text-white rounded-md text-sm cursor-pointer">
-            <FaPlus />
-            Add New Medicine
-          </button>
+          <button
+  onClick={() => navigate("/add-new-medicine")}
+  className="flex items-center gap-2 px-4 py-2 bg-fuchsia-700 hover:bg-fuchsia-800 text-white rounded-md text-sm cursor-pointer"
+>
+  <FaPlus />
+  Add New Medicine
+</button>
+
         </div>
       </div>
 
@@ -124,37 +132,51 @@ const MedicineStocks = () => {
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-5 mb-6">
+        {/* Search */}
         <div className="relative w-full flex-1 md:w-80">
           <FaSearch className="absolute left-3 top-3 text-gray-400" />
           <input
             type="text"
             placeholder="Search by medicine, ID, or batch"
-            className="pl-10 pr-3 py-2 rounded-md w-full border border-gray-400 focus:ring-1 focus:ring-fuchsia-600 outline-0"
+            className="pl-10 pr-3 py-2 rounded-md w-full border bg-gray-300 border-gray-400
+                 focus:ring-1 focus:ring-fuchsia-600 outline-0"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
         <div className="flex gap-5">
-          <select
-            className="px-3 py-2 cursor-pointer rounded-md border border-gray-400"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-          >
-            {categories.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
+          {/* Category Filter */}
+          <div className="relative">
+            <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+            <select
+              className="pl-9 h-10 pr-3 py-2 cursor-pointer rounded-md border border-gray-400
+                   focus:ring-1 focus:ring-fuchsia-600 outline-none"
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+            >
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <select
-            className="px-3 py-2 cursor-pointer rounded-md border border-gray-400"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option>All Status</option>
-            <option>In Stock</option>
-            <option>Low Stock</option>
-          </select>
+          {/* Status Filter */}
+          <div className="relative">
+            <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+            <select
+              className="pl-9 h-10 pr-3 py-2 cursor-pointer rounded-md border border-gray-400
+                   focus:ring-1 focus:ring-fuchsia-600 outline-none"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="All">All Status</option>
+              <option value="In Stock">In Stock</option>
+              <option value="Low Stock">Low Stock</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -171,7 +193,8 @@ const MedicineStocks = () => {
       </div>
 
       <p className="text-xs text-gray-500 mt-6">
-        Showing {filteredMedicines.length} of {medicine_records.length} medicines
+        Showing {filteredMedicines.length} of {medicine_records.length}{" "}
+        medicines
       </p>
     </div>
   );
@@ -182,20 +205,17 @@ export default MedicineStocks;
 /* ---------- Components ---------- */
 
 const SummaryCard = ({ title, value, icon }) => (
-  <div className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
+  <div className="bg-white rounded-lg shadow  border border-gray-300 p-4 flex justify-between items-center">
     <div>
       <p className="text-sm text-gray-500">{title}</p>
       <p className="text-xl font-bold">{value}</p>
     </div>
-    <div className="p-3 bg-gray-300 rounded-lg">
-      {icon}
-    </div>
+    <div className="p-3 bg-gray-300 rounded-lg">{icon}</div>
   </div>
 );
 
 const MedicineCard = ({ medicine, status, expiring }) => (
-  <div className="bg-white w-full rounded-xl shadow hover:shadow-2xl hover:shadow-gray-500 transition overflow-hidden">
-
+  <div className="bg-white w-full rounded-xl border border-gray-300 shadow hover:shadow-2xl hover:shadow-gray-500 transition overflow-hidden">
     {/* Image with badges */}
     <div className="relative h-40 bg-gray-100 flex items-center justify-center">
       <img
@@ -204,17 +224,19 @@ const MedicineCard = ({ medicine, status, expiring }) => (
         className="object-contain h-full w-250"
       />
 
-      <div className="absolute top-2 left-2 flex gap-2">
-        {expiring && (
+      <div className="absolute top-2 left-2 right-2 flex justify-between">
+        {expiring ? (
           <span className="text-xs flex gap-1 bg-red-500 text-white px-2 py-1 rounded">
             <FaExclamationTriangle className="mt-0.5" />
             Expiring Soon
           </span>
+        ) : (
+          <span />
         )}
 
         <span
           className={`text-xs px-2 py-1 rounded text-white ${
-            status === "Low Stock" ? "bg-yellow-500" : "bg-green-500"
+            status === "Low Stock" ? "bg-yellow-600" : "bg-green-500"
           }`}
         >
           {status}
@@ -225,7 +247,9 @@ const MedicineCard = ({ medicine, status, expiring }) => (
     {/* Content */}
     <div className="p-4">
       <h3 className="font-semibold">{medicine.medicineName}</h3>
-      <p className="text-xs p-2 bg-blue-100 w-fit border-1 border-gray-400 rounded-xl text-gray-500 mb-3">{medicine.category}</p>
+      <p className="text-xs p-2 bg-blue-100 w-fit border border-gray-400 rounded-xl text-gray-500 mb-3">
+        {medicine.category}
+      </p>
 
       <div className="text-sm ml-4 text-gray-600 grid grid-cols-2 gap-y-1">
         <span className="font-medium text-gray-500">ID</span>

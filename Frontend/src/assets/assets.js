@@ -12,6 +12,10 @@ import Omeprazole from './medicines/omeprazole.jpg'
 import Salbutamol from './medicines/salbutamol.png'
 import Vitamin_d3 from './medicines/vitamind3.jpg'
 import Amoxicillin from './medicines/amoxicillin.jpg'
+import Losartan from "./medicines/losartan.png";
+import Ibuprofen from "./medicines/ibuprofen.jpg";
+import Insulin from "./medicines/insulin_Glargine.jpg";
+
 
 
 export const assets = {
@@ -28,5 +32,8 @@ export const assets = {
     Omeprazole,
     Salbutamol,
     Vitamin_d3,
-    Amoxicillin
+    Amoxicillin,
+    Ibuprofen,
+    Insulin,
+    Losartan
 }
