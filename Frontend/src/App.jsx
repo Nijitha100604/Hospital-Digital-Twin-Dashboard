@@ -34,6 +34,7 @@ import EditMedicineDetails from './pages/inventory/editMedicineDetails'
 import PurchaseOrder from './pages/inventory/PurchaseOrder';
 import StockAlerts from './pages/inventory/StockAlerts';
 import SuppliersList from './pages/inventory/SuppliersList';
+import EditSupplierDetails from "./pages/inventory/editSupplierDetails";
 import ViewMedicineDetails from './pages/inventory/viewMedicineDetails';
 import LabReportsList from './pages/laboratory/LabReportsList';
 import LabResultsEntry from './pages/laboratory/LabResultsEntry';
@@ -105,6 +106,7 @@ function App() {
         <Route path='/purchase-order' element={<PurchaseOrder />}/>
         <Route path='/stock-alerts' element={<StockAlerts />}/>
         <Route path='/suppliers-list' element={<SuppliersList />}/>
+        <Route path="/edit-supplier/:id" element={<EditSupplierDetails />} />
         <Route path="/medicine-details/:id" element={<ViewMedicineDetails />}/>
         <Route path="/edit-medicine/:id" element={<EditMedicineDetails />}/>
 

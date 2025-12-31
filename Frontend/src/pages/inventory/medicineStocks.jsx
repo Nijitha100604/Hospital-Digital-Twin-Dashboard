@@ -100,7 +100,7 @@ const MedicineStocks = () => {
 
           <button
             onClick={() => navigate("/add-new-medicine")}
-            className="flex items-center gap-2 px-4 py-2 bg-fuchsia-700 hover:bg-fuchsia-800 text-white rounded-md text-sm cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white rounded-md text-sm cursor-pointer"
           >
             <FaPlus />
             Add New Medicine
@@ -292,7 +292,7 @@ const MedicineCard = ({ medicine, status, expiring, navigate }) => (
 
       <button
         onClick={() => navigate(`/medicine-details/${medicine.medicineId}`)}
-        className="w-full cursor-pointer flex items-center justify-center gap-2 bg-fuchsia-700 hover:bg-fuchsia-800 text-white py-2 rounded-md text-sm"
+        className="w-full cursor-pointer flex items-center justify-center gap-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white py-2 rounded-md text-sm"
       >
         <FaEye />
         View Details

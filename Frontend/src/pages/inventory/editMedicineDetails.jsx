@@ -72,7 +72,7 @@ const EditMedicineDetails = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // 👉 In real app: update API / DB here
+    // In real app: update API / DB here
     toast.success("Medicine details updated successfully");
     navigate(`/medicine-details/${medicine.medicineId}`);
   };
@@ -94,7 +94,7 @@ const EditMedicineDetails = () => {
         <div className="m-3">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm border bg-gray-200 hover:text-white hover:bg-fuchsia-700 border-fuchsia-700 rounded px-3 py-1 text-black cursor-pointer"
+            className="flex items-center gap-2 text-sm border bg-gray-200 hover:text-white hover:bg-fuchsia-900 border-fuchsia-700 rounded px-3 py-1 text-black cursor-pointer"
           >
             <FaArrowLeft />
             Back

@@ -78,7 +78,7 @@ const AddNewMedicine = () => {
         <div className="m-3">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm border bg-gray-200 hover:text-white hover:bg-fuchsia-700 border-fuchsia-700 rounded px-3 py-1 text-black cursor-pointer"
+            className="flex items-center gap-2 text-sm border bg-gray-200 hover:text-white hover:bg-fuchsia-900 border-fuchsia-700 rounded px-3 py-1 text-black cursor-pointer"
           >
             <FaArrowLeft />
             Back
@@ -289,7 +289,7 @@ const AddNewMedicine = () => {
 
           <button
             type="submit"
-            className="flex items-center gap-2 bg-fuchsia-700 hover:bg-fuchsia-800 text-white px-4 py-2 rounded-md"
+            className="flex items-center gap-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-4 py-2 rounded-md"
           >
             <FaSave /> Add Medicine
           </button>

@@ -16,7 +16,7 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
         fixed top-0 left-0
         mt-16 md:mt-16 
         w-52 min-h-screen
-        bg-white border border-gray-300 
+        bg-white border border-gray-300
         py-4 z-40
         overflow-y-auto hide-scrollbar
         transition-transform duration-300
