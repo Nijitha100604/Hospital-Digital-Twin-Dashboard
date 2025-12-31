@@ -38,12 +38,12 @@ import LabReportsList from './pages/laboratory/LabReportsList';
 import LabResultsEntry from './pages/laboratory/LabResultsEntry';
 import PatientWiseReports from './pages/laboratory/PatientWiseReports';
 import UploadReport from './pages/laboratory/UploadReport';
-import AddStaff from './pages/staff_management/AddStaff';
+import AddStaff from './pages/staff_management/AddNewStaff';
 import AssignShift from './pages/staff_management/AssignShift';
 import Attendance from './pages/staff_management/Attendance';
 import LeaveManagement from './pages/staff_management/LeaveManagement';
 import ShiftPlanner from './pages/staff_management/ShiftPlanner';
-import StaffList from './pages/staff_management/StaffList';
+import StaffList from './pages/staff_management/staffList';
 import StaffPerformance from './pages/staff_management/StaffPerformance';
 import StaffProfile from './pages/staff_management/StaffProfile';
 
