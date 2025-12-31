@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { FaUserTie, FaPlus, FaSearch, FaFilter, FaEye, FaTimes } from "react-icons/fa";
 import { staffList } from "../../data/staffList";
 import { useNavigate } from "react-router-dom";
@@ -6,32 +6,27 @@ import { useNavigate } from "react-router-dom";
 function StaffList() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  
-  // State for which dropdown is open (e.g., "Department" or null)
   const [openFilter, setOpenFilter] = useState(null);
   
-  // State to store selected values: { Department: "Cardiology", Role: "", Status: "" }
+  // State to store selected values
   const [selectedFilters, setSelectedFilters] = useState({
     Department: "",
     Role: "",
     Status: ""
   });
 
-  // Helper to get unique values for the dropdowns based on your data
+  // Helper to get unique values for dropdowns
   const getUniqueValues = (key) => {
-    // Map 'Role' in UI to 'designation' in data, lower case key match
     const dataKey = key === "Role" ? "designation" : key.toLowerCase();
     return [...new Set(staffList.map((item) => item[dataKey]))].filter(Boolean);
   };
 
-  // Handle filtering logic
+  // Filter Logic
   const filteredData = staffList.filter((item) => {
-    // 1. Search Filter
     const matchesSearch =
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.staffId.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // 2. Dropdown Filters
     const matchesDept = selectedFilters.Department 
       ? item.department === selectedFilters.Department 
       : true;
@@ -45,13 +40,12 @@ function StaffList() {
     return matchesSearch && matchesDept && matchesRole && matchesStatus;
   });
 
-  // Handle selecting an option
   const handleFilterSelect = (category, value) => {
     setSelectedFilters((prev) => ({
       ...prev,
       [category]: value,
     }));
-    setOpenFilter(null); // Close dropdown after selection
+    setOpenFilter(null);
   };
 
   return (
@@ -59,7 +53,6 @@ function StaffList() {
       {/* HEADER SECTION */}
       <div className="bg-white px-6 py-5 rounded-xl shadow-sm">
         <div className="flex flex-wrap justify-between items-center gap-4">
-          {/* Title */}
           <div>
             <div className="flex items-center gap-3">
               <FaUserTie className="text-gray-600" size={22} />
@@ -72,10 +65,9 @@ function StaffList() {
             </p>
           </div>
 
-          {/* Add Staff Button */}
           <button
             onClick={() => navigate("/add-staff")}
-            className="flex items-center gap-2 bg-purple-700 text-white px-4 py-2.5 rounded-xl shadow hover:bg-purple-800"
+            className="flex items-center gap-2 bg-purple-700 text-white px-4 py-2.5 rounded-xl shadow hover:bg-purple-800 transition-colors"
           >
             <FaPlus size={14} />
             Add New Staff
@@ -84,7 +76,6 @@ function StaffList() {
 
         {/* SEARCH + FILTER ROW */}
         <div className="flex flex-wrap items-center gap-4 mt-5">
-          {/* Search */}
           <div className="relative flex-1 min-w-[260px]">
             <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm" />
             <input
@@ -92,30 +83,23 @@ function StaffList() {
               placeholder="Search by Staff Name or Staff ID"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-gray-200 pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-600"
+              className="w-full bg-gray-200 pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all"
             />
           </div>
 
-          {/* Filters with Dropdowns */}
           <div className="flex gap-3 relative">
             {["Department", "Role", "Status"].map((filter) => (
               <div key={filter} className="relative">
-                {/* Filter Button */}
                 <button
-                  onClick={() =>
-                    setOpenFilter(openFilter === filter ? null : filter)
-                  }
+                  onClick={() => setOpenFilter(openFilter === filter ? null : filter)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm border transition-colors ${
                     selectedFilters[filter] 
-                      ? "bg-purple-100 text-purple-700 border-purple-200" // Active style
-                      : "bg-gray-200 text-gray-700 border-transparent" // Default style
+                      ? "bg-purple-100 text-purple-700 border-purple-200" 
+                      : "bg-gray-200 text-gray-700 border-transparent hover:bg-gray-300"
                   }`}
                 >
                   <FaFilter size={12} />
-                  {/* Show selected value if exists, else show category name */}
                   {selectedFilters[filter] || filter}
-                  
-                  {/* Optional: 'X' icon to clear specific filter if selected */}
                   {selectedFilters[filter] && (
                     <FaTimes 
                       size={10} 
@@ -128,7 +112,6 @@ function StaffList() {
                   )}
                 </button>
 
-                {/* Dropdown Menu */}
                 {openFilter === filter && (
                   <div className="absolute top-full mt-2 right-0 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                     <ul className="py-1 max-h-60 overflow-y-auto">
@@ -198,14 +181,14 @@ function StaffList() {
                     </span>
                   </td>
 
+                  {/* --- VIEW ICON MAPPING --- */}
                   <td className="px-6 py-4 text-center">
                     <div className="flex justify-center">
-                        <FaEye
-                        className="text-gray-400 hover:text-purple-600 cursor-pointer transition-colors text-lg"
-                        onClick={() =>
-                            navigate(`/staff-profile/${item.staffId}`)
-                        }
-                        />
+                      <FaEye
+                        className="text-gray-400 hover:text-purple-600 cursor-pointer text-lg transition-colors"
+                        title="View Profile"
+                        onClick={() => navigate(`/staff-profile/${item.staffId}`)}
+                      />
                     </div>
                   </td>
                 </tr>

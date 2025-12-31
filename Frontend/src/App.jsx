@@ -47,7 +47,7 @@ import LeaveManagement from './pages/staff_management/LeaveManagement';
 import ShiftPlanner from './pages/staff_management/ShiftPlanner';
 import StaffList from './pages/staff_management/StaffList';
 import StaffPerformance from './pages/staff_management/StaffPerformance';
-import StaffProfile from './pages/staff_management/StaffProfile';
+import StaffProfile from './pages/staff_management/staffProfile';
 
 
 function App() {
@@ -127,6 +127,7 @@ function App() {
         <Route path='/staff-list' element={<StaffList />}/>
         <Route path='/staff-performance' element={<StaffPerformance />}/>
         <Route path='/staff-profile' element={<StaffProfile />}/>
+        <Route path="/staff-profile/:id" element={<StaffProfile />} />   {/* For List Click (View Mode) */}
 
       </Routes>
       </div>
