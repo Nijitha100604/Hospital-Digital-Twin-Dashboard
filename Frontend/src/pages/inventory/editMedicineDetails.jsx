@@ -1,6 +1,8 @@
 import React, { useRef, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { medicine_records } from "../../data/medicine";
 import {
-  FaPlusCircle,
+  FaEdit,
   FaUpload,
   FaSave,
   FaTimes,
@@ -10,39 +12,51 @@ import {
   FaStickyNote,
   FaImage,
   FaTrash,
-  FaArrowLeft
+  FaArrowLeft,
 } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-const AddNewMedicine = () => {
+const EditMedicineDetails = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const fileRef = useRef(null);
 
-  /* ---------- Required Fields ---------- */
-  const [medicineName, setMedicineName] = useState("");
-  const [genericName, setGenericName] = useState("");
-  const [category, setCategory] = useState("");
-  const [manufacturer, setManufacturer] = useState("");
-  const [dosageForm, setDosageForm] = useState("");
-  const [strength, setStrength] = useState("");
-  const [batchNumber, setBatchNumber] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [supplierName, setSupplierName] = useState("");
-  const [costPerUnit, setCostPerUnit] = useState("");
+  const medicine = medicine_records.find((m) => m.medicineId === id);
 
-  /* ---------- Optional Fields ---------- */
-  const [packSize, setPackSize] = useState("");
-  const [prescriptionRequired, setPrescriptionRequired] = useState("No");
-  const [minimumThreshold, setMinimumThreshold] = useState("");
-  const [storageLocation, setStorageLocation] = useState("");
-  const [storageConditions, setStorageConditions] = useState("");
-  const [sellingPrice, setSellingPrice] = useState("");
-  const [description, setDescription] = useState("");
+  if (!medicine) {
+    return <p className="p-6 text-red-600">Medicine not found</p>;
+  }
 
-  /* ---------- Image ---------- */
-  const [imageName, setImageName] = useState("");
+  /* ---------- State (PRE-FILLED) ---------- */
+  const [medicineName, setMedicineName] = useState(medicine.medicineName);
+  const [genericName, setGenericName] = useState(medicine.genericName);
+  const [category, setCategory] = useState(medicine.category);
+  const [manufacturer, setManufacturer] = useState(medicine.manufacturer);
+  const [dosageForm, setDosageForm] = useState(medicine.dosageForm);
+  const [strength, setStrength] = useState(medicine.strength);
+  const [batchNumber, setBatchNumber] = useState(medicine.batchNumber);
+  const [quantity, setQuantity] = useState(medicine.quantity);
+  const [expiryDate, setExpiryDate] = useState(medicine.expiryDate);
+  const [supplierName, setSupplierName] = useState(medicine.supplierName);
+  const [costPerUnit, setCostPerUnit] = useState(medicine.costPerUnit);
+
+  const [packSize, setPackSize] = useState(medicine.packSize || "");
+  const [prescriptionRequired, setPrescriptionRequired] = useState(
+    medicine.prescriptionRequired || "No"
+  );
+  const [minimumThreshold, setMinimumThreshold] = useState(
+    medicine.minimumThreshold || ""
+  );
+  const [storageLocation, setStorageLocation] = useState(
+    medicine.storageLocation || ""
+  );
+  const [storageConditions, setStorageConditions] = useState(
+    medicine.storageConditions || ""
+  );
+  const [sellingPrice, setSellingPrice] = useState(medicine.sellingPrice || "");
+  const [description, setDescription] = useState(medicine.description || "");
+
+  const [imageName, setImageName] = useState(medicine.medicineImage || "");
 
   const handleImageChange = (e) => {
     if (e.target.files[0]) {
@@ -57,8 +71,10 @@ const AddNewMedicine = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    toast.success("New medicine data created successfully");
-    navigate("/medicine-stocks");
+
+    // In real app: update API / DB here
+    toast.success("Medicine details updated successfully");
+    navigate(`/medicine-details/${medicine.medicineId}`);
   };
 
   return (
@@ -67,11 +83,11 @@ const AddNewMedicine = () => {
       <div className=" flex justify-between">
         <div className="flex flex-col gap-1 mb-4">
           <div className="flex gap-3 items-center">
-            <FaPlusCircle className=" text-lg text-gray-500" />
-            <p className="font-bold text-lg">Add New Medicine</p>
+            <FaEdit className="text-gray-500" />
+            <p className="font-bold text-lg">Edit Medicine Details</p>
           </div>
           <p className="text-sm text-gray-500">
-            Add a new medicine or supply into inventory
+            Update existing medicine information
           </p>
         </div>
 
@@ -95,14 +111,12 @@ const AddNewMedicine = () => {
           <Input
             label="Medicine Name"
             required
-            placeholder="e.g. Paracetamol 500mg"
             value={medicineName}
             onChange={setMedicineName}
           />
           <Input
             label="Generic Name"
             required
-            placeholder="e.g. Acetaminophen"
             value={genericName}
             onChange={setGenericName}
           />
@@ -122,7 +136,6 @@ const AddNewMedicine = () => {
           <Input
             label="Manufacturer"
             required
-            placeholder="e.g. PharmaCorp Ltd"
             value={manufacturer}
             onChange={setManufacturer}
           />
@@ -136,16 +149,10 @@ const AddNewMedicine = () => {
           <Input
             label="Strength"
             required
-            placeholder="e.g. 500 mg"
             value={strength}
             onChange={setStrength}
           />
-          <Input
-            label="Pack Size"
-            placeholder="e.g. 10 tablets/strip"
-            value={packSize}
-            onChange={setPackSize}
-          />
+          <Input label="Pack Size" value={packSize} onChange={setPackSize} />
           <Select
             label="Prescription Required"
             required
@@ -160,7 +167,6 @@ const AddNewMedicine = () => {
           <Input
             label="Batch Number"
             required
-            placeholder="e.g. PC-2024-001"
             value={batchNumber}
             onChange={setBatchNumber}
           />
@@ -168,14 +174,12 @@ const AddNewMedicine = () => {
             label="Quantity"
             type="number"
             required
-            placeholder="e.g. 150"
             value={quantity}
             onChange={setQuantity}
           />
           <Input
             label="Minimum Threshold"
             type="number"
-            placeholder="e.g. 20"
             value={minimumThreshold}
             onChange={setMinimumThreshold}
           />
@@ -188,37 +192,32 @@ const AddNewMedicine = () => {
           />
           <Input
             label="Storage Location"
-            placeholder="e.g. Rack A - Shelf 3"
             value={storageLocation}
             onChange={setStorageLocation}
           />
           <Input
             label="Storage Conditions"
-            placeholder="e.g. Store below 25°C"
             value={storageConditions}
             onChange={setStorageConditions}
           />
         </Section>
 
-        {/* Supplier & Pricing */}
+        {/* Supplier */}
         <Section title="Supplier & Pricing Information" icon={<FaTruck />}>
           <Input
             label="Supplier Name"
             required
-            placeholder="e.g. HealthPlus Distributors"
             value={supplierName}
             onChange={setSupplierName}
           />
           <Input
             label="Cost Per Unit"
             required
-            placeholder="e.g. 2.50"
             value={costPerUnit}
             onChange={setCostPerUnit}
           />
           <Input
             label="Selling Price"
-            placeholder="e.g. 4.00"
             value={sellingPrice}
             onChange={setSellingPrice}
           />
@@ -228,17 +227,15 @@ const AddNewMedicine = () => {
         <Section title="Additional Information" icon={<FaStickyNote />}>
           <Textarea
             label="Description"
-            placeholder="Add description here"
             value={description}
             onChange={setDescription}
           />
         </Section>
 
-        {/* Upload Image */}
+        {/* Image */}
         <div>
           <label className="font-semibold text-sm flex items-center gap-2">
-            <FaImage /> Add Medicine Image{" "}
-            <span className="text-red-600">*</span>
+            <FaImage /> Medicine Image
           </label>
 
           <div
@@ -246,13 +243,7 @@ const AddNewMedicine = () => {
             className="mt-2 border-2 border-gray-400 border-dashed bg-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-fuchsia-600"
           >
             <FaUpload className="mx-auto text-xl text-gray-600" />
-            <p className="text-md text-gray-600">
-              Drag & drop files or{" "}
-              <span className="font-semibold underline">browse</span>
-            </p>
-            <p className="text-xs text-gray-500">
-              Supported formats: JPG, PNG, WEBP
-            </p>
+            <p className="text-md text-gray-600">Click to change image</p>
           </div>
 
           {imageName && (
@@ -261,7 +252,7 @@ const AddNewMedicine = () => {
               <button
                 type="button"
                 onClick={removeImage}
-                className="text-red-600 hover:text-red-800"
+                className="text-red-600"
               >
                 <FaTrash />
               </button>
@@ -272,7 +263,6 @@ const AddNewMedicine = () => {
             type="file"
             ref={fileRef}
             onChange={handleImageChange}
-            accept=".png,.jpg,.jpeg,.webp"
             className="hidden"
           />
         </div>
@@ -289,9 +279,9 @@ const AddNewMedicine = () => {
 
           <button
             type="submit"
-            className="flex items-center gap-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-4 py-2 rounded-md"
+            className="flex items-center gap-2 bg-fuchsia-700 hover:bg-fuchsia-800 text-white px-4 py-2 rounded-md"
           >
-            <FaSave /> Add Medicine
+            <FaSave /> Update Medicine
           </button>
         </div>
       </form>
@@ -299,7 +289,7 @@ const AddNewMedicine = () => {
   );
 };
 
-export default AddNewMedicine;
+export default EditMedicineDetails;
 
 /* ---------- Reusable Components ---------- */
 
@@ -313,14 +303,7 @@ const Section = ({ title, icon, children }) => (
   </div>
 );
 
-const Input = ({
-  label,
-  required,
-  value,
-  onChange,
-  type = "text",
-  placeholder,
-}) => (
+const Input = ({ label, required, value, onChange, type = "text" }) => (
   <div>
     <label className="text-sm font-medium">
       {label} {required && <span className="text-red-600">*</span>}
@@ -329,7 +312,6 @@ const Input = ({
       type={type}
       required={required}
       value={value}
-      placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
       className="w-full mt-1 bg-gray-300 outline-0 rounded-md px-3 py-2 focus:ring-1 focus:ring-fuchsia-600"
     />
@@ -347,7 +329,6 @@ const Select = ({ label, required, value, onChange, options }) => (
       onChange={(e) => onChange(e.target.value)}
       className="w-full mt-1 bg-gray-300 outline-0 rounded-md px-3 py-2 focus:ring-1 focus:ring-fuchsia-600"
     >
-      <option value="">Select</option>
       {options.map((o) => (
         <option key={o}>{o}</option>
       ))}
@@ -355,13 +336,12 @@ const Select = ({ label, required, value, onChange, options }) => (
   </div>
 );
 
-const Textarea = ({ label, value, onChange, placeholder }) => (
+const Textarea = ({ label, value, onChange }) => (
   <div className="md:col-span-2">
     <label className="text-sm font-medium">{label}</label>
     <textarea
       rows={3}
       value={value}
-      placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
       className="w-full mt-1 bg-gray-300 outline-0 rounded-md px-3 py-2 focus:ring-1 focus:ring-fuchsia-600"
     />

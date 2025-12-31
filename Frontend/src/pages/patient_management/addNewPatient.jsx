@@ -3,17 +3,83 @@ import { FaUserPlus } from "react-icons/fa";
 import { FaUpload } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
 import { FaSave } from "react-icons/fa";
+import { useNavigate } from 'react-router-dom';
+import { toast } from "react-toastify";
 
 function AddNewPatient() {
 
   const fileRef = useRef(null);
   const [fileName, setFileName] = useState("");
 
+  // User Data
+
+  const[name, setName] = useState('');
+  const[age, setAge] = useState('');
+  const[gender, setGender] = useState('');
+  const[bloodGroup, setBloodGroup] = useState('');
+  const[contact, setContact] = useState('');
+  const[email, setEmail] = useState('');
+  const[address, setAddress] = useState('');
+  const[guardianName, setGuardianName] = useState('');
+  const[guardianContact, setGuardianContact] = useState('');
+  const[allergies, setAllergies] = useState([]);
+  const[allergyInput, setAllergyInput] = useState("");
+  const[medicalHistory, setMedicalHistory] = useState([]);
+  const[historyInput, sethistoryInput] = useState("");
+  const[idProof, setIdProof] = useState(null);
+
+  const navigate = useNavigate();
+
   const handleFileChange = (e) => {
-    if (e.target.files.length > 0) {
-      setFileName(e.target.files[0].name);
+    const file = e.target.files[0];
+    if (file) {
+      setFileName(file.name);
+      setIdProof(file);
     }
   };
+
+  const handleAllergyChange = (e) =>{
+    const value = e.target.value;
+    setAllergyInput(value);
+
+    const allergyArray = value
+      .split(",")
+      .map(item => item.trim())
+      .filter(item => item !== "");
+    
+    setAllergies(allergyArray);
+  }
+
+  const handleHistoryChange = (e) =>{
+    const value = e.target.value;
+    sethistoryInput(value);
+    const historyArray = value
+    .split(",")
+    .map(item => item.trim())
+    .filter(item => item !== "");
+    setMedicalHistory(historyArray);
+  }
+
+  const formattedData = {
+    "Name" : name,
+    "Age": age,
+    "Gender": gender,
+    "Contact Number": contact,
+    "Blood Group": bloodGroup,
+    "Address": address,
+    "Guardian Name": guardianName,
+    "Guardian Contact": guardianContact,
+    "Allergies": allergies,
+    "Medical History": medicalHistory,
+    "ID proof" : idProof
+  }
+
+  const handleSubmit = (e) =>{
+    e.preventDefault();
+    console.log(formattedData);
+    toast.success("Patient added successfully");
+    navigate("/");
+  }
 
   return (
     <>
@@ -32,7 +98,10 @@ function AddNewPatient() {
       </div>
 
       {/* Input fields */}
-      <form className="bg-white px-4 py-2 mt-4 rounded-lg">
+      <form 
+        className="bg-white px-4 py-2 mt-4 rounded-lg"
+        onSubmit = {handleSubmit}
+      >
       
       {/* Personal Information */}
 
@@ -45,6 +114,8 @@ function AddNewPatient() {
           <label className="text-sm text-gray-800 font-medium">Full Name <span className="text-red-600">*</span></label>
           <input 
             type="text"
+            value={name}
+            onChange={(e)=>setName(e.target.value)}
             required
             placeholder='Enter the Full Name'
             className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
@@ -56,6 +127,8 @@ function AddNewPatient() {
           <label className="text-sm text-gray-800 font-medium">Gender <span className="text-red-600">*</span></label>
           <select
             required
+            value={gender}
+            onChange={(e)=>setGender(e.target.value)}
             className = {`w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700`}
           >
             <option value = "">Select Gender</option>
@@ -70,6 +143,8 @@ function AddNewPatient() {
           <label className="text-sm text-gray-800 font-medium">Age <span className="text-red-600">*</span></label>
           <input 
             type="number"
+            value={age}
+            onChange={(e)=>setAge(e.target.value)}
             required
             placeholder='Enter the Age'
             className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
@@ -81,6 +156,8 @@ function AddNewPatient() {
           <label className="text-sm text-gray-800 font-medium">Blood Group <span className="text-red-600">*</span></label>
           <select
             required
+            value={bloodGroup}
+            onChange={(e)=>setBloodGroup(e.target.value)}
             className = {`w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700`}
           >
             <option value = "">Select Blood Group</option>
@@ -101,6 +178,8 @@ function AddNewPatient() {
           <input 
             type="number"
             required
+            value={contact}
+            onChange={(e)=>setContact(e.target.value)}
             placeholder='Enter the Contact Number'
             className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
@@ -111,6 +190,8 @@ function AddNewPatient() {
           <label className="text-sm text-gray-800 font-medium">Email</label>
           <input 
             type="email"
+            value={email}
+            onChange={(e)=>setEmail(e.target.value)}
             placeholder='Enter the Email Address'
             className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
@@ -124,6 +205,8 @@ function AddNewPatient() {
         <textarea 
           rows={2}
           required
+          value={address}
+          onChange={(e)=>setAddress(e.target.value)}
           placeholder='Enter the Full Address'
           className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
         />
@@ -140,6 +223,8 @@ function AddNewPatient() {
           <label className="text-sm text-gray-800 font-medium">Guardian Name</label>
           <input 
             type="text"
+            value={guardianName}
+            onChange={(e)=>setGuardianName(e.target.value)}
             placeholder='Enter the Guardian Name'
             className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
@@ -150,6 +235,8 @@ function AddNewPatient() {
           <label className="text-sm text-gray-800 font-medium">Guardian Contact Number</label>
           <input 
             type="number"
+            value={guardianContact}
+            onChange={(e)=>setGuardianContact(e.target.value)}
             placeholder='Enter the Guardian Contact Number'
             className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
@@ -168,6 +255,8 @@ function AddNewPatient() {
           <label className="text-sm text-gray-800 font-medium">Allergies</label>
           <textarea 
             rows={2}
+            value={allergyInput}
+            onChange={handleAllergyChange}
             placeholder='List any known allergies'
             className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
@@ -178,6 +267,8 @@ function AddNewPatient() {
           <label className="text-sm text-gray-800 font-medium">Medical History</label>
           <textarea 
             rows={2}
+            value={historyInput}
+            onChange={handleHistoryChange}
             placeholder='Enter relevant medical history'
             className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
@@ -220,7 +311,6 @@ function AddNewPatient() {
           onChange={handleFileChange}
           accept=".png,.jpg,.jpeg,.doc,.docx"
           className="hidden"
-          required
         />
       </div>
       </div>
@@ -232,7 +322,10 @@ function AddNewPatient() {
           <FaTimes /> Cancel
         </button>
 
-        <button className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800">
+        <button 
+          type = "submit"
+          className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800"
+        >
           <FaSave /> Save Patient
         </button>
 

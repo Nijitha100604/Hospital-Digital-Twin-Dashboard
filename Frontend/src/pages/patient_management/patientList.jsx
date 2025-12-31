@@ -243,7 +243,6 @@ function PatientList() {
                 <th className="px-4 py-3 text-left font-medium">Age</th>
                 <th className="px-4 py-3 text-left font-medium">Last Visit</th>
                 <th className="px-4 py-3 text-left font-medium">Phone Number</th>
-                <th className="px-4 py-3 text-left font-medium">Visit Mode</th>
                 <th className="px-4 py-3 text-left font-medium">View</th>
               </tr>
             </thead>
@@ -258,11 +257,6 @@ function PatientList() {
                     <td className="px-4 py-3">{item.age}</td>
                     <td className="px-4 py-3">{item.lastVisit}</td>
                     <td className="px-4 py-3">{item.mobileNumber}</td>
-                    <td className="px-4 py-3">
-                      <span className = {`py-2 rounded-full text-xs font-semibold ${item.visitMode === "Online" ? "bg-blue-100 text-blue-700 px-4" : "bg-green-100 text-green-700 px-2"}`}>
-                        {item.visitMode}
-                      </span>
-                    </td>
                     <td className="px-4 py-3">
                       <button 
                         className="text-gray-600 hover:text-gray-900 cursor-pointer"

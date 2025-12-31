@@ -16,7 +16,7 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
         fixed top-0 left-0
         mt-16 md:mt-16 
         w-52 min-h-screen
-        bg-white border border-gray-300 
+        bg-white border border-gray-300
         py-4 z-40
         overflow-y-auto hide-scrollbar
         transition-transform duration-300
@@ -53,13 +53,6 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
           className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
           ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
         Add New Patient
-        </NavLink>
-
-        <NavLink to="/patient-profile"
-          onClick={() => window.scrollTo(0, 0)}
-          className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${isActive ? 'font-bold text-fuchsia-900 border-r-4 border-fuchsia-900' : 'text-gray-800 hover:font-semibold'}`}>
-        Patient Profile
         </NavLink>
 
         <NavLink to="/all-appointments"

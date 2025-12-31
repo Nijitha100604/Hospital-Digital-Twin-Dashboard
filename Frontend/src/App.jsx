@@ -1,6 +1,6 @@
 import { useState } from "react"
 import TopNavbar from "./components/TopNavbar"
-import SideNavbar from "./components/sideNavbar"
+import SideNavbar from "./components/SideNavbar"
 import Login from './pages/login';
 import { ToastContainer} from 'react-toastify';
 import { Routes, Route } from 'react-router-dom';
@@ -29,21 +29,23 @@ import IssuesList from './pages/infrastructure/IssuesList';
 import AddNewMedicine from './pages/inventory/AddNewMedicine';
 import CreateNewSupplier from './pages/inventory/CreateNewSupplier';
 import CreatePurchaseOrder from './pages/inventory/CreatePurchaseOrder';
-import MedicineStocks from './pages/inventory/MedicineStocks';
+import MedicineStocks from './pages/inventory/medicineStocks';
+import EditMedicineDetails from './pages/inventory/editMedicineDetails'
 import PurchaseOrder from './pages/inventory/PurchaseOrder';
 import StockAlerts from './pages/inventory/StockAlerts';
 import SuppliersList from './pages/inventory/SuppliersList';
-import ViewMedicineDetails from './pages/inventory/ViewMedicineDetails';
+import EditSupplierDetails from "./pages/inventory/editSupplierDetails";
+import ViewMedicineDetails from './pages/inventory/viewMedicineDetails';
 import LabReportsList from './pages/laboratory/LabReportsList';
 import LabResultsEntry from './pages/laboratory/LabResultsEntry';
 import PatientWiseReports from './pages/laboratory/PatientWiseReports';
 import UploadReport from './pages/laboratory/UploadReport';
-import AddStaff from './pages/staff_management/AddNewStaff';
+import AddStaff from './pages/staff_management/AddStaff';
 import AssignShift from './pages/staff_management/AssignShift';
 import Attendance from './pages/staff_management/Attendance';
 import LeaveManagement from './pages/staff_management/LeaveManagement';
 import ShiftPlanner from './pages/staff_management/ShiftPlanner';
-import StaffList from './pages/staff_management/staffList';
+import StaffList from './pages/staff_management/StaffList';
 import StaffPerformance from './pages/staff_management/StaffPerformance';
 import StaffProfile from './pages/staff_management/StaffProfile';
 
@@ -75,7 +77,7 @@ function App() {
         <Route path='/book-appointment' element={<BookAppointment />}/>
         <Route path='/all-appointments' element={<AllAppointments />}/>
         <Route path='/discharge-summary' element={<DischargeSummary />}/>
-        <Route path='/view-appointment' element={<ViewAppointment />}/>
+        <Route path='/view-appointment/:id' element={<ViewAppointment />}/>
 
         {/* Equipment */}
         <Route path='/equipment-list' element={<EquipmentList />}/>
@@ -104,7 +106,11 @@ function App() {
         <Route path='/purchase-order' element={<PurchaseOrder />}/>
         <Route path='/stock-alerts' element={<StockAlerts />}/>
         <Route path='/suppliers-list' element={<SuppliersList />}/>
-        <Route path='/view-medicine-details' element={<ViewMedicineDetails />}/>
+        <Route path="/edit-supplier/:id" element={<EditSupplierDetails />} />
+        <Route path="/medicine-details/:id" element={<ViewMedicineDetails />}/>
+        <Route path="/edit-medicine/:id" element={<EditMedicineDetails />}/>
+
+
 
         {/* Laboratory */}
         <Route path='/lab-reports-list' element={<LabReportsList />}/>

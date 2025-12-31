@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { FaUserPlus, FaUpload, FaRedo, FaSave, FaList } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-function AddNewStaff() {
+function AddStaff() {
   const navigate = useNavigate();
   
   // Refs for file uploads
@@ -344,4 +344,4 @@ function AddNewStaff() {
   );
 }
 
-export default AddNewStaff;
+export default AddStaff;
