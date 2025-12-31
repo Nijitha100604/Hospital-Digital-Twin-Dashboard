@@ -367,3 +367,87 @@ export const allAppointments = [
     status: "Scheduled"
   }
 ];
+
+
+export const departmentDoctorData = [
+  {
+    department: "Cardiology",
+    doctors: [
+      "Dr. Meena Raj",
+      "Dr. Ramesh Iyer",
+      "Dr. Arjun Nair",
+      "Dr. Kavitha Menon",
+      "Dr. Suresh Pillai"
+    ]
+  },
+  {
+    department: "Neurology",
+    doctors: [
+      "Dr. Anitha Rao",
+      "Dr. Ajay Kulkarni",
+      "Dr. Mahesh Verma",
+      "Dr. Priya Deshmukh",
+      "Dr. Sanjay Joshi"
+    ]
+  },
+  {
+    department: "Orthopedics",
+    doctors: [
+      "Dr. Vikram Singh",
+      "Dr. Sanjay Mehta",
+      "Dr. Rohit Agarwal",
+      "Dr. Neeraj Malhotra",
+      "Dr. Karthik Subramanian"
+    ]
+  },
+  {
+    department: "Dermatology",
+    doctors: [
+      "Dr. Neha Verma",
+      "Dr. Swati Joshi",
+      "Dr. Aarti Kulkarni",
+      "Dr. Pankaj Sharma",
+      "Dr. Ritu Bansal"
+    ]
+  },
+  {
+    department: "Pediatrics",
+    doctors: [
+      "Dr. Lakshmi Devi",
+      "Dr. Sunil Kumar",
+      "Dr. Anjali Mehta",
+      "Dr. Ramesh Chand",
+      "Dr. Nivedita Rao"
+    ]
+  },
+  {
+    department: "Gynecology",
+    doctors: [
+      "Dr. Kavitha Reddy",
+      "Dr. Anu Thomas",
+      "Dr. Pooja Malhotra",
+      "Dr. Shalini Gupta",
+      "Dr. Deepa Menon"
+    ]
+  },
+  {
+    department: "Psychiatry",
+    doctors: [
+      "Dr. Swati Joshi",
+      "Dr. Rahul Khanna",
+      "Dr. Sneha Kapoor",
+      "Dr. Aman Verma",
+      "Dr. Nitin Bhat"
+    ]
+  },
+  {
+    department: "General Medicine",
+    doctors: [
+      "Dr. Suresh Patel",
+      "Dr. Mahesh Rao",
+      "Dr. Prakash N",
+      "Dr. Vinod Kumar",
+      "Dr. Ritu Sharma"
+    ]
+  }
+];
