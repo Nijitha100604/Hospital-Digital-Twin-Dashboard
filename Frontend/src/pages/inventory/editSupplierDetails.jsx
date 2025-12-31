@@ -19,6 +19,13 @@ const EditSupplierDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const fileRef = useRef(null);
+  const [fileName, setFileName] = useState("");
+
+  const handleFileChange = (e) => {
+    if (e.target.files[0]) {
+      setFileName(e.target.files[0].name);
+    }
+  };
 
   const supplier = supplier_records.find((s) => s.supplierId === id);
 
@@ -212,7 +219,34 @@ const EditSupplierDetails = () => {
               </TwoCol>
             </Card>
 
-            <div className="flex gap-4 lg:mt-70 justify-end">
+            <Card title="Documents" icon={<FaUpload className="text-red-600 text-2xl"/>}>
+              <div
+                onClick={() => fileRef.current.click()}
+                className="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center cursor-pointer hover:border-fuchsia-600"
+              >
+                <FaUpload className="mx-auto text-xl text-gray-500" />
+                <p className="text-sm mt-2">
+                  Drop files here or{" "}
+                  <span className="underline">click to upload</span>
+                </p>
+                <p className="text-xs text-gray-500">
+                  PDF, DOC, DOCX (Max 10MB)
+                </p>
+              </div>
+
+              {fileName && (
+                <p className="text-sm text-green-600 mt-2">{fileName}</p>
+              )}
+
+              <input
+                type="file"
+                ref={fileRef}
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </Card>
+
+            <div className="flex gap-4 lg:mt-118 justify-end">
               <button
                 type="button"
                 onClick={() => navigate(-1)}

@@ -69,25 +69,33 @@ const SuppliersList = () => {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <SummaryCard
-          title="Total Suppliers"
-          value={totalSuppliers}
-          icon={<FaUsers className="text-purple-600 text-2xl" />}
-        />
-        <SummaryCard
-          title="Active Suppliers"
-          value={activeSuppliers}
-          icon={<FaCheckCircle className="text-green-600 text-2xl" />}
-        />
-        <SummaryCard
-          title="Average Rating"
-          value={averageRating}
-          icon={<FaStar className="text-yellow-500 text-2xl" />}
-        />
-        <SummaryCard
-          title="Items Supplied"
-          value={totalItemsSupplied}
-          icon={<FaHashtag className="text-blue-600 text-2xl" />}
-        />
+  title="Total Suppliers"
+  value={totalSuppliers}
+  icon={<FaUsers className="text-purple-700 text-2xl" />}
+  iconBg="bg-purple-200"
+/>
+
+<SummaryCard
+  title="Active Suppliers"
+  value={activeSuppliers}
+  icon={<FaCheckCircle className="text-green-700 text-2xl" />}
+  iconBg="bg-green-200"
+/>
+
+<SummaryCard
+  title="Average Rating"
+  value={averageRating}
+  icon={<FaStar className="text-yellow-500 text-2xl" />}
+  iconBg="bg-yellow-200"
+/>
+
+<SummaryCard
+  title="Items Supplied"
+  value={totalItemsSupplied}
+  icon={<FaHashtag className="text-blue-700 text-2xl" />}
+  iconBg="bg-blue-200"
+/>
+
       </div>
 
       {/* Search */}
@@ -180,12 +188,16 @@ export default SuppliersList;
 
 /* ---------- Reusable Components ---------- */
 
-const SummaryCard = ({ title, value, icon }) => (
+const SummaryCard = ({ title, value, icon, iconBg = "bg-gray-200" }) => (
   <div className="bg-white rounded-lg border border-gray-300 p-4 flex justify-between items-center shadow">
     <div>
       <p className="text-sm text-gray-500">{title}</p>
       <p className="text-xl font-bold">{value}</p>
     </div>
-    <div className="p-3 bg-gray-200 rounded-lg">{icon}</div>
+
+    <div className={`p-3 border border-gray-300 rounded-lg ${iconBg}`}>
+      {icon}
+    </div>
   </div>
 );
+
