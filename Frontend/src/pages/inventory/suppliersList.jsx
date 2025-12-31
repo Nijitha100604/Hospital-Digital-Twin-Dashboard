@@ -8,11 +8,11 @@ import {
   FaUsers,
   FaCheckCircle,
   FaHashtag,
+  FaFilter,
 } from "react-icons/fa";
 import { supplier_records } from "../../data/supplier";
 import { useNavigate } from "react-router-dom";
 import ViewSupplierModal from "./viewSupplierModel";
-
 
 const SuppliersList = () => {
   const navigate = useNavigate();
@@ -34,12 +34,22 @@ const SuppliersList = () => {
     0
   );
 
-  /* ---------- Search Filter ---------- */
-  const filteredSuppliers = supplier_records.filter(
-    (s) =>
+  /* ---------- Search and Status Filter ---------- */
+  const [statusSort, setStatusSort] = useState("ALL");
+  const filteredSuppliers = supplier_records.filter((s) => {
+    // Search filter
+    const searchMatch =
       s.supplierName.toLowerCase().includes(search.toLowerCase()) ||
-      s.supplierId.toLowerCase().includes(search.toLowerCase())
-  );
+      s.supplierId.toLowerCase().includes(search.toLowerCase());
+
+    // Status filter
+    const statusMatch =
+      statusSort === "ALL" ||
+      (statusSort === "ACTIVE" && s.status === "Active") ||
+      (statusSort === "INACTIVE" && s.status === "Inactive");
+
+    return searchMatch && statusMatch;
+  });
 
   //view supplier
   const [selectedSupplier, setSelectedSupplier] = useState(null);
@@ -69,46 +79,79 @@ const SuppliersList = () => {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <SummaryCard
-  title="Total Suppliers"
-  value={totalSuppliers}
-  icon={<FaUsers className="text-purple-700 text-2xl" />}
-  iconBg="bg-purple-200"
-/>
+          title="Total Suppliers"
+          value={totalSuppliers}
+          icon={<FaUsers className="text-purple-700 text-2xl" />}
+          iconBg="bg-purple-200"
+        />
 
-<SummaryCard
-  title="Active Suppliers"
-  value={activeSuppliers}
-  icon={<FaCheckCircle className="text-green-700 text-2xl" />}
-  iconBg="bg-green-200"
-/>
+        <SummaryCard
+          title="Active Suppliers"
+          value={activeSuppliers}
+          icon={<FaCheckCircle className="text-green-700 text-2xl" />}
+          iconBg="bg-green-200"
+        />
 
-<SummaryCard
-  title="Average Rating"
-  value={averageRating}
-  icon={<FaStar className="text-yellow-500 text-2xl" />}
-  iconBg="bg-yellow-200"
-/>
+        <SummaryCard
+          title="Average Rating"
+          value={averageRating}
+          icon={<FaStar className="text-yellow-500 text-2xl" />}
+          iconBg="bg-yellow-200"
+        />
 
-<SummaryCard
-  title="Items Supplied"
-  value={totalItemsSupplied}
-  icon={<FaHashtag className="text-blue-700 text-2xl" />}
-  iconBg="bg-blue-200"
-/>
-
+        <SummaryCard
+          title="Items Supplied"
+          value={totalItemsSupplied}
+          icon={<FaHashtag className="text-blue-700 text-2xl" />}
+          iconBg="bg-blue-200"
+        />
       </div>
 
-      {/* Search */}
-      <div className="bg-white p-4 rounded-lg mb-4">
-        <div className="relative">
-          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row gap-5 mb-6">
+        {/* Search */}
+        <div className="relative w-full flex-1 md:w-80">
+          <FaSearch className="absolute left-3 top-3 text-gray-400" />
           <input
             type="text"
             placeholder="Search by supplier name or ID"
-            className="pl-9 pr-3 py-2 w-full bg-gray-300 border border-gray-400 rounded-md focus:ring-1 focus:ring-fuchsia-600 outline-0"
+            className="pl-10 pr-3 py-2 rounded-md w-full border bg-gray-300 border-gray-400 focus:ring-1 focus:ring-fuchsia-600 outline-0"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+        </div>
+
+        {/* Sort / Status Filter */}
+        <div className="flex gap-5">
+          <div className="relative">
+            <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+            <select
+              className="pl-9 h-10 pr-3 rounded-md outline-0 border border-gray-400"
+              value={statusSort}
+              onChange={(e) => setStatusSort(e.target.value)}
+            >
+              <option
+                className="text-white font-medium bg-fuchsia-500"
+                value="ALL"
+              >
+                All Status
+              </option>
+
+              <option
+                className="text-white font-medium bg-fuchsia-500"
+                value="ACTIVE"
+              >
+                Active
+              </option>
+
+              <option
+                className="text-white font-medium bg-fuchsia-500"
+                value="INACTIVE"
+              >
+                Inactive
+              </option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -200,4 +243,3 @@ const SummaryCard = ({ title, value, icon, iconBg = "bg-gray-200" }) => (
     </div>
   </div>
 );
-
