@@ -199,3 +199,171 @@ export const patient_data = {
     }
   ]
 }
+
+export const allAppointments = [
+  {
+    appointmentNumber: "APT-00125",
+    patientName: "Arun Kumar",
+    patientId: "P000123",
+    patientContact: "9876543210",
+    doctorName: "Dr. Meena Raj",
+    doctorCategory: "Cardiologist",
+    appointmentType: "In-Person",
+    date: "05 Jan 2025",
+    status: "Scheduled"
+  },
+  {
+    appointmentNumber: "APT-00126",
+    patientName: "Priya Sharma",
+    patientId: "P000124",
+    patientContact: "9123456789",
+    doctorName: "Dr. Suresh Patel",
+    doctorCategory: "General Physician",
+    appointmentType: "Online",
+    date: "06 Jan 2025",
+    status: "Completed"
+  },
+  {
+    appointmentNumber: "APT-00127",
+    patientName: "Ravi Teja",
+    patientId: "P000125",
+    patientContact: "9988776655",
+    doctorName: "Dr. Anitha Rao",
+    doctorCategory: "Neurologist",
+    appointmentType: "In-Person",
+    date: "07 Jan 2025",
+    status: "Cancelled"
+  },
+  {
+    appointmentNumber: "APT-00128",
+    patientName: "Sneha Iyer",
+    patientId: "P000126",
+    patientContact: "9090909090",
+    doctorName: "Dr. Vikram Singh",
+    doctorCategory: "Orthopedic",
+    appointmentType: "Online",
+    date: "08 Jan 2025",
+    status: "Scheduled"
+  },
+  {
+    appointmentNumber: "APT-00129",
+    patientName: "Karthik Anand",
+    patientId: "P000127",
+    patientContact: "9345678123",
+    doctorName: "Dr. Neha Verma",
+    doctorCategory: "Dermatologist",
+    appointmentType: "In-Person",
+    date: "09 Jan 2025",
+    status: "Rescheduled"
+  },
+  {
+    appointmentNumber: "APT-00130",
+    patientName: "Divya Nair",
+    patientId: "P000128",
+    patientContact: "9567891234",
+    doctorName: "Dr. Ramesh Iyer",
+    doctorCategory: "Cardiologist",
+    appointmentType: "Online",
+    date: "10 Jan 2025",
+    status: "Completed"
+  },
+  {
+    appointmentNumber: "APT-00131",
+    patientName: "Mohammed Faisal",
+    patientId: "P000129",
+    patientContact: "9898989898",
+    doctorName: "Dr. Kavitha Menon",
+    doctorCategory: "Pulmonologist",
+    appointmentType: "In-Person",
+    date: "11 Jan 2025",
+    status: "Scheduled"
+  },
+  {
+    appointmentNumber: "APT-00132",
+    patientName: "Anjali Gupta",
+    patientId: "P000130",
+    patientContact: "9012345678",
+    doctorName: "Dr. Rahul Khanna",
+    doctorCategory: "Gynecologist",
+    appointmentType: "Online",
+    date: "12 Jan 2025",
+    status: "Completed"
+  },
+  {
+    appointmentNumber: "APT-00133",
+    patientName: "Suresh Babu",
+    patientId: "P000131",
+    patientContact: "9871234567",
+    doctorName: "Dr. Mahesh Rao",
+    doctorCategory: "General Physician",
+    appointmentType: "In-Person",
+    date: "13 Jan 2025",
+    status: "Cancelled"
+  },
+  {
+    appointmentNumber: "APT-00134",
+    patientName: "Pooja Malhotra",
+    patientId: "P000132",
+    patientContact: "9786543210",
+    doctorName: "Dr. Swati Joshi",
+    doctorCategory: "Psychiatrist",
+    appointmentType: "Online",
+    date: "14 Jan 2025",
+    status: "Scheduled"
+  },
+  {
+    appointmentNumber: "APT-00135",
+    patientName: "Naveen Chandra",
+    patientId: "P000133",
+    patientContact: "9887766554",
+    doctorName: "Dr. Prakash N",
+    doctorCategory: "Endocrinologist",
+    appointmentType: "In-Person",
+    date: "15 Jan 2025",
+    status: "Completed"
+  },
+  {
+    appointmentNumber: "APT-00136",
+    patientName: "Aishwarya Raj",
+    patientId: "P000134",
+    patientContact: "9001122334",
+    doctorName: "Dr. Lakshmi Devi",
+    doctorCategory: "Pediatrician",
+    appointmentType: "Online",
+    date: "16 Jan 2025",
+    status: "Scheduled"
+  },
+  {
+    appointmentNumber: "APT-00137",
+    patientName: "Vinoth Kumar",
+    patientId: "P000135",
+    patientContact: "9445566778",
+    doctorName: "Dr. Sanjay Mehta",
+    doctorCategory: "Urologist",
+    appointmentType: "In-Person",
+    date: "17 Jan 2025",
+    status: "Rescheduled"
+  },
+  {
+    appointmentNumber: "APT-00138",
+    patientName: "Keerthana S",
+    patientId: "P000136",
+    patientContact: "9654321789",
+    doctorName: "Dr. Harini Prasad",
+    doctorCategory: "ENT",
+    appointmentType: "Online",
+    date: "18 Jan 2025",
+    status: "Completed"
+  },
+  {
+    appointmentNumber: "APT-00139",
+    patientName: "Balaji R",
+    patientId: "P000137",
+    patientContact: "9797979797",
+    doctorName: "Dr. Ajay Kulkarni",
+    doctorCategory: "Neurologist",
+    appointmentType: "In-Person",
+    date: "19 Jan 2025",
+    status: "Scheduled"
+  }
+];
