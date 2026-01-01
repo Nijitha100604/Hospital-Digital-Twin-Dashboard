@@ -309,21 +309,21 @@ function AllAppointments() {
             >
               <p className="inline-flex text-sm bg-gray-300 font-medium text-gray-800 px-3 py-2 items-center rounded-lg">{item.appointmentNumber}</p>
               <div className="flex flex-col gap-2 items-center">
-                <p className="text-sm font-bold">{item.patientName}</p>
+                <p className="text-sm font-bold">{item.patient.name}</p>
                 <p className="text-sm text-gray-600">{item.patientId}</p>
                 <div className="flex gap-2 items-center">
                   <FaPhone 
                     size={12} 
                     className="text-gray-600"
                   />
-                  <p className="text-sm text-gray-600">{item.patientContact}</p>
+                  <p className="text-sm text-gray-600">{item.patient.contact}</p>
                 </div>
               </div>
               <div className="flex flex-col gap-2 items-center">
                 <p className="text-sm font-bold">{item.doctorName}</p>
                 <p className="text-sm text-gray-600">{item.doctorCategory}</p>
               </div>
-              <p className={`text-sm font-medium px-2 py-1 w-20 text-center rounded-lg ${item.appointmentType === "In-Person" ? "bg-red-300 text-red-600" : "bg-blue-300 text-blue-600"}`} >{item.appointmentType}</p>
+              <p className={`text-sm font-medium px-2 py-1 w-20 text-center rounded-lg ${item.consultationType === "In-Person" ? "bg-red-300 text-red-600" : "bg-blue-300 text-blue-600"}`} >{item.consultationType}</p>
               <p className="text-sm text-gray-700 font-bold">{item.date}</p>
               <p className={`text-sm font-semibold px-3 py-2 text-white rounded-lg cursor-pointer ${getStatusClass(item.status)}`}>{item.status}</p>
               <FaEye 

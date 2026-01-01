@@ -203,171 +203,567 @@ export const patient_data = {
 export const allAppointments = [
   {
     appointmentNumber: "APT-00125",
-    patientName: "Arun Kumar",
     patientId: "P000123",
-    patientContact: "9876543210",
+    patient: {
+      name: "Arun Kumar",
+      age: 45,
+      gender: "Male",
+      contact: "9876543210",
+      reasonForAppointment: "Chest pain and shortness of breath"
+    },
     doctorName: "Dr. Meena Raj",
     doctorCategory: "Cardiologist",
-    appointmentType: "In-Person",
-    date: "05 Jan 2025",
-    status: "Scheduled"
+    appointmentType: "Emergency",
+    consultationType: "In-Person",
+    date: "2025-01-05",
+    timeSlot: "09:00 – 10:00 AM",
+    status: "Scheduled",
+    vitals: [],
+    diagnosis: "",
+    remarks: "",
+    prescriptions: [],
+    labReports: [],
+    admitted: { 
+      isAdmitted: false,
+      ward: "",
+      bedNo: "",
+      block: "",
+      dailyNotes: [],
+      dischargeStatus: ""
+     }
   },
+
   {
     appointmentNumber: "APT-00126",
-    patientName: "Priya Sharma",
     patientId: "P000124",
-    patientContact: "9123456789",
+    patient: {
+      name: "Priya Sharma",
+      age: 29,
+      gender: "Female",
+      contact: "9123456789",
+      reasonForAppointment: "Fever and body pain"
+    },
     doctorName: "Dr. Suresh Patel",
-    doctorCategory: "General Physician",
-    appointmentType: "Online",
-    date: "06 Jan 2025",
-    status: "Completed"
+    doctorCategory: "Physician",
+    appointmentType: "General Consultation",
+    consultationType: "Online",
+    date: "2025-01-06",
+    timeSlot: "10:00 – 11:00 AM",
+    status: "Completed",
+    vitals: [
+      { name: "Blood Pressure", value: "130/85", unit: "mmHg", status: "High" },
+      { name: "Pulse Rate", value: 82, unit: "bpm", status: "Normal" },
+      { name: "Temperature", value: 98.6, unit: "°F", status: "Normal" },
+      { name: "SpO₂", value: 98, unit: "%", status: "Normal" }
+    ],
+    diagnosis: "Viral Fever",
+    remarks: "Rest and hydration advised",
+    prescriptions: [
+      {
+        medicineName: "Paracetamol 650mg",
+        frequency: ["Morning", "Night"],
+        duration: "5 days",
+        instructions: "After food"
+      },
+      {
+        medicineName: "Ibuprofen 400mg",
+        frequency: ["Morning", "Evening"],
+        duration: "5 days",
+        instructions: "After food"
+      },
+      {
+        medicineName: "Amlodipine 5mg",
+        frequency: ["Morning"],
+        duration: "30 days",
+        instructions: "Same time daily"
+      },
+      {
+        medicineName: "Metformin 500mg",
+        frequency: ["Morning", "Night"],
+        duration: "30 days",
+        instructions: "After food"
+      }
+    ],
+    labReports: [
+      { testName: "Complete Blood Count", status: "Completed" },
+      { testName: "Dengue Test", status: "Completed" }
+    ],
+    admitted: {
+      isAdmitted: true,
+      ward: "ICU",
+      bedNo: "ICU-03",
+      block: "Block C",
+      dailyNotes: [
+        {
+          date: "2025-01-05",
+          note: "Patient admitted with chest pain, ECG taken"
+        },
+        {
+          date: "2025-01-06",
+          note: "Condition stable, monitoring continued"
+        }
+      ],
+      dischargeStatus: "Under Treatment"
+    }
+
   },
+
   {
     appointmentNumber: "APT-00127",
-    patientName: "Ravi Teja",
     patientId: "P000125",
-    patientContact: "9988776655",
+    patient: {
+      name: "Ravi Teja",
+      age: 38,
+      gender: "Male",
+      contact: "9988776655",
+      reasonForAppointment: "Severe headaches"
+    },
     doctorName: "Dr. Anitha Rao",
     doctorCategory: "Neurologist",
-    appointmentType: "In-Person",
-    date: "07 Jan 2025",
-    status: "Cancelled"
+    appointmentType: "Specialist Consultation",
+    consultationType: "In-Person",
+    date: "2025-01-07",
+    timeSlot: "11:00 – 12:00 PM",
+    status: "Cancelled",
+    vitals: [],
+    diagnosis: "",
+    remarks: "",
+    prescriptions: [],
+    labReports: [],
+    admitted: { 
+      isAdmitted: false,
+      ward: "",
+      bedNo: "",
+      block: "",
+      dailyNotes: [],
+      dischargeStatus: ""
+     }
   },
+
   {
     appointmentNumber: "APT-00128",
-    patientName: "Sneha Iyer",
     patientId: "P000126",
-    patientContact: "9090909090",
+    patient: {
+      name: "Sneha Iyer",
+      age: 34,
+      gender: "Female",
+      contact: "9090909090",
+      reasonForAppointment: "Knee pain while walking"
+    },
     doctorName: "Dr. Vikram Singh",
     doctorCategory: "Orthopedic",
-    appointmentType: "Online",
-    date: "08 Jan 2025",
-    status: "Scheduled"
+    appointmentType: "Specialist Consultation",
+    consultationType: "Online",
+    date: "2025-01-08",
+    timeSlot: "08:00 – 09:00 AM",
+    status: "Completed",
+    vitals: [
+      { name: "Blood Pressure", value: "128/80", unit: "mmHg", status: "Normal" },
+      { name: "Pulse Rate", value: 78, unit: "bpm", status: "Normal" }
+    ],
+    diagnosis: "Early Osteoarthritis",
+    remarks: "Physiotherapy suggested",
+    prescriptions: [
+      {
+        medicineName: "Paracetamol 650mg",
+        frequency: ["Morning", "Night"],
+        duration: "5 days",
+        instructions: "After food"
+      },
+      {
+        medicineName: "Ibuprofen 400mg",
+        frequency: ["Morning", "Evening"],
+        duration: "5 days",
+        instructions: "After food"
+      },
+      {
+        medicineName: "Amlodipine 5mg",
+        frequency: ["Morning"],
+        duration: "30 days",
+        instructions: "Same time daily"
+      },
+      {
+        medicineName: "Metformin 500mg",
+        frequency: ["Morning", "Night"],
+        duration: "30 days",
+        instructions: "After food"
+      }
+    ],
+    labReports: [
+      { testName: "X-Ray Knee", status: "Completed" }
+    ],
+    admitted: { 
+      isAdmitted: true,
+      ward: "General Ward",
+      bedNo: "GW-18",
+      block: "Block B",
+      dailyNotes: [
+        {
+          date: "2025-01-10",
+          note: "Admitted for BP monitoring"
+        }
+      ],
+      dischargeStatus: "Discharged" 
+    }
   },
+
   {
     appointmentNumber: "APT-00129",
-    patientName: "Karthik Anand",
     patientId: "P000127",
-    patientContact: "9345678123",
+    patient: {
+      name: "Karthik Anand",
+      age: 26,
+      gender: "Male",
+      contact: "9345678123",
+      reasonForAppointment: "Skin rashes and itching"
+    },
     doctorName: "Dr. Neha Verma",
     doctorCategory: "Dermatologist",
-    appointmentType: "In-Person",
-    date: "09 Jan 2025",
-    status: "Rescheduled"
+    appointmentType: "General Consultation",
+    consultationType: "In-Person",
+    date: "2025-01-09",
+    timeSlot: "02:00 – 03:00 PM",
+    status: "Rescheduled",
+    vitals: [],
+    diagnosis: "",
+    remarks: "",
+    prescriptions: [],
+    labReports: [
+      { testName: "Allergy Test", status: "Pending" }
+    ],
+    admitted: { isAdmitted: false,
+      ward: "",
+      bedNo: "",
+      block: "",
+      dailyNotes: [],
+      dischargeStatus: "" }
   },
+
   {
     appointmentNumber: "APT-00130",
-    patientName: "Divya Nair",
     patientId: "P000128",
-    patientContact: "9567891234",
+    patient: {
+      name: "Divya Nair",
+      age: 52,
+      gender: "Female",
+      contact: "9567891234",
+      reasonForAppointment: "High blood pressure follow-up"
+    },
     doctorName: "Dr. Ramesh Iyer",
     doctorCategory: "Cardiologist",
-    appointmentType: "Online",
-    date: "10 Jan 2025",
-    status: "Completed"
+    appointmentType: "Follow-up",
+    consultationType: "Online",
+    date: "2025-01-10",
+    timeSlot: "09:00 – 10:00 AM",
+    status: "Completed",
+    vitals: [
+      { name: "Blood Pressure", value: "145/90", unit: "mmHg", status: "High" }
+    ],
+    diagnosis: "Hypertension",
+    remarks: "Lifestyle changes advised",
+    prescriptions: [
+      {
+        medicineName: "Paracetamol 650mg",
+        frequency: ["Morning", "Night"],
+        duration: "5 days",
+        instructions: "After food"
+      },
+      {
+        medicineName: "Ibuprofen 400mg",
+        frequency: ["Morning", "Evening"],
+        duration: "5 days",
+        instructions: "After food"
+      },
+      {
+        medicineName: "Amlodipine 5mg",
+        frequency: ["Morning"],
+        duration: "30 days",
+        instructions: "Same time daily"
+      },
+      {
+        medicineName: "Metformin 500mg",
+        frequency: ["Morning", "Night"],
+        duration: "30 days",
+        instructions: "After food"
+      }
+    ],
+    labReports: [
+      { testName: "ECG", status: "Completed" },
+      { testName: "Lipid Profile", status: "Pending" }
+    ],
+    admitted: { 
+      isAdmitted: true,
+      ward: "Private Ward",
+      bedNo: "PW-05",
+      block: "Block A",
+      dailyNotes: [
+      {
+        date: "2025-01-15",
+        note: "Blood sugar high, insulin started"
+      },
+      {
+        date: "2025-01-16",
+        note: "Sugar levels improving"
+      }
+      ],
+      dischargeStatus: "Under Treatment"
+    }
   },
+
   {
     appointmentNumber: "APT-00131",
-    patientName: "Mohammed Faisal",
     patientId: "P000129",
-    patientContact: "9898989898",
+    patient: {
+      name: "Mohammed Faisal",
+      age: 41,
+      gender: "Male",
+      contact: "9898989898",
+      reasonForAppointment: "Chronic cough"
+    },
     doctorName: "Dr. Kavitha Menon",
     doctorCategory: "Pulmonologist",
-    appointmentType: "In-Person",
-    date: "11 Jan 2025",
-    status: "Scheduled"
+    appointmentType: "Specialist Consultation",
+    consultationType: "In-Person",
+    date: "2025-01-11",
+    timeSlot: "03:00 – 04:00 PM",
+    status: "Scheduled",
+    vitals: [],
+    diagnosis: "",
+    remarks: "",
+    prescriptions: [],
+    labReports: [],
+    admitted: { 
+      isAdmitted: false,
+      ward: "",
+      bedNo: "",
+      block: "",
+      dailyNotes: [],
+      dischargeStatus: ""
+     }
   },
+
   {
     appointmentNumber: "APT-00132",
-    patientName: "Anjali Gupta",
     patientId: "P000130",
-    patientContact: "9012345678",
+    patient: {
+      name: "Anjali Gupta",
+      age: 31,
+      gender: "Female",
+      contact: "9012345678",
+      reasonForAppointment: "Irregular periods"
+    },
     doctorName: "Dr. Rahul Khanna",
     doctorCategory: "Gynecologist",
-    appointmentType: "Online",
-    date: "12 Jan 2025",
-    status: "Completed"
+    appointmentType: "Specialist Consultation",
+    consultationType: "Online",
+    date: "2025-01-12",
+    timeSlot: "11:00 – 12:00 PM",
+    status: "Completed",
+    vitals: [
+      { name: "Blood Pressure", value: "120/80", unit: "mmHg", status: "Normal" }
+    ],
+    diagnosis: "PCOS",
+    remarks: "Diet and exercise advised",
+    prescriptions: [
+      {
+        medicineName: "Paracetamol 650mg",
+        frequency: ["Morning", "Night"],
+        duration: "5 days",
+        instructions: "After food"
+      },
+      {
+        medicineName: "Ibuprofen 400mg",
+        frequency: ["Morning", "Evening"],
+        duration: "5 days",
+        instructions: "After food"
+      },
+      {
+        medicineName: "Amlodipine 5mg",
+        frequency: ["Morning"],
+        duration: "30 days",
+        instructions: "Same time daily"
+      },
+      {
+        medicineName: "Metformin 500mg",
+        frequency: ["Morning", "Night"],
+        duration: "30 days",
+        instructions: "After food"
+      }
+    ],
+    labReports: [
+      { testName: "Ultrasound Pelvis", status: "Completed" },
+      { testName: "Hormone Panel", status: "Completed" }
+    ],
+    admitted: { 
+      isAdmitted: true,
+      ward: "Private Ward",
+      bedNo: "PW-05",
+      block: "Block A",
+      dailyNotes: [
+      {
+        date: "2025-01-15",
+        note: "Blood sugar high, insulin started"
+      },
+      {
+        date: "2025-01-16",
+        note: "Sugar levels improving"
+      }
+      ],
+      dischargeStatus: "Under Treatment"
+     }
   },
+
   {
     appointmentNumber: "APT-00133",
-    patientName: "Suresh Babu",
     patientId: "P000131",
-    patientContact: "9871234567",
+    patient: {
+      name: "Suresh Babu",
+      age: 48,
+      gender: "Male",
+      contact: "9871234567",
+      reasonForAppointment: "General health check-up"
+    },
     doctorName: "Dr. Mahesh Rao",
-    doctorCategory: "General Physician",
-    appointmentType: "In-Person",
-    date: "13 Jan 2025",
-    status: "Cancelled"
+    doctorCategory: "Physician",
+    appointmentType: "General Consultation",
+    consultationType: "In-Person",
+    date: "2025-01-13",
+    timeSlot: "08:00 – 09:00 AM",
+    status: "Cancelled",
+    vitals: [],
+    diagnosis: "",
+    remarks: "",
+    prescriptions: [],
+    labReports: [],
+    admitted: { 
+      isAdmitted: false,
+      ward: "",
+      bedNo: "",
+      block: "",
+      dailyNotes: [],
+      dischargeStatus: ""
+     }
   },
+
   {
     appointmentNumber: "APT-00134",
-    patientName: "Pooja Malhotra",
     patientId: "P000132",
-    patientContact: "9786543210",
+    patient: {
+      name: "Pooja Malhotra",
+      age: 36,
+      gender: "Female",
+      contact: "9786543210",
+      reasonForAppointment: "Anxiety and sleep issues"
+    },
     doctorName: "Dr. Swati Joshi",
     doctorCategory: "Psychiatrist",
-    appointmentType: "Online",
-    date: "14 Jan 2025",
-    status: "Scheduled"
+    appointmentType: "Specialist Consultation",
+    consultationType: "Online",
+    date: "2025-01-14",
+    timeSlot: "04:00 – 05:00 PM",
+    status: "Completed",
+    vitals: [
+      { name: "Pulse Rate", value: 90, unit: "bpm", status: "High" }
+    ],
+    diagnosis: "Anxiety Disorder",
+    remarks: "Counselling advised",
+    prescriptions: [
+      {
+        medicineName: "Paracetamol 650mg",
+        frequency: ["Morning", "Night"],
+        duration: "5 days",
+        instructions: "After food"
+      },
+      {
+        medicineName: "Ibuprofen 400mg",
+        frequency: ["Morning", "Evening"],
+        duration: "5 days",
+        instructions: "After food"
+      },
+      {
+        medicineName: "Amlodipine 5mg",
+        frequency: ["Morning"],
+        duration: "30 days",
+        instructions: "Same time daily"
+      },
+      {
+        medicineName: "Metformin 500mg",
+        frequency: ["Morning", "Night"],
+        duration: "30 days",
+        instructions: "After food"
+      }
+    ],
+    labReports: [],
+    admitted: { isAdmitted: false,
+      ward: "",
+      bedNo: "",
+      block: "",
+      dailyNotes: [],
+      dischargeStatus: "" }
   },
+
   {
     appointmentNumber: "APT-00135",
-    patientName: "Naveen Chandra",
     patientId: "P000133",
-    patientContact: "9887766554",
+    patient: {
+      name: "Naveen Chandra",
+      age: 55,
+      gender: "Male",
+      contact: "9887766554",
+      reasonForAppointment: "High sugar levels"
+    },
     doctorName: "Dr. Prakash N",
     doctorCategory: "Endocrinologist",
-    appointmentType: "In-Person",
-    date: "15 Jan 2025",
-    status: "Completed"
-  },
-  {
-    appointmentNumber: "APT-00136",
-    patientName: "Aishwarya Raj",
-    patientId: "P000134",
-    patientContact: "9001122334",
-    doctorName: "Dr. Lakshmi Devi",
-    doctorCategory: "Pediatrician",
-    appointmentType: "Online",
-    date: "16 Jan 2025",
-    status: "Scheduled"
-  },
-  {
-    appointmentNumber: "APT-00137",
-    patientName: "Vinoth Kumar",
-    patientId: "P000135",
-    patientContact: "9445566778",
-    doctorName: "Dr. Sanjay Mehta",
-    doctorCategory: "Urologist",
-    appointmentType: "In-Person",
-    date: "17 Jan 2025",
-    status: "Rescheduled"
-  },
-  {
-    appointmentNumber: "APT-00138",
-    patientName: "Keerthana S",
-    patientId: "P000136",
-    patientContact: "9654321789",
-    doctorName: "Dr. Harini Prasad",
-    doctorCategory: "ENT",
-    appointmentType: "Online",
-    date: "18 Jan 2025",
-    status: "Completed"
-  },
-  {
-    appointmentNumber: "APT-00139",
-    patientName: "Balaji R",
-    patientId: "P000137",
-    patientContact: "9797979797",
-    doctorName: "Dr. Ajay Kulkarni",
-    doctorCategory: "Neurologist",
-    appointmentType: "In-Person",
-    date: "19 Jan 2025",
-    status: "Scheduled"
+    appointmentType: "Follow-up",
+    consultationType: "In-Person",
+    date: "2025-01-15",
+    timeSlot: "10:00 - 11:00 AM",
+    status: "Completed",
+    vitals: [
+      { name: "Blood Sugar", value: 180, unit: "mg/dL", status: "High" }
+    ],
+    diagnosis: "Type 2 Diabetes",
+    remarks: "Sugar monitoring advised",
+    prescriptions: [
+      {
+        medicineName: "Paracetamol 650mg",
+        frequency: ["Morning", "Night"],
+        duration: "5 days",
+        instructions: "After food"
+      },
+      {
+        medicineName: "Ibuprofen 400mg",
+        frequency: ["Morning", "Evening"],
+        duration: "5 days",
+        instructions: "After food"
+      },
+      {
+        medicineName: "Amlodipine 5mg",
+        frequency: ["Morning"],
+        duration: "30 days",
+        instructions: "Same time daily"
+      },
+      {
+        medicineName: "Metformin 500mg",
+        frequency: ["Morning", "Night"],
+        duration: "30 days",
+        instructions: "After food"
+      }
+    ],
+    labReports: [
+      { testName: "Blood Sugar Test", status: "Completed" },
+      { testName: "HbA1c", status: "Pending" }
+    ],
+    admitted: { 
+      isAdmitted: false,
+      ward: "",
+      bedNo: "",
+      block: "",
+      dailyNotes: [],
+      dischargeStatus: ""
+     }
   }
 ];
-
 
 export const departmentDoctorData = [
   {
