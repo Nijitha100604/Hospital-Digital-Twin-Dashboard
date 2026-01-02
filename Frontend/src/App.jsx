@@ -76,7 +76,7 @@ function App() {
         <Route path='/add-new-patient' element={<AddNewPatient />}/>
         <Route path='/book-appointment' element={<BookAppointment />}/>
         <Route path='/all-appointments' element={<AllAppointments />}/>
-        <Route path='/discharge-summary' element={<DischargeSummary />}/>
+        <Route path='/discharge-summary/:id' element={<DischargeSummary />}/>
         <Route path='/view-appointment/:id' element={<ViewAppointment />}/>
 
         {/* Equipment */}

@@ -83,7 +83,8 @@ function ViewAppointment() {
     }
     fetchAppointment();
 
-  },[id, patientData])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[id])
 
   return patientData ? (
     <>
@@ -105,7 +106,7 @@ function ViewAppointment() {
         <p className="text-gray-500 text-sm">View Complete Appointment Information</p>
       </div>
     
-      {/* Book appointment Button */}
+      {/* view all appointment Button */}
       <button 
         className="flex gap-2 items-center text-white bg-fuchsia-900 px-3 py-2.5 cursor-pointer rounded-xl leading-none shadow-sm shadow-fuchsia-600"
         onClick={()=>navigate("/all-appointments")}
@@ -326,7 +327,7 @@ function ViewAppointment() {
           {
             patientData.prescriptions.map((item, index)=>(
               <div key={index}
-                className = "w-full grid grid-cols-[1fr_2fr_2fr_1fr_1.5fr] px-4 py-2 border-b border-gray-300"
+                className = "w-full grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-[1fr_2fr_2fr_1fr_1.5fr] px-4 py-2 border-b border-gray-300"
               >
                 <div className="flex justify-center items-center">
                   <div className="inline-flex bg-emerald-200 rounded-full px-4 py-1 w-fit">
@@ -383,7 +384,7 @@ function ViewAppointment() {
           />
           <p className="font-medium text-gray-700 text-md">Lab Reports</p>
         </div>
-        <div className="w-full mt-4 grid grid-cols-2 gap-5">
+        <div className="w-full mt-4 grid sm:grid-cols-1 md:grid-cols-2 gap-5">
           {
             patientData.labReports.map((item, index)=>(
               <div 
@@ -443,7 +444,7 @@ function ViewAppointment() {
                 patientData.admitted.dischargeStatus === "Discharged" &&
                 <button 
                   className="px-3 py-2 bg-fuchsia-900 text-white text-sm font-medium rounded-lg cursor-pointer"
-                  onClick={()=>navigate("/discharge-summary")}
+                  onClick={()=>navigate(`/discharge-summary/${patientData.patientId}`)}
                 >View Discharge Summary</button>
               }
             </div>

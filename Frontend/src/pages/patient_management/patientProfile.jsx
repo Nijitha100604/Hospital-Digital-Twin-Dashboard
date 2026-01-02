@@ -1,6 +1,5 @@
 import React from 'react'
 import { FaHistory, FaInfoCircle, FaPhone, FaUser, FaEye, FaMicroscope, FaBookMedical } from "react-icons/fa";
-import { FaSearch } from "react-icons/fa";
 import { FaUserCircle } from "react-icons/fa";
 import { assets } from './../../assets/assets';
 import { patient_data } from '../../data/patient';

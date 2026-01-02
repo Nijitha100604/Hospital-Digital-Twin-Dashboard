@@ -12,17 +12,17 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
   return (
     <div
       className={`
-    md:sticky md:top-16
-    fixed top-0 left-0
-    mt-16 md:mt-0
-    w-52
-    h-[calc(100vh-4rem)]
-    bg-white border border-gray-300
-    py-4 z-40
-    overflow-y-auto hide-scrollbar
-    transition-transform duration-300
-    ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-  `}
+        md:sticky
+        fixed md:top-16 left-0
+        mt-16
+        w-52
+        h-[calc(100vh-4rem)]
+       bg-white border border-gray-300
+        py-4 z-40
+        overflow-y-auto hide-scrollbar
+        transition-transform duration-300
+        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+      `}
     >
       <div className="flex justify-end px-4 mb-2 md:hidden">
         <FaTimes
@@ -79,19 +79,6 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
           }`}
           >
             Appointment Booking
-          </NavLink>
-
-          <NavLink
-            to="/discharge-summary"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Discharge Summary
           </NavLink>
         </ul>
       </div>

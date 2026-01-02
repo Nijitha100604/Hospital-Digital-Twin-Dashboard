@@ -209,6 +209,7 @@ export const allAppointments = [
       age: 45,
       gender: "Male",
       contact: "9876543210",
+      blood: "O+ve", 
       reasonForAppointment: "Chest pain and shortness of breath"
     },
     doctorName: "Dr. Meena Raj",
@@ -241,6 +242,7 @@ export const allAppointments = [
       age: 29,
       gender: "Female",
       contact: "9123456789",
+      blood: "O+ve",
       reasonForAppointment: "Fever and body pain"
     },
     doctorName: "Dr. Suresh Patel",
@@ -316,6 +318,7 @@ export const allAppointments = [
       age: 38,
       gender: "Male",
       contact: "9988776655",
+      blood: "O+ve",
       reasonForAppointment: "Severe headaches"
     },
     doctorName: "Dr. Anitha Rao",
@@ -348,6 +351,7 @@ export const allAppointments = [
       age: 34,
       gender: "Female",
       contact: "9090909090",
+      blood: "O+ve",
       reasonForAppointment: "Knee pain while walking"
     },
     doctorName: "Dr. Vikram Singh",
@@ -415,6 +419,7 @@ export const allAppointments = [
       age: 26,
       gender: "Male",
       contact: "9345678123",
+      blood: "O+ve",
       reasonForAppointment: "Skin rashes and itching"
     },
     doctorName: "Dr. Neha Verma",
@@ -447,6 +452,7 @@ export const allAppointments = [
       age: 52,
       gender: "Female",
       contact: "9567891234",
+      blood: "O+ve",
       reasonForAppointment: "High blood pressure follow-up"
     },
     doctorName: "Dr. Ramesh Iyer",
@@ -518,6 +524,7 @@ export const allAppointments = [
       age: 41,
       gender: "Male",
       contact: "9898989898",
+      blood: "O+ve",
       reasonForAppointment: "Chronic cough"
     },
     doctorName: "Dr. Kavitha Menon",
@@ -550,6 +557,7 @@ export const allAppointments = [
       age: 31,
       gender: "Female",
       contact: "9012345678",
+      blood: "O+ve",
       reasonForAppointment: "Irregular periods"
     },
     doctorName: "Dr. Rahul Khanna",
@@ -621,6 +629,7 @@ export const allAppointments = [
       age: 48,
       gender: "Male",
       contact: "9871234567",
+      blood: "O+ve",
       reasonForAppointment: "General health check-up"
     },
     doctorName: "Dr. Mahesh Rao",
@@ -653,6 +662,7 @@ export const allAppointments = [
       age: 36,
       gender: "Female",
       contact: "9786543210",
+      blood: "O+ve",
       reasonForAppointment: "Anxiety and sleep issues"
     },
     doctorName: "Dr. Swati Joshi",
@@ -710,6 +720,7 @@ export const allAppointments = [
       age: 55,
       gender: "Male",
       contact: "9887766554",
+      blood: "O+ve",
       reasonForAppointment: "High sugar levels"
     },
     doctorName: "Dr. Prakash N",

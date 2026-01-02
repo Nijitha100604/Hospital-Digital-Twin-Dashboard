@@ -8,6 +8,28 @@ body {
   font-family: 'Arimo', sans-serif;
 }
 
+@media print {
+  button {
+    display: none;
+  }
+  body {
+    background: white;
+  }
+}
+
+.pdf-safe * {
+  color: #000 !important;
+  background-color: transparent !important;
+  border-color: #000 !important;
+}
+
+.pdf-page {
+  max-width: 800px; 
+  margin: 0 auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
 .hide-scrollbar {
   -ms-overflow-style: none;  /* IE & Edge */
 }
