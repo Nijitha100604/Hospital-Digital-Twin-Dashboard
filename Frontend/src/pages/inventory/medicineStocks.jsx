@@ -90,7 +90,10 @@ const MedicineStocks = () => {
         </div>
 
         <div className="flex gap-3 items-center">
-          <button className="relative flex items-center gap-2 px-4 py-2 bg-gray-200 rounded-md text-sm cursor-pointer">
+          <button
+            onClick={() => navigate("/stock-alerts")}
+            className="relative flex items-center gap-2 px-4 py-2 bg-gray-200 rounded-md text-sm cursor-pointer"
+          >
             <FaBell />
             Alerts
             <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs px-1.5 rounded-full">
