@@ -9,11 +9,20 @@ body {
 }
 
 @media print {
-  button {
-    display: none;
+  body * {
+    visibility: hidden;
   }
-  body {
-    background: white;
+
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
   }
 }
 
@@ -28,6 +37,18 @@ body {
   margin: 0 auto;
   padding-left: 24px;
   padding-right: 24px;
+}
+
+.pdf-only {
+  display: none;
+}
+
+.pdf-safe .pdf-only {
+  display: block;
+}
+
+.pdf-safe .pdf-hide {
+  display: none !important;
 }
 
 .hide-scrollbar {

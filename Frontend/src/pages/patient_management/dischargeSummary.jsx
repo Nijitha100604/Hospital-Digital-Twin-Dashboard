@@ -28,7 +28,12 @@ function DischargeSummary() {
   }
 
   const handleDownload = () =>{
-    const element = pdfRef.current;
+  
+  const element = pdfRef.current;
+
+  const patientName = patientData.patient.name
+    .replace(/\s+/g, "_")
+    .toLowerCase();
 
   element.classList.add("pdf-safe");
 
@@ -36,13 +41,13 @@ function DischargeSummary() {
     .from(element)
     .set({
       margin: [5, 5, 5, 5],
-      filename: "Discharge_Summary.pdf",
+      filename: `${patientName}_discharge_summary.pdf`,
       html2canvas: {
         scale: 2,
         scrollY: 0,
         useCORS: true
       },
-      jsPDF: { format: "a4", unit: "mm", orientation: "portrait" }
+      jsPDF: { format: "a3", unit: "mm", orientation: "portrait" }
     })
     .save()
     .then(() => {
@@ -107,14 +112,24 @@ function DischargeSummary() {
 
     {/* Content */}
     
-    <div ref={pdfRef} className="space-y-4 mt-4">
+    <div ref={pdfRef} className="print-area space-y-4 mt-4">
+
+      {/* PDF-only Heading */}
+        <div className="pdf-only text-center mb-4">
+          <h1 className="text-2xl font-bold text-gray-900">
+            DISCHARGE SUMMARY
+          </h1>
+          <p className="text-sm text-gray-600">
+          Patient Name: {patientData.patient.name}
+          </p>
+        </div>
 
       {/* Patient and Admission Info */}
       <div className="grid md:grid-cols-2 gap-4">
 
         <div className="bg-white p-4 rounded-lg border border-gray-300">
           <h3 className="flex text-sm items-center gap-2 font-semibold text-gray-700 mb-2">
-            <div className="px-1 py-1 bg-emerald-200 rounded-lg">
+            <div className="px-1 py-1 bg-emerald-200 rounded-lg pdf-hide">
             <FaRegUser size={16} className="text-emerald-500"/> 
             </div>
             Patient Information
@@ -158,7 +173,7 @@ function DischargeSummary() {
 
         <div className="bg-white p-4 rounded-lg border border-gray-300">
           <h3 className="flex text-sm items-center gap-2 font-semibold text-gray-700 mb-2">
-            <div className="px-1 py-1 bg-blue-200 rounded-lg">
+            <div className="px-1 py-1 bg-blue-200 rounded-lg pdf-hide">
             <IoDocumentTextOutline size={16} className="text-blue-600"/> 
             </div>
             Admission and Discharge Details
@@ -206,7 +221,7 @@ function DischargeSummary() {
 
         <div className="bg-white p-4 rounded-lg border border-gray-300">
           <h3 className="flex text-sm items-center gap-2 font-semibold text-gray-700 mb-2">
-            <div className="px-1 py-1 bg-purple-200 rounded-lg">
+            <div className="px-1 py-1 bg-purple-200 rounded-lg pdf-hide">
             <FaStethoscope size={16} className="text-purple-600"/> 
             </div>
             Treating Medical Team
@@ -240,7 +255,7 @@ function DischargeSummary() {
 
          <div className="bg-white p-4 rounded-lg border border-gray-300">
           <h3 className="flex text-sm items-center gap-2 font-semibold text-gray-700 mb-2">
-            <div className="px-1 py-1 bg-red-200 rounded-lg">
+            <div className="px-1 py-1 bg-red-200 rounded-lg pdf-hide">
             <IoMedkitOutline size={16} className="text-red-600"/> 
             </div>
             Diagnosis Details
@@ -268,7 +283,7 @@ function DischargeSummary() {
 
       <div className="bg-white p-4 rounded-lg border border-gray-300">
         <h3 className="flex text-sm items-center gap-2 font-semibold text-gray-700 mb-2">
-            <div className="px-1 py-1 bg-pink-200 rounded-lg">
+            <div className="px-1 py-1 bg-pink-200 rounded-lg pdf-hide">
             <FaFilePrescription size={16} className="text-pink-600"/> 
             </div>
             Prescription
@@ -322,7 +337,7 @@ function DischargeSummary() {
         <div className="bg-white p-4 rounded-lg border border-gray-300">
 
           <h3 className="flex text-sm items-center gap-2 font-semibold text-gray-700 mb-2">
-            <div className="px-1 py-1 bg-green-200 rounded-lg">
+            <div className="px-1 py-1 bg-green-200 rounded-lg pdf-hide">
             <FaRegHeart size={16} className="text-green-600"/> 
             </div>
             Patient Condition at Discharge
@@ -351,7 +366,7 @@ function DischargeSummary() {
         <div className="bg-white p-4 rounded-lg border border-gray-300">
 
           <h3 className="flex text-sm items-center gap-2 font-semibold text-gray-700 mb-2">
-            <div className="px-1 py-1 bg-gray-200 rounded-lg">
+            <div className="px-1 py-1 bg-gray-200 rounded-lg pdf-hide">
             <FaRegFileAlt size={16} className="text-gray-600"/> 
             </div>
             Lab Reports
@@ -386,7 +401,7 @@ function DischargeSummary() {
       {/* Post discharge Remarks */}
       <div  className="bg-white p-4 rounded-lg border border-gray-300">
         <h3 className="flex text-sm items-center gap-2 font-semibold text-gray-700 mb-2">
-          <div className="px-1 py-1 bg-orange-200 rounded-lg">
+          <div className="px-1 py-1 bg-orange-200 rounded-lg pdf-hide">
           <FaInfoCircle size={16} className="text-orange-600"/> 
           </div>
           Post Discharge Remarks
@@ -400,15 +415,15 @@ function DischargeSummary() {
         <div className="mt-4 flex flex-col gap-2">
           <h3 className="text-medium text-gray-800 text-md">Patient Instruction</h3>
           <div className="flex gap-2">
-            <FaRegCheckCircle size={20} className="text-green-600 text-md"/> 
+            <FaRegCheckCircle size={20} className="text-green-600 text-md pdf-hide"/> 
             <p className="text-sm text-gray-900">Follow a low-sodium, heart-healthy diet</p>
           </div>
           <div className="flex gap-2">
-            <FaRegCheckCircle size={20} className="text-green-600 text-md"/> 
+            <FaRegCheckCircle size={20} className="text-green-600 text-md pdf-hide"/> 
             <p className="text-sm text-gray-900">Avoid strenuous physical activities for 2 weeks</p>
           </div>
           <div className="flex gap-2">
-            <FaRegCheckCircle size={20} className="text-green-600 text-md"/> 
+            <FaRegCheckCircle size={20} className="text-green-600 text-md pdf-hide"/> 
             <p className="text-sm text-gray-900">Seek immediate medical attention if experiencing chest pain, shortness of breath, or swelling</p>
           </div>
         </div>
