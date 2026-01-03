@@ -64,21 +64,23 @@ const AddNewMedicine = () => {
   return (
     <>
       {/* Header */}
-      <div className=" flex justify-between">
-        <div className="flex flex-col gap-1 mb-4">
+      <div className="bg-white p-6 rounded-xl mb-6 flex flex-col md:flex-row justify-between items-center border border-gray-200 shadow-sm">
+        <div className="mb-4 md:mb-0 w-full md:w-auto">
           <div className="flex gap-3 items-center">
-            <FaPlusCircle className=" text-lg text-gray-500" />
-            <p className="font-bold text-lg">Add New Medicine</p>
+            <FaPlusCircle size={24} className="text-gray-500 text-xl" />
+            <p className="text-gray-800 font-bold text-lg">
+              Add New Medicine
+            </p>
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-gray-500 text-sm mt-1">
             Add a new medicine or supply into inventory
           </p>
         </div>
 
-        <div className="m-3">
+        <div className="w-full md:w-auto">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm border bg-gray-200 hover:text-white hover:bg-fuchsia-900 border-fuchsia-700 rounded px-3 py-1 text-black cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto cursor-pointer"
           >
             <FaArrowLeft />
             Back

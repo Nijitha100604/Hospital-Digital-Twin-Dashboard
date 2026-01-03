@@ -74,36 +74,38 @@ const MedicineStocks = () => {
   ];
 
   return (
-    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+    <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen">
       {/* Header + Actions */}
-      <div className="flex flex-col md:flex-row justify-between mb-5 gap-4">
-        <div>
+      <div className="bg-white p-6 rounded-xl mb-6 flex flex-col md:flex-row justify-between items-center border border-gray-200 shadow-sm">
+        <div className="mb-4 md:mb-0 w-full md:w-auto">
           <div className="flex gap-3 items-center">
             <FaHospitalUser size={24} className="text-gray-500" />
             <p className="text-gray-800 font-bold text-lg">
               Medicine Stock Management
             </p>
           </div>
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 text-sm mt-1">
             Monitor and manage pharmacy inventory
           </p>
         </div>
 
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-3 items-center w-full md:w-auto">
           <button
             onClick={() => navigate("/stock-alerts")}
-            className="relative flex items-center gap-2 px-4 py-2 bg-gray-200 rounded-md text-sm cursor-pointer"
+            className="relative flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
           >
-            <FaBell />
+            <FaBell className="text-gray-500" />
             Alerts
-            <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs px-1.5 rounded-full">
-              {lowStockCount}
-            </span>
+            {lowStockCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
+                {lowStockCount}
+              </span>
+            )}
           </button>
 
           <button
             onClick={() => navigate("/add-new-medicine")}
-            className="flex items-center gap-2 px-4 py-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white rounded-md text-sm cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
           >
             <FaPlus />
             Add New Medicine
@@ -112,88 +114,79 @@ const MedicineStocks = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <SummaryCard
           title="Total Items"
           value={totalItems}
           icon={<FaBox className="text-purple-600" />}
+          bg="bg-purple-100"
+          border="border-purple-200"
         />
         <SummaryCard
           title="Low Stock Items"
           value={lowStockCount}
           icon={<FaExclamationTriangle className="text-yellow-600" />}
+          bg="bg-yellow-100"
+          border="border-yellow-200"
         />
         <SummaryCard
           title="Expiring Soon"
           value={expiringSoonCount}
           icon={<FaCalendarAlt className="text-red-600" />}
+          bg="bg-red-100"
+          border="border-red-200"
         />
         <SummaryCard
           title="Total Value"
           value={totalItems}
           icon={<FaRupeeSign className="text-green-600" />}
+          bg="bg-green-100"
+          border="border-green-200"
         />
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-5 mb-6">
-        <div className="relative w-full flex-1 md:w-80">
-          <FaSearch className="absolute left-3 top-3 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by medicine, ID, or batch"
-            className="pl-10 pr-3 py-2 rounded-md w-full border bg-gray-300 border-gray-400 focus:ring-1 focus:ring-fuchsia-600 outline-0"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <div className="flex gap-5">
-          <div className="relative">
-            <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-            <select
-              className="pl-9 h-10 pr-3 rounded-md outline-0 border border-gray-400"
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-            >
-              {categories.map((c) => (
-                <option
-                  className="text-white font-medium bg-fuchsia-500"
-                  key={c}
-                  value={c}
-                >
-                  {c}
-                </option>
-              ))}
-            </select>
+      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-8">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative w-full flex-1">
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by medicine, ID, or batch"
+              className="pl-10 pr-3 py-2.5 rounded-lg w-full border border-gray-300 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent outline-none transition-all text-sm"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
 
-          <div className="relative">
-            <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-            <select
-              className="pl-9 h-10 pr-3 rounded-md border outline-0 border-gray-400"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option
-                className="text-white font-medium bg-fuchsia-500"
-                value="All"
+          <div className="flex gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-48">
+              <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+              <select
+                className="w-full pl-9 h-10 pr-8 rounded-lg outline-none border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-fuchsia-500 cursor-pointer appearance-none"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
               >
-                All Status
-              </option>
-              <option
-                className="text-white font-medium bg-fuchsia-500"
-                value="In Stock"
+                {categories.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="relative w-full md:w-48">
+              <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+              <select
+                className="w-full pl-9 h-10 pr-8 rounded-lg outline-none border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-fuchsia-500 cursor-pointer appearance-none"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
               >
-                In Stock
-              </option>
-              <option
-                className="text-white font-medium bg-fuchsia-500"
-                value="Low Stock"
-              >
-                Low Stock
-              </option>
-            </select>
+                <option value="All">All Status</option>
+                <option value="In Stock">In Stock</option>
+                <option value="Low Stock">Low Stock</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -216,14 +209,14 @@ const MedicineStocks = () => {
         <div className="flex justify-center mt-8">
           <button
             onClick={() => setVisibleCount((prev) => prev + 8)}
-            className="px-6 py-2 bg-gray-200 border border-fuchsia-700 hover:bg-gray-300 rounded-md text-sm font-medium"
+            className="px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 hover:text-fuchsia-800 rounded-lg text-sm font-medium transition-all shadow-sm"
           >
-            Show More
+            Show More Medicines
           </button>
         </div>
       )}
 
-      <p className="text-xs text-gray-500 mt-6">
+      <p className="text-xs text-gray-400 mt-6 text-center">
         Showing {Math.min(visibleCount, filteredMedicines.length)} of{" "}
         {filteredMedicines.length} medicines
       </p>
@@ -235,38 +228,42 @@ export default MedicineStocks;
 
 /* ---------- Components ---------- */
 
-const SummaryCard = ({ title, value, icon }) => (
-  <div className="bg-white rounded-lg shadow border border-gray-300 p-4 flex justify-between items-center">
+const SummaryCard = ({ title, value, icon, bg, border }) => (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex justify-between items-center hover:shadow-md transition-shadow">
     <div>
-      <p className="text-sm text-gray-500">{title}</p>
-      <p className="text-xl font-bold">{value}</p>
+      <p className="text-sm font-medium text-gray-500">{title}</p>
+      <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
     </div>
-    <div className="p-3 bg-gray-300 rounded-lg text-xl">{icon}</div>
+    <div className={`p-3.5 rounded-xl text-xl ${bg} ${border} border`}>
+      {icon}
+    </div>
   </div>
 );
 
 const MedicineCard = ({ medicine, status, expiring, navigate }) => (
-  <div className="bg-white rounded-xl border border-gray-300 shadow hover:shadow-2xl hover:shadow-gray-500 transition overflow-hidden">
-    <div className="relative h-40 bg-gray-100 flex items-center justify-center">
+  <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col h-full overflow-hidden group">
+    <div className="relative h-48 bg-gray-50 flex items-center justify-center p-4 border-b border-gray-100">
       <img
         src={assets[medicine.medicineImage]}
         alt={medicine.medicineName}
-        className="object-contain h-full"
+        className="object-contain h-full w-full group-hover:scale-105 transition-transform"
       />
 
-      <div className="absolute top-2 left-2 right-2 flex justify-between">
+      <div className="absolute top-3 left-3 right-3 flex justify-between items-start pointer-events-none">
         {expiring ? (
-          <span className="text-xs flex gap-1 bg-red-500 text-white px-2 py-1 rounded">
-            <FaExclamationTriangle className="mt-0.5" />
-            Expiring Soon
+          <span className="text-[10px] font-bold flex gap-1 items-center bg-red-500/90 backdrop-blur text-white px-2.5 py-1 rounded-full shadow-sm">
+            <FaExclamationTriangle />
+            Expiring
           </span>
         ) : (
           <span />
         )}
 
         <span
-          className={`text-xs px-2 py-1 rounded text-white ${
-            status === "Low Stock" ? "bg-yellow-600" : "bg-green-500"
+          className={`text-[10px] font-bold px-2.5 py-1 rounded-full text-white shadow-sm ${
+            status === "Low Stock"
+              ? "bg-yellow-600/90 backdrop-blur"
+              : "bg-green-600/90 backdrop-blur"
           }`}
         >
           {status}
@@ -274,28 +271,51 @@ const MedicineCard = ({ medicine, status, expiring, navigate }) => (
       </div>
     </div>
 
-    <div className="p-4">
-      <h3 className="font-semibold">{medicine.medicineName}</h3>
-      <p className="text-xs p-2 bg-blue-100 w-fit border border-gray-400 rounded-xl text-gray-500 mb-3">
-        {medicine.category}
-      </p>
-
-      <div className="text-sm ml-4 text-gray-600 grid grid-cols-2 gap-y-1">
-        <span>ID</span>
-        <span>{medicine.medicineId}</span>
-        <span>Quantity</span>
-        <span>{medicine.quantity}</span>
-        <span>Batch</span>
-        <span>{medicine.batchNumber}</span>
-        <span>Expiry</span>
-        <span>{medicine.expiryDate}</span>
+    <div className="p-5 flex flex-col flex-1">
+      <div className="flex justify-between items-start mb-2">
+        <h3 className="font-bold text-gray-800 text-lg line-clamp-1">
+          {medicine.medicineName}
+        </h3>
       </div>
 
-      <hr className="my-3 text-gray-400" />
+      <div className="mb-4">
+        <span className="inline-block px-2.5 py-0.5 rounded-md bg-gray-100 text-gray-500 text-xs font-medium border border-gray-200">
+          {medicine.category}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm text-gray-600 mb-5 flex-1">
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase text-gray-400 font-bold tracking-wider">
+            ID
+          </span>
+          <span className="font-mono text-xs">{medicine.medicineId}</span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase text-gray-400 font-bold tracking-wider">
+            Stock
+          </span>
+          <span className="font-semibold text-gray-700">
+            {medicine.quantity}
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase text-gray-400 font-bold tracking-wider">
+            Batch
+          </span>
+          <span className="text-xs truncate">{medicine.batchNumber}</span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase text-gray-400 font-bold tracking-wider">
+            Expiry
+          </span>
+          <span className="text-xs">{medicine.expiryDate}</span>
+        </div>
+      </div>
 
       <button
         onClick={() => navigate(`/medicine-details/${medicine.medicineId}`)}
-        className="w-full cursor-pointer flex items-center justify-center gap-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white py-2 rounded-md text-sm"
+        className="w-full mt-auto cursor-pointer flex items-center justify-center gap-2 bg-fuchsia-800 hover:bg-fuchsia-900 active:bg-fuchsia-950 text-white py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
       >
         <FaEye />
         View Details

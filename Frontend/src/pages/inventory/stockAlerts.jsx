@@ -10,6 +10,8 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { medicine_records } from "../../data/medicine";
+import { purchase_orders } from "../../data/purchaseOrders";
+
 
 const StockAlerts = () => {
   const navigate = useNavigate();
@@ -316,7 +318,11 @@ const StockCard = ({ medicine, severity }) => {
 
       <div className="flex gap-3 mt-4">
         <button
-          onClick={() => navigate("/purchase-order")}
+          onClick={() =>
+            navigate("/create-purchase-order", {
+              state: { medicineId: medicine.medicineId },
+            })
+          }
           className="flex cursor-pointer items-center gap-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-4 py-2 rounded-md text-sm"
         >
           <FaShoppingCart />
