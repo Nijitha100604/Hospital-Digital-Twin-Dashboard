@@ -858,3 +858,199 @@ export const departmentDoctorData = [
     ]
   }
 ];
+
+export const nursePatientVitalsList = [
+  {
+    patientId: "P001",
+    appointmentId: "APT1001",
+    name: "Arun Kumar",
+    contact: "9876543210",
+    doctorName: "Dr. Meera Iyer",
+    doctorDepartment: "Cardiology",
+    status: "Pending",
+    date: "12 Jun 2025",
+    vitals: []
+  },
+  {
+    patientId: "P002",
+    appointmentId: "APT1002",
+    name: "Sneha Devi",
+    contact: "9123456780",
+    doctorName: "Dr. Rahul Verma",
+    doctorDepartment: "General Medicine",
+    status: "Completed",
+    date: "10 Jun 2025",
+    vitals: [
+      { name: "Blood Pressure", value: "120/80", unit: "mmHg", status: "Normal" },
+      { name: "Heart Rate", value: 72, unit: "bpm",status: "Normal" },
+      { name: "SpO₂", value: 98, unit: "%", status: "Normal" },
+      { name: "Temperature", value: 98.6, unit: "°F", status: "Normal" }
+    ]
+  },
+  {
+    patientId: "P003",
+    appointmentId: "APT1003",
+    name: "Ramesh Patel",
+    contact: "9988776655",
+    doctorName: "Dr. Kavitha Rao",
+    doctorDepartment: "Neurology",
+    status: "Pending",
+    date: "12 Jun 2025",
+    vitals: []
+  },
+  {
+    patientId: "P004",
+    appointmentId: "APT1004",
+    name: "Anitha Joseph",
+    contact: "9090909090",
+    doctorName: "Dr. Suresh Nair",
+    doctorDepartment: "Orthopedics",
+    status: "Completed",
+    date: "09 Jun 2025",
+    vitals: [
+      { name: "Blood Pressure", value: "118/76", unit: "mmHg" },
+      { name: "Heart Rate", value: 70, unit: "bpm" },
+      { name: "SpO₂", value: 99, unit: "%" }
+    ]
+  },
+  {
+    patientId: "P005",
+    appointmentId: "APT1005",
+    name: "Vignesh R",
+    contact: "9012345678",
+    doctorName: "Dr. Aditi Sharma",
+    doctorDepartment: "Pulmonology",
+    status: "Pending",
+    date: "12 Jun 2025",
+    vitals: []
+  },
+  {
+    patientId: "P006",
+    appointmentId: "APT1006",
+    name: "Lakshmi Narayanan",
+    contact: "9345678123",
+    doctorName: "Dr. Karthik Menon",
+    doctorDepartment: "Endocrinology",
+    status: "Completed",
+    date: "08 Jun 2025",
+    vitals: [
+      { name: "Blood Pressure", value: "130/85", unit: "mmHg" },
+      { name: "Heart Rate", value: 76, unit: "bpm" },
+      { name: "Blood Sugar", value: 110, unit: "mg/dL" }
+    ]
+  },
+  {
+    patientId: "P007",
+    appointmentId: "APT1007",
+    name: "Mohammed Irfan",
+    contact: "9786543210",
+    doctorName: "Dr. Farah Khan",
+    doctorDepartment: "ENT",
+    status: "Pending",
+    date: "12 Jun 2025",
+    vitals: []
+  },
+  {
+    patientId: "P008",
+    appointmentId: "APT1008",
+    name: "Divya S",
+    contact: "9871234567",
+    doctorName: "Dr. Nithya Prakash",
+    doctorDepartment: "Gynecology",
+    status: "Completed",
+    date: "07 Jun 2025",
+    vitals: [
+      { name: "Blood Pressure", value: "115/75", unit: "mmHg" },
+      { name: "Heart Rate", value: 74, unit: "bpm" }
+    ]
+  },
+  {
+    patientId: "P009",
+    appointmentId: "APT1009",
+    name: "Sathish Kumar",
+    contact: "9966332211",
+    doctorName: "Dr. Pradeep R",
+    doctorDepartment: "Dermatology",
+    status: "Pending",
+    date: "12 Jun 2025",
+    vitals: []
+  },
+  {
+    patientId: "P010",
+    appointmentId: "APT1010",
+    name: "Priya Malhotra",
+    contact: "9887766554",
+    doctorName: "Dr. Anil Gupta",
+    doctorDepartment: "Oncology",
+    status: "Completed",
+    date: "06 Jun 2025",
+    vitals: [
+      { name: "Blood Pressure", value: "122/82", unit: "mmHg" },
+      { name: "Heart Rate", value: 78, unit: "bpm" },
+      { name: "SpO₂", value: 97, unit: "%" }
+    ]
+  },
+  {
+    patientId: "P011",
+    appointmentId: "APT1011",
+    name: "Kannan M",
+    contact: "9445566778",
+    doctorName: "Dr. Shalini Desai",
+    doctorDepartment: "Nephrology",
+    status: "Pending",
+    date: "12 Jun 2025",
+    vitals: []
+  },
+  {
+    patientId: "P012",
+    appointmentId: "APT1012",
+    name: "Ayesha Rahman",
+    contact: "9898989898",
+    doctorName: "Dr. Imran Ali",
+    doctorDepartment: "Pediatrics",
+    status: "Completed",
+    date: "05 Jun 2025",
+    vitals: [
+      { name: "Heart Rate", value: 88, unit: "bpm" },
+      { name: "Temperature", value: 99, unit: "°F" }
+    ]
+  },
+  {
+    patientId: "P013",
+    appointmentId: "APT1013",
+    name: "Manoj Tiwari",
+    contact: "9776655443",
+    doctorName: "Dr. Ritu Singh",
+    doctorDepartment: "Psychiatry",
+    status: "Pending",
+    date: "12 Jun 2025",
+    vitals: []
+  },
+  {
+    patientId: "P014",
+    appointmentId: "APT1014",
+    name: "Pooja Kulkarni",
+    contact: "9665544332",
+    doctorName: "Dr. Sanjay Kulkarni",
+    doctorDepartment: "Gastroenterology",
+    status: "Completed",
+    date: "04 Jun 2025",
+    vitals: [
+      { name: "Blood Pressure", value: "119/79", unit: "mmHg" },
+      { name: "Heart Rate", value: 73, unit: "bpm" }
+    ]
+  },
+  {
+    patientId: "P015",
+    appointmentId: "APT1015",
+    name: "Naveen Chandra",
+    contact: "9554433221",
+    doctorName: "Dr. Ramesh Babu",
+    doctorDepartment: "Urology",
+    status: "Pending",
+    date: "12 Jun 2025",
+    vitals: []
+  }
+];
+
+

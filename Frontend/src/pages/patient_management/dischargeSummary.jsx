@@ -289,7 +289,9 @@ function DischargeSummary() {
             Prescription
         </h3>
 
-        <div className="mt-4 overflow-x-auto">
+        {
+          patientData.prescriptions.length > 0 ?
+          <div className="mt-4 overflow-x-auto">
           <table className="w-full text-sm border border-gray-300 border-collapse table-fixed">
             <thead className="bg-gray-100">
               <tr>
@@ -328,7 +330,11 @@ function DischargeSummary() {
               }
             </tbody>
           </table>
-        </div>
+          </div> :
+          <div className="text-gray-900 text-center">No Prescriptions available</div>
+        }
+
+        
       </div>
 
       {/* Discharge Condition and Reports */}
@@ -389,7 +395,7 @@ function DischargeSummary() {
                   ))
                 }
               </div> :
-              <div>
+              <div className="text-gray-900 text-center">
                 No Tests were done
               </div>
             }  

@@ -48,6 +48,9 @@ import ShiftPlanner from './pages/staff_management/ShiftPlanner';
 import StaffList from './pages/staff_management/StaffList';
 import StaffPerformance from './pages/staff_management/StaffPerformance';
 import StaffProfile from './pages/staff_management/staffProfile';
+import VitalsEntry from "./pages/patient_management/VitalsEntry";
+import Consultations from "./pages/patient_management/Consultations";
+
 
 
 function App() {
@@ -78,6 +81,8 @@ function App() {
         <Route path='/all-appointments' element={<AllAppointments />}/>
         <Route path='/discharge-summary/:id' element={<DischargeSummary />}/>
         <Route path='/view-appointment/:id' element={<ViewAppointment />}/>
+        <Route path='/vitals-entry' element={<VitalsEntry />}/>
+        <Route path='/consultations' element={<Consultations />}/>
 
         {/* Equipment */}
         <Route path='/equipment-list' element={<EquipmentList />}/>

@@ -3,8 +3,11 @@ import { FaHistory, FaInfoCircle, FaPhone, FaUser, FaEye, FaMicroscope, FaBookMe
 import { FaUserCircle } from "react-icons/fa";
 import { assets } from './../../assets/assets';
 import { patient_data } from '../../data/patient';
+import { useNavigate } from 'react-router-dom';
 
 function PatientProfile() {
+
+  const navigate = useNavigate();
 
   const getStatusClass = (status) =>{
     switch(status?.toLowerCase()){
@@ -355,7 +358,10 @@ function PatientProfile() {
                 <p className="text-sm font-bold text-gray-900">{item.bedNo}</p>
               </div>
 
-              <button className="text-sm font-medium bg-violet-500 px-2 py-1 text-white rounded-lg cursor-pointer">Discharge Summary</button>
+              <button 
+                className="text-sm font-medium bg-violet-500 px-2 py-1 text-white rounded-lg cursor-pointer"
+                onClick={()=>navigate(`/discharge-summary/${patient_data.patientId}`)}
+              >Discharge Summary</button>
 
             </div>
           ))
