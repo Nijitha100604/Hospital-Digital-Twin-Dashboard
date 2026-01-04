@@ -76,7 +76,7 @@ const StockAlerts = () => {
       </div>
 
       {/* SUMMARY */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 sm:grid-cols-2 gap-4 mb-6">
         <SummaryCard
           title="Low Stock Items"
           value={lowStock.length}
@@ -280,7 +280,7 @@ const StockCard = ({ medicine, severity }) => {
                   } text-xl`}
                 />
               </div>
-              <p className="font-semibold text-xl mt-2">
+              <p className="font-semibold text-lg mt-2">
                 {medicine.medicineName} {medicine.strength}
               </p>
             </div>
