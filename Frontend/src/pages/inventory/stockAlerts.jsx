@@ -10,6 +10,8 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { medicine_records } from "../../data/medicine";
+import { purchase_orders } from "../../data/purchaseOrders";
+
 
 const StockAlerts = () => {
   const navigate = useNavigate();
@@ -61,7 +63,7 @@ const StockAlerts = () => {
   return (
     <>
       {/* HEADER */}
-      <div className="bg-white p-4 rounded-lg mb-4 flex justify-between items-center border border-gray-300 shadow">
+      <div className="bg-white p-6 rounded-lg mb-4 flex justify-between items-center border border-gray-300 shadow">
         <div>
           <div className="flex gap-3 items-center">
             <FaExclamationTriangle className="text-gray-500 text-xl" />
@@ -74,7 +76,7 @@ const StockAlerts = () => {
       </div>
 
       {/* SUMMARY */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 sm:grid-cols-2 gap-4 mb-6">
         <SummaryCard
           title="Low Stock Items"
           value={lowStock.length}
@@ -278,7 +280,7 @@ const StockCard = ({ medicine, severity }) => {
                   } text-xl`}
                 />
               </div>
-              <p className="font-semibold text-xl mt-2">
+              <p className="font-semibold text-lg mt-2">
                 {medicine.medicineName} {medicine.strength}
               </p>
             </div>
@@ -316,7 +318,11 @@ const StockCard = ({ medicine, severity }) => {
 
       <div className="flex gap-3 mt-4">
         <button
-          onClick={() => navigate("/purchase-order")}
+          onClick={() =>
+            navigate("/create-purchase-order", {
+              state: { medicineId: medicine.medicineId },
+            })
+          }
           className="flex cursor-pointer items-center gap-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-4 py-2 rounded-md text-sm"
         >
           <FaShoppingCart />

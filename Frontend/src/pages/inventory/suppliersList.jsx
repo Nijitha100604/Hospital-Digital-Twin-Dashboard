@@ -57,7 +57,7 @@ const SuppliersList = () => {
   return (
     <>
       {/* Header */}
-      <div className="bg-white p-4 rounded-lg mb-4 flex flex-wrap justify-between items-center">
+      <div className="bg-white p-6 rounded-lg mb-4 flex flex-wrap justify-between items-center border border-gray-300 shadow">
         <div>
           <div className="flex gap-3 items-center">
             <FaHandshake className="text-gray-500 text-xl" />

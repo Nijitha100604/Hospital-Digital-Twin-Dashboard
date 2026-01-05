@@ -36,16 +36,16 @@ import StockAlerts from './pages/inventory/StockAlerts';
 import SuppliersList from './pages/inventory/SuppliersList';
 import EditSupplierDetails from "./pages/inventory/editSupplierDetails";
 import ViewMedicineDetails from './pages/inventory/viewMedicineDetails';
-import LabReportsList from './pages/laboratory/LabReportsList';
+import LabReportsList from './pages/laboratory/labReportsList';
 import LabResultsEntry from './pages/laboratory/LabResultsEntry';
 import PatientWiseReports from './pages/laboratory/PatientWiseReports';
 import UploadReport from './pages/laboratory/UploadReport';
 import AddStaff from './pages/staff_management/AddStaff';
 import AssignShift from './pages/staff_management/AssignShift';
-import Attendance from './pages/staff_management/Attendance';
-import LeaveManagement from './pages/staff_management/LeaveManagement';
+import Attendance from './pages/staff_management/attendance';
+import LeaveManagement from './pages/staff_management/leaveManagement';
 import ShiftPlanner from './pages/staff_management/ShiftPlanner';
-import StaffList from './pages/staff_management/StaffList';
+import StaffList from './pages/staff_management/staffList';
 import StaffPerformance from './pages/staff_management/StaffPerformance';
 import StaffProfile from './pages/staff_management/staffProfile';
 import VitalsEntry from "./pages/patient_management/VitalsEntry";
@@ -92,7 +92,7 @@ function App() {
         <Route path='/add-maintenance' element={<AddMaintenance />}/>
         <Route path='/calibration-schedule-list' element={<CalibrationScheduleList />}/>
         <Route path='/maintenance-log' element={<MaintenanceLog />}/>
-        <Route path='/view-equipment' element={<ViewEquipment />}/>
+        <Route path='/view-equipment/:id' element={<ViewEquipment />}/>
 
         {/* Infrastructure */}
         <Route path='/add-department' element={<AddDepartment />}/>
