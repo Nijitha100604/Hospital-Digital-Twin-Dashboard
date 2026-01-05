@@ -74,7 +74,7 @@ const MedicineStocks = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen">
+    <div className="max-w-7xl mx-auto p-4 md:p-6 bg-fuchsia-50 min-h-screen">
       {/* Header + Actions */}
       <div className="bg-white p-6 rounded-xl mb-6 flex flex-col md:flex-row justify-between items-center border border-gray-200 shadow-sm">
         <div className="mb-4 md:mb-0 w-full md:w-auto">
@@ -92,7 +92,7 @@ const MedicineStocks = () => {
         <div className="flex gap-3 items-center w-full md:w-auto">
           <button
             onClick={() => navigate("/stock-alerts")}
-            className="relative flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
+            className="relative cursor-pointer flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
           >
             <FaBell className="text-gray-500" />
             Alerts
@@ -105,7 +105,7 @@ const MedicineStocks = () => {
 
           <button
             onClick={() => navigate("/add-new-medicine")}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
+            className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
           >
             <FaPlus />
             Add New Medicine
@@ -251,7 +251,7 @@ const MedicineCard = ({ medicine, status, expiring, navigate }) => (
 
       <div className="absolute top-3 left-3 right-3 flex justify-between items-start pointer-events-none">
         {expiring ? (
-          <span className="text-[10px] font-bold flex gap-1 items-center bg-red-500/90 backdrop-blur text-white px-2.5 py-1 rounded-full shadow-sm">
+          <span className="text-[11px] font-semibold flex gap-1 items-center bg-red-500/90 backdrop-blur text-white px-3 py-1 rounded-sm shadow-sm">
             <FaExclamationTriangle />
             Expiring
           </span>
@@ -260,7 +260,7 @@ const MedicineCard = ({ medicine, status, expiring, navigate }) => (
         )}
 
         <span
-          className={`text-[10px] font-bold px-2.5 py-1 rounded-full text-white shadow-sm ${
+          className={`text-[11px] font-semibold px-3 py-1 rounded-sm text-white shadow-sm ${
             status === "Low Stock"
               ? "bg-yellow-600/90 backdrop-blur"
               : "bg-green-600/90 backdrop-blur"
@@ -315,7 +315,7 @@ const MedicineCard = ({ medicine, status, expiring, navigate }) => (
 
       <button
         onClick={() => navigate(`/medicine-details/${medicine.medicineId}`)}
-        className="w-full mt-auto cursor-pointer flex items-center justify-center gap-2 bg-fuchsia-800 hover:bg-fuchsia-900 active:bg-fuchsia-950 text-white py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
+        className="w-full mt-auto cursor-pointer flex items-center justify-center gap-2 bg-pink-700 hover:bg-pink-600 active:bg-fuchsia-950 text-white py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
       >
         <FaEye />
         View Details

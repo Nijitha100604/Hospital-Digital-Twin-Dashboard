@@ -63,7 +63,7 @@ const StockAlerts = () => {
   return (
     <>
       {/* HEADER */}
-      <div className="bg-white p-4 rounded-lg mb-4 flex justify-between items-center border border-gray-300 shadow">
+      <div className="bg-white p-6 rounded-lg mb-4 flex justify-between items-center border border-gray-300 shadow">
         <div>
           <div className="flex gap-3 items-center">
             <FaExclamationTriangle className="text-gray-500 text-xl" />
@@ -76,7 +76,7 @@ const StockAlerts = () => {
       </div>
 
       {/* SUMMARY */}
-      <div className="grid grid-cols-1 md:grid-cols-2 sm:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 sm:grid-cols-2 gap-4 mb-6">
         <SummaryCard
           title="Low Stock Items"
           value={lowStock.length}

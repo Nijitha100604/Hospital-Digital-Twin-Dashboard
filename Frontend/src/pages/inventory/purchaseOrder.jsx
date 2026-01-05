@@ -9,6 +9,7 @@ import {
   FaPlus,
   FaEdit,
   FaTrash,
+  FaShoppingCart,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { purchase_orders } from "../../data/purchaseOrders";
@@ -57,9 +58,16 @@ const PurchaseOrder = () => {
   return (
     <>
       {/* HEADER */}
-      <div className="bg-white p-4 rounded-lg mb-4 border border-gray-300 shadow flex justify-between items-center">
+      <div className="bg-white p-6 rounded-lg mb-4 border border-gray-300 shadow flex justify-between items-center">
         <div>
-          <p className="text-xl font-bold">Purchase Order</p>
+          <div className="flex gap-3 items-center">
+                      <div size={24} className="p-2 text-gray-500">
+                        <FaShoppingCart className="text-xl" />
+                      </div>
+                      <h2 className="font-bold text-lg text-gray-800">
+                        Purchase Orders
+                      </h2>
+                    </div>
           <p className="text-sm text-gray-500">
             Create and track purchase orders
           </p>

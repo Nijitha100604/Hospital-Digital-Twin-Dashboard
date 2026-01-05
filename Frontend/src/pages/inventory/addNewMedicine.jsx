@@ -10,7 +10,8 @@ import {
   FaStickyNote,
   FaImage,
   FaTrash,
-  FaArrowLeft
+  FaArrowLeft,
+  FaPills,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -50,7 +51,8 @@ const AddNewMedicine = () => {
     }
   };
 
-  const removeImage = () => {
+  const removeImage = (e) => {
+    e.stopPropagation();
     setImageName("");
     fileRef.current.value = null;
   };
@@ -62,242 +64,282 @@ const AddNewMedicine = () => {
   };
 
   return (
-    <>
+    <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen">
       {/* Header */}
       <div className="bg-white p-6 rounded-xl mb-6 flex flex-col md:flex-row justify-between items-center border border-gray-200 shadow-sm">
-        <div className="mb-4 md:mb-0 w-full md:w-auto">
-          <div className="flex gap-3 items-center">
-            <FaPlusCircle size={24} className="text-gray-500 text-xl" />
-            <p className="text-gray-800 font-bold text-lg">
-              Add New Medicine
-            </p>
-          </div>
-          <p className="text-gray-500 text-sm mt-1">
-            Add a new medicine or supply into inventory
-          </p>
-        </div>
-
-        <div className="w-full md:w-auto">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto cursor-pointer"
-          >
-            <FaArrowLeft />
-            Back
-          </button>
-        </div>
-      </div>
-
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white rounded-lg p-5 space-y-6"
-      >
-        {/* Basic Information */}
-        <Section title="Basic Information" icon={<FaInfoCircle />}>
-          <Input
-            label="Medicine Name"
-            required
-            placeholder="e.g. Paracetamol 500mg"
-            value={medicineName}
-            onChange={setMedicineName}
-          />
-          <Input
-            label="Generic Name"
-            required
-            placeholder="e.g. Acetaminophen"
-            value={genericName}
-            onChange={setGenericName}
-          />
-          <Select
-            label="Category"
-            required
-            value={category}
-            onChange={setCategory}
-            options={[
-              "Analgesic",
-              "Antibiotic",
-              "Antidiabetic",
-              "Antacid",
-              "Supplement",
-            ]}
-          />
-          <Input
-            label="Manufacturer"
-            required
-            placeholder="e.g. PharmaCorp Ltd"
-            value={manufacturer}
-            onChange={setManufacturer}
-          />
-          <Select
-            label="Dosage Form"
-            required
-            value={dosageForm}
-            onChange={setDosageForm}
-            options={["Tablet", "Capsule", "Injection", "Syrup", "Inhaler"]}
-          />
-          <Input
-            label="Strength"
-            required
-            placeholder="e.g. 500 mg"
-            value={strength}
-            onChange={setStrength}
-          />
-          <Input
-            label="Pack Size"
-            placeholder="e.g. 10 tablets/strip"
-            value={packSize}
-            onChange={setPackSize}
-          />
-          <Select
-            label="Prescription Required"
-            required
-            value={prescriptionRequired}
-            onChange={setPrescriptionRequired}
-            options={["Yes", "No"]}
-          />
-        </Section>
-
-        {/* Stock Information */}
-        <Section title="Stock Information" icon={<FaWarehouse />}>
-          <Input
-            label="Batch Number"
-            required
-            placeholder="e.g. PC-2024-001"
-            value={batchNumber}
-            onChange={setBatchNumber}
-          />
-          <Input
-            label="Quantity"
-            type="number"
-            required
-            placeholder="e.g. 150"
-            value={quantity}
-            onChange={setQuantity}
-          />
-          <Input
-            label="Minimum Threshold"
-            type="number"
-            placeholder="e.g. 20"
-            value={minimumThreshold}
-            onChange={setMinimumThreshold}
-          />
-          <Input
-            label="Expiry Date"
-            type="date"
-            required
-            value={expiryDate}
-            onChange={setExpiryDate}
-          />
-          <Input
-            label="Storage Location"
-            placeholder="e.g. Rack A - Shelf 3"
-            value={storageLocation}
-            onChange={setStorageLocation}
-          />
-          <Input
-            label="Storage Conditions"
-            placeholder="e.g. Store below 25°C"
-            value={storageConditions}
-            onChange={setStorageConditions}
-          />
-        </Section>
-
-        {/* Supplier & Pricing */}
-        <Section title="Supplier & Pricing Information" icon={<FaTruck />}>
-          <Input
-            label="Supplier Name"
-            required
-            placeholder="e.g. HealthPlus Distributors"
-            value={supplierName}
-            onChange={setSupplierName}
-          />
-          <Input
-            label="Cost Per Unit"
-            required
-            placeholder="e.g. 2.50"
-            value={costPerUnit}
-            onChange={setCostPerUnit}
-          />
-          <Input
-            label="Selling Price"
-            placeholder="e.g. 4.00"
-            value={sellingPrice}
-            onChange={setSellingPrice}
-          />
-        </Section>
-
-        {/* Additional Info */}
-        <Section title="Additional Information" icon={<FaStickyNote />}>
-          <Textarea
-            label="Description"
-            placeholder="Add description here"
-            value={description}
-            onChange={setDescription}
-          />
-        </Section>
-
-        {/* Upload Image */}
-        <div>
-          <label className="font-semibold text-sm flex items-center gap-2">
-            <FaImage /> Add Medicine Image{" "}
-            <span className="text-red-600">*</span>
-          </label>
-
-          <div
-            onClick={() => fileRef.current.click()}
-            className="mt-2 border-2 border-gray-400 border-dashed bg-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-fuchsia-600"
-          >
-            <FaUpload className="mx-auto text-xl text-gray-600" />
-            <p className="text-md text-gray-600">
-              Drag & drop files or{" "}
-              <span className="font-semibold underline">browse</span>
-            </p>
-            <p className="text-xs text-gray-500">
-              Supported formats: JPG, PNG, WEBP
-            </p>
-          </div>
-
-          {imageName && (
-            <div className="flex justify-between items-center mt-2 bg-green-50 px-3 py-2 rounded">
-              <p className="text-sm text-green-700">{imageName}</p>
-              <button
-                type="button"
-                onClick={removeImage}
-                className="text-red-600 hover:text-red-800"
-              >
-                <FaTrash />
-              </button>
+              <div className="mb-4 md:mb-0 w-full md:w-auto">
+                <div className="flex gap-3 items-center">
+                  <FaPlusCircle size={24} className="text-gray-500 text-xl" />
+                  <p className="text-gray-800 font-bold text-lg">
+                    Add New Medicine
+                  </p>
+                </div>
+                <p className="text-gray-500 text-sm mt-1">
+                  Add a new medicine or supply into inventory
+                </p>
+              </div>
+      
+              <div className="w-full md:w-auto">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto cursor-pointer"
+                >
+                  <FaArrowLeft />
+                  Back
+                </button>
+              </div>
             </div>
-          )}
 
-          <input
-            type="file"
-            ref={fileRef}
-            onChange={handleImageChange}
-            accept=".png,.jpg,.jpeg,.webp"
-            className="hidden"
-          />
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* LEFT COLUMN: Main Info */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Basic Information */}
+            <Section title="Basic Information" icon={<FaInfoCircle />}>
+              <Input
+                label="Medicine Name"
+                required
+                placeholder="e.g. Paracetamol"
+                value={medicineName}
+                onChange={setMedicineName}
+              />
+              <Input
+                label="Generic Name"
+                required
+                placeholder="e.g. Acetaminophen"
+                value={genericName}
+                onChange={setGenericName}
+              />
+              <Select
+                label="Category"
+                required
+                value={category}
+                onChange={setCategory}
+                options={[
+                  "Analgesic",
+                  "Antibiotic",
+                  "Antidiabetic",
+                  "Antacid",
+                  "Supplement",
+                ]}
+              />
+              <Input
+                label="Manufacturer"
+                required
+                placeholder="e.g. PharmaCorp Ltd"
+                value={manufacturer}
+                onChange={setManufacturer}
+              />
+              <Select
+                label="Dosage Form"
+                required
+                value={dosageForm}
+                onChange={setDosageForm}
+                options={[
+                  "Tablet",
+                  "Capsule",
+                  "Injection",
+                  "Syrup",
+                  "Inhaler",
+                ]}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Strength"
+                  required
+                  placeholder="e.g. 500 mg"
+                  value={strength}
+                  onChange={setStrength}
+                />
+                <Input
+                  label="Pack Size"
+                  placeholder="e.g. 10s"
+                  value={packSize}
+                  onChange={setPackSize}
+                />
+              </div>
+            </Section>
+
+            {/* Stock Information */}
+            <Section title="Stock Information" icon={<FaWarehouse />}>
+              <Input
+                label="Batch Number"
+                required
+                placeholder="e.g. PC-2024-001"
+                value={batchNumber}
+                onChange={setBatchNumber}
+              />
+              <Input
+                label="Quantity"
+                type="number"
+                required
+                placeholder="e.g. 150"
+                value={quantity}
+                onChange={setQuantity}
+              />
+              <Input
+                label="Minimum Threshold"
+                type="number"
+                placeholder="e.g. 20"
+                value={minimumThreshold}
+                onChange={setMinimumThreshold}
+              />
+              <Input
+                label="Expiry Date"
+                type="date"
+                required
+                value={expiryDate}
+                onChange={setExpiryDate}
+              />
+              <Input
+                label="Storage Location"
+                placeholder="e.g. Rack A - Shelf 3"
+                value={storageLocation}
+                onChange={setStorageLocation}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Storage Conditions"
+                  placeholder="e.g. < 25°C"
+                  value={storageConditions}
+                  onChange={setStorageConditions}
+                />
+                <Select
+                  label="Rx Required"
+                  required
+                  value={prescriptionRequired}
+                  onChange={setPrescriptionRequired}
+                  options={["Yes", "No"]}
+                />
+              </div>
+            </Section>
+          </div>
+
+          {/* RIGHT COLUMN: Extras */}
+          <div className="space-y-6">
+            {/* Upload Image */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
+                <FaImage className="text-gray-400" />
+                <h3 className="font-bold text-gray-800">Medicine Image</h3>
+              </div>
+              <div className="p-5">
+                <div
+                  onClick={() => fileRef.current.click()}
+                  className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+                    imageName
+                      ? "border-green-300 bg-green-50"
+                      : "border-gray-300 hover:border-fuchsia-500 hover:bg-gray-50"
+                  }`}
+                >
+                  {imageName ? (
+                    <div className="flex flex-col items-center">
+                      <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-3">
+                        <FaPills size={20} />
+                      </div>
+                      <p className="text-sm font-medium text-green-800 break-all">
+                        {imageName}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="mt-3 text-xs text-red-600 hover:text-red-800 font-medium flex items-center gap-1 bg-white px-2 py-1 rounded border border-red-200 shadow-sm"
+                      >
+                        <FaTrash /> Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center">
+                      <FaUpload className="text-3xl text-gray-400 mb-3" />
+                      <p className="text-sm font-medium text-gray-700">
+                        Click to upload
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        JPG, PNG (max 2MB)
+                      </p>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    ref={fileRef}
+                    onChange={handleImageChange}
+                    accept=".png,.jpg,.jpeg,.webp"
+                    className="hidden"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Supplier & Pricing */}
+            <Section title="Supplier & Pricing" icon={<FaTruck />}>
+              <div className="col-span-1 md:col-span-2">
+                <Input
+                  label="Supplier Name"
+                  required
+                  placeholder="Select Supplier..."
+                  value={supplierName}
+                  onChange={setSupplierName}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4 col-span-1 md:col-span-2">
+                <Input
+                  label="Cost Price"
+                  required
+                  type="number"
+                  placeholder="0.00"
+                  value={costPerUnit}
+                  onChange={setCostPerUnit}
+                  prefix="₹"
+                />
+                <Input
+                  label="Selling Price"
+                  type="number"
+                  placeholder="0.00"
+                  value={sellingPrice}
+                  onChange={setSellingPrice}
+                  prefix="₹"
+                />
+              </div>
+            </Section>
+
+            {/* Additional Info */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
+                <FaStickyNote className="text-gray-400" />
+                <h3 className="font-bold text-gray-800">Description</h3>
+              </div>
+              <div className="p-5">
+                <textarea
+                  rows={4}
+                  value={description}
+                  placeholder="Enter detailed description..."
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 bg-white focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent outline-none transition-all text-sm text-gray-700 placeholder-gray-400 resize-none"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-end gap-4">
+        {/* Actions (Bottom Right) */}
+        <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-md"
+            className="flex items-center gap-2 cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
           >
             <FaTimes /> Cancel
           </button>
 
           <button
             type="submit"
-            className="flex items-center gap-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-4 py-2 rounded-md"
+            className="flex items-center gap-2 cursor-pointer bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
           >
-            <FaSave /> Add Medicine
+            <FaSave /> Save Medicine
           </button>
         </div>
       </form>
-    </>
+    </div>
   );
 };
 
@@ -306,12 +348,12 @@ export default AddNewMedicine;
 /* ---------- Reusable Components ---------- */
 
 const Section = ({ title, icon, children }) => (
-  <div>
-    <p className="font-semibold text-md mb-3 flex items-center gap-2">
-      <span className="text-gray-500">{icon}</span>
-      {title}
-    </p>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{children}</div>
+  <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
+      <span className="text-gray-400">{icon}</span>
+      <h3 className="font-bold text-gray-800">{title}</h3>
+    </div>
+    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">{children}</div>
   </div>
 );
 
@@ -322,50 +364,66 @@ const Input = ({
   onChange,
   type = "text",
   placeholder,
+  prefix,
 }) => (
-  <div>
-    <label className="text-sm font-medium">
-      {label} {required && <span className="text-red-600">*</span>}
+  <div className="w-full">
+    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
+      {label} {required && <span className="text-red-500">*</span>}
     </label>
-    <input
-      type={type}
-      required={required}
-      value={value}
-      placeholder={placeholder}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full mt-1 bg-gray-300 outline-0 rounded-md px-3 py-2 focus:ring-1 focus:ring-fuchsia-600"
-    />
+    <div className="relative">
+      {prefix && (
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <span className="text-gray-500 text-sm">{prefix}</span>
+        </div>
+      )}
+      <input
+        type={type}
+        required={required}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full ${
+          prefix ? "pl-7" : "pl-3"
+        } pr-3 py-2.5 rounded-lg border border-gray-300 bg-white focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent outline-none transition-all text-sm text-gray-700 placeholder-gray-400`}
+      />
+    </div>
   </div>
 );
 
 const Select = ({ label, required, value, onChange, options }) => (
-  <div>
-    <label className="text-sm font-medium">
-      {label} {required && <span className="text-red-600">*</span>}
+  <div className="w-full">
+    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
+      {label} {required && <span className="text-red-500">*</span>}
     </label>
-    <select
-      required={required}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full mt-1 bg-gray-300 outline-0 rounded-md px-3 py-2 focus:ring-1 focus:ring-fuchsia-600"
-    >
-      <option value="">Select</option>
-      {options.map((o) => (
-        <option key={o}>{o}</option>
-      ))}
-    </select>
-  </div>
-);
-
-const Textarea = ({ label, value, onChange, placeholder }) => (
-  <div className="md:col-span-2">
-    <label className="text-sm font-medium">{label}</label>
-    <textarea
-      rows={3}
-      value={value}
-      placeholder={placeholder}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full mt-1 bg-gray-300 outline-0 rounded-md px-3 py-2 focus:ring-1 focus:ring-fuchsia-600"
-    />
+    <div className="relative">
+      <select
+        required={required}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-300 bg-white focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent outline-none transition-all text-sm text-gray-700 appearance-none cursor-pointer"
+      >
+        <option value="">Select...</option>
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
+      <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+        <svg
+          className="w-4 h-4 text-gray-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </div>
+    </div>
   </div>
 );

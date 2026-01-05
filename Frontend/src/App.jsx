@@ -90,7 +90,7 @@ function App() {
         <Route path='/add-maintenance' element={<AddMaintenance />}/>
         <Route path='/calibration-schedule-list' element={<CalibrationScheduleList />}/>
         <Route path='/maintenance-log' element={<MaintenanceLog />}/>
-        <Route path='/view-equipment' element={<ViewEquipment />}/>
+        <Route path='/view-equipment/:id' element={<ViewEquipment />}/>
 
         {/* Infrastructure */}
         <Route path='/add-department' element={<AddDepartment />}/>

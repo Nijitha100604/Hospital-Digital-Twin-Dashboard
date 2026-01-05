@@ -66,7 +66,7 @@ const ViewMedicineDetails = () => {
         <div className="flex gap-3 items-center w-full md:w-auto">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
+            className="flex items-center justify-center cursor-pointer gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
           >
             <FaArrowLeft />
             Back
@@ -74,7 +74,7 @@ const ViewMedicineDetails = () => {
 
           <button
             onClick={() => navigate(`/edit-medicine/${medicine.medicineId}`)}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium  cursor-pointer transition-colors shadow-sm w-full md:w-auto"
           >
             <FaEdit />
             Edit Details
