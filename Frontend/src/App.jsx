@@ -50,6 +50,7 @@ import StaffPerformance from './pages/staff_management/StaffPerformance';
 import StaffProfile from './pages/staff_management/staffProfile';
 import VitalsEntry from "./pages/patient_management/VitalsEntry";
 import Consultations from "./pages/patient_management/Consultations";
+import PatientConsultation from "./pages/patient_management/PatientConsultation";
 
 
 
@@ -83,6 +84,7 @@ function App() {
         <Route path='/view-appointment/:id' element={<ViewAppointment />}/>
         <Route path='/vitals-entry' element={<VitalsEntry />}/>
         <Route path='/consultations' element={<Consultations />}/>
+        <Route path='/patient-consultation/:id' element={<PatientConsultation />} />
 
         {/* Equipment */}
         <Route path='/equipment-list' element={<EquipmentList />}/>
