@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { doctorConsultations } from '../../data/patient';
-import { FaPlus, FaSave, FaTrash, FaUserMd } from 'react-icons/fa';
+import { FaCheckCircle, FaEye, FaPlus, FaSave, FaTrash, FaUserMd } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 function PatientConsultation() {
@@ -16,6 +16,9 @@ function PatientConsultation() {
     const [frequency, setFrequency] = useState([]);
     const [duration, setDuration] = useState("");
     const [instruction, setInstruction] = useState("");
+    const [labTestName, setLabTestName] = useState("");
+    const [labReports, setLabReports] = useState([]);
+    const [newLabReports, setNewLabReports] = useState([]);
 
     const handleSaveDiagnosis = () =>{
       if(!diagnosis || !doctorRemarks) return;
@@ -80,6 +83,29 @@ function PatientConsultation() {
       }));
     };
 
+    const handleAddLabTest = () =>{
+      if(!labTestName) return;
+
+      const newTest = {
+      testName: labTestName,
+      status: "Pending",
+      };
+
+      setLabReports(prev => [...prev, newTest]);
+      setNewLabReports(prev => [...prev, newTest]);
+      setLabTestName("");
+
+    }
+
+    const handleSaveLabReports = () => {
+      setConsultation(prev => ({
+        ...prev,
+        labReports
+      }));
+      toast.success("Lab tests requested");
+      setNewLabReports([]);
+    };
+
     useEffect(()=>{
       const fetchConsultation = async() =>{
         console.log(id);
@@ -94,6 +120,7 @@ function PatientConsultation() {
           setDiagnosis(consultation?.diagnosis || "");
           setDoctorRemarks(consultation?.doctorRemarks || "");
           setPrescriptions(consultation?.prescriptions || []);
+          setLabReports(consultation?.labReports || []);
         }
       }
       fetchConsultation();
@@ -454,6 +481,233 @@ function PatientConsultation() {
 
     </div>
 
+    {/* Lab Reports */}
+    <div className = "w-full bg-white px-3 py-3 mt-4 rounded-lg border border-gray-300">
+      <p className="text-sm font-medium text-gray-600 mb-4">Lab Reports</p>
+
+      {
+        consultation?.labReports?.length > 0 && (
+          <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-3">
+            {
+              consultation.labReports.map((item, index)=>(
+                <div 
+                  key = {index}
+                  className="px-3 py-2 flex items-center flex-wrap justify-between gap-3 border border-gray-300 rounded-lg"
+                >
+                  <p className="text-sm font-medium">{item.testName}</p>
+                  <p className={`text-white px-2 py-1 rounded-lg text-sm font-medium ${item.status === "Pending" ? "bg-orange-500" : item.status === "Requested" ? "bg-blue-500" : "bg-green-500"}`}>{item.status}</p>
+                  {
+                    item.status === "Completed" &&
+                    <FaEye size={18}/>
+                  }
+                </div>
+              ))
+            }
+          </div>
+        ) 
+      }
+
+      {consultation.consultationStatus !== "Completed" && (
+      <>
+        <p className="mt-3 text-gray-600 text-sm font-medium">Request Lab Reports</p>
+        <div className="mt-4 flex gap-3 items-end">
+
+        <div>
+          <label className="text-sm font-medium text-gray-800">Lab Test Name <span className="text-red-600">*</span></label>
+          <input
+            value={labTestName}
+            onChange={e => setLabTestName(e.target.value)}
+            placeholder="Enter lab test"
+            className="w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+        />
+        </div>
+
+        <button
+          onClick={handleAddLabTest}
+          className="flex gap-2 items-center px-3 py-2 bg-fuchsia-700 text-white rounded-md text-sm"
+        >
+          <FaPlus size={18}/>Add Test
+        </button>
+
+        <button
+          onClick={handleSaveLabReports}
+          className="px-3 py-2 bg-green-800 text-white rounded-md text-sm"
+        >
+          Save Lab Requests
+        </button>
+        </div>
+
+        {
+          newLabReports.length > 0 && (
+            <div className="flex flex-wrap gap-3 items-center mt-4">
+              {
+                newLabReports.map((item, index)=>(
+                  <div
+                    key = {index} 
+                    className="flex flex-wrap gap-10 justify-between px-3 py-1 border border-gray-500 bg-white rounded-lg"
+                  >
+                    <p className="text-sm text-gray-900 font-medium">{item.testName}</p>
+                    <p className="text-sm text-gray-900 font-medium">{item.status}</p>
+                  </div>
+                ))
+              }
+            </div>
+          )
+        }
+
+        
+      </>
+      )}
+
+      {consultation.consultationStatus === "Completed" && consultation.labReports.length === 0 && (
+        <p className="text-sm text-gray-600 text-center">
+          No lab reports available
+        </p>
+      )}
+
+    </div>
+
+    {/* Admitted Status */}
+    {
+      consultation?.admissionDetails?.admitted && (
+        <div className="w-full bg-white px-3 py-3 mt-4 rounded-lg border border-gray-300">
+          <p className="text-sm font-medium text-gray-600 mb-4">Admitted Details</p>
+
+          <div className="w-full px-3 py-2 flex gap-5 justify-between">
+
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium text-gray-600">Block</p>
+              <p className="text-sm font-bold text-gray-900">A Block</p>
+            </div>
+            
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium text-gray-600">Ward</p>
+              <p className="text-sm font-bold text-gray-900">General Ward</p>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium text-gray-600">Bed Number</p>
+              <p className="text-sm font-bold text-gray-900">G-103</p>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium text-gray-600">Number of days</p>
+              {
+                consultation?.admissionDetails?.numberOfDays ?
+                <p className="text-sm font-bold text-gray-900">{consultation?.admissionDetails.numberOfDays} day(s)</p> :
+                <p className="text-sm font-bold text-gray-900">-</p>
+              }
+              
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium text-gray-600">Discharge Remarks</p>
+              {consultation?.admissionDetails.dischargeRemarks ? 
+              <p className="text-sm font-bold text-gray-900">{consultation?.admissionDetails.dischargeRemarks}</p> :
+              <p> - </p>
+              }
+              
+            </div>
+
+          </div>
+
+          <div className="grid md:grid-cols-3 sm:grid-cols-2 gap-4 items-top mt-4">
+            <div className="bg-gray-100 rounded-lg px-3 py-2 border border-gray-300">
+              <p className="text-sm font-medium text-gray-700 mb-4">Daily Notes</p>
+              {
+                consultation?.admissionDetails?.dailyNotes ? 
+                <div className="flex items-start pl-2 flex-col gap-2">
+                 { consultation?.admissionDetails.dailyNotes.map((item, index) => (
+                    <p 
+                      key={index}
+                      className="text-sm text-gray-800 font-medium"
+                    >
+                      12 Jul 2025 - {item}
+                    </p>
+                  ))
+                }
+                </div> :
+                <p className="text-sm text-gray-800 font-bold text-center">Notes not available</p>
+              }
+            </div>
+
+            <div className="bg-gray-100 rounded-lg px-3 py-2 border border-gray-300">
+              <p className="text-sm font-medium text-gray-700 mb-4">Final Vitals</p>
+
+              {
+                consultation?.admissionDetails?.finalVitals ?
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-3">
+                    <p className="text-sm text-gray-800">Blood Pressure : <span className="font-bold">{consultation?.admissionDetails.finalVitals.bloodPressure}</span></p>
+                    <p className="text-green-700 font-semibold text-sm">Normal</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <p className="text-sm text-gray-800">Heart Rate : <span className="font-bold">{consultation?.admissionDetails.finalVitals.heartRate}</span></p>
+                    <p className="text-green-700 font-semibold text-sm">Normal</p>
+                  </div>
+                </div> :
+                <p className="text-sm text-gray-800 font-bold text-center">No Vitals Recorded</p>
+              }
+            </div>
+
+            <div className="bg-gray-100 rounded-lg px-3 py-2 border border-gray-300">
+              <p className="text-sm font-medium text-gray-700 mb-4">Patient Instructions</p>
+              {
+                consultation?.patientInstructions ? 
+                <div className="flex items-start pl-2 flex-col gap-2">
+                 { consultation?.patientInstructions.map((item, index) => (
+                    <p 
+                      key={index}
+                      className="flex items-center gap-2 text-sm text-gray-800 font-medium"
+                    >
+                     <FaCheckCircle 
+                      size={18} 
+                      className="text-green-600"
+                    />
+                    {item}
+                    </p>
+                  ))
+                }
+                </div> :
+                <p className="text-sm text-gray-800 font-bold text-center">Instructions not available</p>
+              }
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    {/* Action Buttons */}
+    <div className="w-full flex justify-end items-center mt-5 gap-3">
+
+    {consultation?.consultationStatus === "Scheduled" && (
+    <button
+      className="px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 text-sm font-semibold"
+    >
+      Start Consultation
+    </button>
+    )}
+
+    {consultation?.consultationStatus === "In Progress" && (
+    <button
+      className="px-4 py-2 rounded-lg text-white bg-orange-700 hover:bg-orange-800 text-sm font-semibold"
+    >
+      Complete Consultation
+    </button>
+    )}
+
+    {consultation?.consultationStatus === "Completed" && (
+    <button
+      className={`px-4 py-2 rounded-lg text-white text-sm font-semibold ${getStatusClass(
+        consultation?.consultationStatus
+      )}`}
+    >
+      Completed
+    </button>
+    )}
+
+    </div>
 
     </div>
     </>
