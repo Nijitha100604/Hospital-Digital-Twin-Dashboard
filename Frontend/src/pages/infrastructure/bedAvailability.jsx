@@ -8,6 +8,8 @@ import {
   FaSearch
 } from "react-icons/fa";
 import { MdOutlineBed } from "react-icons/md";
+import AvailableBedModal from '../../components/modals/AvailableBedModal';
+import OccupiedBedModal from '../../components/modals/OccupiedBedModal';
 
 function BedAvailability() {
 
@@ -17,9 +19,15 @@ function BedAvailability() {
   const occupiedBeds = departmentBedData.reduce(
     (sum, dept) => sum + dept.beds.filter(b => b.status === "Occupied").length, 0
   );
+
   const availableBeds = totalBeds - occupiedBeds;
   const occupancyRate = totalBeds ? ((occupiedBeds / totalBeds) * 100).toFixed(1) : 0;
+
+
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedBed, setSelectedBed] = useState(null);
+  const [modalType, setModalType] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   const filteredDepartments = departmentBedData
     .map(dept => {
@@ -37,7 +45,6 @@ function BedAvailability() {
       beds: deptMatch ? dept.beds : filteredBeds
     };
   }).filter(dept => dept.beds.length > 0);
-
 
 
   return (
@@ -143,6 +150,18 @@ function BedAvailability() {
                 dept.beds.map((bed, index)=>(
                   <div
                     key = {index}
+
+                    onClick={() => {
+                      setSelectedBed({
+                        ...bed,
+                        department: dept.departmentName
+                      });
+                      setModalType(
+                        bed.status === "Available" ? "AVAILABLE" : "OCCUPIED"
+                      );
+                      setShowModal(true);
+                    }}
+
                     className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border
                     ${ bed.status === "Available"
                     ? "bg-green-50 border-green-400 text-green-600"
@@ -197,6 +216,36 @@ function BedAvailability() {
     </div>
 
     </div>
+
+    {/* Modal */}
+    {
+      showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-3">
+          <div className="bg-white w-full max-w-4xl rounded-xl shadow-lg max-h-[90vh] flex flex-col relative">
+            <button 
+              onClick={() => setShowModal(false)}
+              className="absolute top-3 right-3 text-gray-500"
+            >
+              X
+            </button>
+            <div className="flex-1 overflow-y-auto p-6 hide-scrollbar">
+            {modalType === "AVAILABLE" && (
+              <AvailableBedModal 
+                bed={selectedBed} 
+                onClose={() => setShowModal(false)}
+              />
+            )}
+            {modalType === "OCCUPIED" && (
+              <OccupiedBedModal 
+                bed={selectedBed} 
+                onClose={() => setShowModal(false)}
+              />
+            )}
+            </div>
+          </div>
+        </div>
+      )
+    }
 
     </>
   )
