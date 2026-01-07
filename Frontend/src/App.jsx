@@ -19,8 +19,6 @@ import MaintenanceLog from './pages/equipment/MaintenanceLog';
 import ViewEquipment from './pages/equipment/ViewEquipment';
 import AddDepartment from './pages/infrastructure/AddDepartment';
 import BedAvailability from './pages/infrastructure/BedAvailability';
-import CleaningScheduleList from './pages/infrastructure/CleaningScheduleList';
-import CreateSchedule from './pages/infrastructure/CreateSchedule';
 import Department from './pages/infrastructure/Department';
 import DepartmentsList from './pages/infrastructure/DepartmentsList';
 import FacilityMap from './pages/infrastructure/FacilityMap';
@@ -97,9 +95,7 @@ function App() {
         {/* Infrastructure */}
         <Route path='/add-department' element={<AddDepartment />}/>
         <Route path='/bed-availability' element={<BedAvailability />}/>
-        <Route path='/cleaning-schedule-list' element={<CleaningScheduleList />}/>
-        <Route path='/create-schedule' element={<CreateSchedule />}/>
-        <Route path='/department' element={<Department />}/>
+        <Route path='/department/:id' element={<Department />}/>
         <Route path='/departments-list' element={<DepartmentsList />}/>
         <Route path='/facility-map' element={<FacilityMap />}/>
         <Route path='/issue-report' element={<IssueReport />}/>
