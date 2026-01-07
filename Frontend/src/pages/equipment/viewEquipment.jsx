@@ -163,7 +163,7 @@ const ViewEquipment = () => {
               </div>
 
               <div className="pt-2">
-                <div className="w-full bg-fuchsia-900 text-white text-center py-2 rounded-lg text-sm font-medium shadow-sm">
+                <div className="w-full bg-fuchsia-900 text-white cursor-pointer text-center py-2 rounded-lg text-sm font-medium shadow-sm">
                   {equipment.equipmentStatus === "Working" ? "Scheduled Device" : "Check Schedule"}
                 </div>
               </div>

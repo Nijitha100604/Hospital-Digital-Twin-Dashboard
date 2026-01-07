@@ -209,7 +209,7 @@ const MedicineStocks = () => {
         <div className="flex justify-center mt-8">
           <button
             onClick={() => setVisibleCount((prev) => prev + 8)}
-            className="px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 hover:text-fuchsia-800 rounded-lg text-sm font-medium transition-all shadow-sm"
+            className="px-6 py-2.5 cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 hover:text-fuchsia-800 rounded-lg text-sm font-medium transition-all shadow-sm"
           >
             Show More Medicines
           </button>

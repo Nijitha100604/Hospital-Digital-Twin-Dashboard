@@ -17,9 +17,9 @@ export const equipment_records = [
     slewRate: "200 T/m/s",
     powerRequirement: "480V, 3 Phase",
 
-    // Service Schedule
-    lastService: "15-02-2024",
-    nextService: "15-02-2025",
+    // Service Schedule - STATUS: UPCOMING (Due in 2026)
+    lastService: "2024-02-15",
+    nextService: "2026-02-15",
 
     // Purchase & Warranty
     installationDate: "10-01-2022",
@@ -53,8 +53,9 @@ export const equipment_records = [
     slewRate: "N/A",
     powerRequirement: "220V AC",
 
-    lastService: "20-01-2024",
-    nextService: "20-01-2025",
+    // Service Schedule - STATUS: OVERDUE (Due in 2024)
+    lastService: "2023-01-20",
+    nextService: "2024-01-20",
 
     installationDate: "05-06-2021",
     purchaseCost: "₹65,00,000",
@@ -86,8 +87,9 @@ export const equipment_records = [
     slewRate: "N/A",
     powerRequirement: "220V AC",
 
-    lastService: "05-03-2024",
-    nextService: "05-03-2025",
+    // Service Schedule - STATUS: DUE SOON (Due in 10 days)
+    lastService: "2024-03-05",
+    nextService: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString().split('T')[0],
 
     installationDate: "18-08-2022",
     purchaseCost: "₹4,50,000",
@@ -119,8 +121,9 @@ export const equipment_records = [
     slewRate: "N/A",
     powerRequirement: "220V AC",
 
-    lastService: "28-02-2024",
-    nextService: "28-02-2025",
+    // Service Schedule - STATUS: OVERDUE (Due in 2024)
+    lastService: "2023-02-28",
+    nextService: "2024-02-28",
 
     installationDate: "14-09-2021",
     purchaseCost: "₹2,80,000",
@@ -152,8 +155,9 @@ export const equipment_records = [
     slewRate: "N/A",
     powerRequirement: "Battery + 220V",
 
-    lastService: "20-01-2024",
-    nextService: "20-01-2025",
+    // Service Schedule - STATUS: UPCOMING (Due in 2025)
+    lastService: "2024-01-20",
+    nextService: "2025-08-20",
 
     installationDate: "10-03-2022",
     purchaseCost: "₹3,20,000",
@@ -185,8 +189,9 @@ export const equipment_records = [
     slewRate: "N/A",
     powerRequirement: "220V AC",
 
-    lastService: "02-01-2024",
-    nextService: "02-01-2025",
+    // Service Schedule - STATUS: DUE SOON (Due tomorrow)
+    lastService: "2024-01-02",
+    nextService: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0],
 
     installationDate: "11-07-2021",
     purchaseCost: "₹18,00,000",
@@ -218,8 +223,9 @@ export const equipment_records = [
     slewRate: "N/A",
     powerRequirement: "220V AC",
 
-    lastService: "10-12-2023",
-    nextService: "10-12-2024",
+    // Service Schedule - STATUS: OVERDUE (Due in 2024)
+    lastService: "2023-12-10",
+    nextService: "2024-12-10",
 
     installationDate: "20-04-2020",
     purchaseCost: "₹22,00,000",
@@ -251,8 +257,9 @@ export const equipment_records = [
     slewRate: "N/A",
     powerRequirement: "440V AC",
 
-    lastService: "05-10-2023",
-    nextService: "05-10-2024",
+    // Service Schedule - STATUS: DUE SOON (Due in 15 days)
+    lastService: "2023-10-05",
+    nextService: new Date(new Date().setDate(new Date().getDate() + 15)).toISOString().split('T')[0],
 
     installationDate: "12-11-2019",
     purchaseCost: "₹45,00,000",
@@ -284,8 +291,9 @@ export const equipment_records = [
     slewRate: "N/A",
     powerRequirement: "Battery + 220V",
 
-    lastService: "18-01-2024",
-    nextService: "18-01-2025",
+    // Service Schedule - STATUS: UPCOMING (Due in 2026)
+    lastService: "2024-01-18",
+    nextService: "2026-01-18",
 
     installationDate: "22-06-2022",
     purchaseCost: "₹1,20,000",
@@ -317,8 +325,9 @@ export const equipment_records = [
     slewRate: "N/A",
     powerRequirement: "480V AC",
 
-    lastService: "12-02-2024",
-    nextService: "12-02-2025",
+    // Service Schedule - STATUS: OVERDUE (Due in 2024)
+    lastService: "2023-02-12",
+    nextService: "2024-02-12",
 
     installationDate: "30-09-2021",
     purchaseCost: "₹9,80,00,000",
@@ -350,8 +359,9 @@ export const equipment_records = [
     slewRate: "N/A",
     powerRequirement: "220V AC",
 
-    lastService: "01-03-2024",
-    nextService: "01-03-2025",
+    // Service Schedule - STATUS: UPCOMING (Due in 2026)
+    lastService: "2024-03-01",
+    nextService: "2026-03-01",
 
     installationDate: "14-05-2022",
     purchaseCost: "₹6,50,000",
@@ -383,8 +393,9 @@ export const equipment_records = [
     slewRate: "N/A",
     powerRequirement: "415V AC",
 
-    lastService: "22-01-2024",
-    nextService: "22-01-2025",
+    // Service Schedule - STATUS: DUE SOON (Due in 25 days)
+    lastService: "2024-01-22",
+    nextService: new Date(new Date().setDate(new Date().getDate() + 25)).toISOString().split('T')[0],
 
     installationDate: "10-10-2020",
     purchaseCost: "₹9,50,000",
