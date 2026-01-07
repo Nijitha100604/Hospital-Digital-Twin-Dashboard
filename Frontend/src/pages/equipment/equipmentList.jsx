@@ -11,7 +11,8 @@ import {
   FaEye,
   FaPlus,
   FaFilter,
-  FaHeartbeat
+  FaHeartbeat,
+  FaBell
 } from "react-icons/fa";
 import { equipment_records } from "../../data/equipment";
 
@@ -22,6 +23,21 @@ const EquipmentList = () => {
   const [visibleCount, setVisibleCount] = useState(8);
 
   const navigate = useNavigate();
+
+  /* ---------- Alert Logic (Same as Calibration List) ---------- */
+  const getDaysLeft = (dateString) => {
+    if (!dateString) return 0;
+    const today = new Date();
+    const due = new Date(dateString);
+    const diffTime = due - today;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  // Count items that are Overdue (< 0 days) or Due Soon (<= 30 days)
+  const calibrationAlertCount = equipment_records.filter((e) => {
+    const days = getDaysLeft(e.nextService);
+    return days <= 30; 
+  }).length;
 
   /* ---------- Filters ---------- */
   const filteredEquipment = useMemo(() => {
@@ -80,6 +96,21 @@ const EquipmentList = () => {
         </div>
 
         <div className="flex gap-3 items-center w-full md:w-auto">
+          {/* Calibration Alerts Button */}
+          <button
+            onClick={() => navigate("/calibration-schedule-list")}
+            className="relative flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
+          >
+            <FaBell className="text-gray-500" />
+            Calibration Alerts
+            {calibrationAlertCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
+                {calibrationAlertCount}
+              </span>
+            )}
+          </button>
+
+          {/* Add Equipment Button */}
           <button
             onClick={() => navigate("/add-equipment")}
             className="flex items-center cursor-pointer justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
@@ -185,7 +216,7 @@ const EquipmentList = () => {
         <div className="flex justify-center mt-8">
           <button
             onClick={() => setVisibleCount((prev) => prev + 8)}
-            className="px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 hover:text-fuchsia-800 rounded-lg text-sm font-medium transition-all shadow-sm"
+            className="px-6 py-2.5 cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 hover:text-fuchsia-800 rounded-lg text-sm font-medium transition-all shadow-sm"
           >
             Show More Equipment
           </button>
@@ -295,9 +326,7 @@ const EquipmentCard = ({ equipment, navigate }) => {
         </div>
 
         <button
-          onClick={() =>
-            navigate(`/view-equipment/${equipment.equipmentId}`)
-          }
+          onClick={() => navigate(`/view-equipment/${equipment.equipmentId}`)}
           className="w-full mt-auto cursor-pointer flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-800 active:bg-fuchsia-950 text-white py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
         >
           <FaEye />

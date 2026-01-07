@@ -14,9 +14,11 @@ import ViewAppointment from "./pages/patient_management/ViewAppointment";
 import EquipmentList from './pages/equipment/EquipmentList';
 import AddEquipment from './pages/equipment/AddEquipment';
 import AddMaintenance from './pages/equipment/AddMaintenance';
+import CreateCalibrationSchedule from "./pages/equipment/createCalibrationSchedule";
 import CalibrationScheduleList from './pages/equipment/CalibrationScheduleList';
 import MaintenanceLog from './pages/equipment/MaintenanceLog';
 import ViewEquipment from './pages/equipment/ViewEquipment';
+import EditEquipment from './pages/equipment/editEquipment'
 import AddDepartment from './pages/infrastructure/AddDepartment';
 import BedAvailability from './pages/infrastructure/BedAvailability';
 import CleaningScheduleList from './pages/infrastructure/CleaningScheduleList';
@@ -91,7 +93,7 @@ function App() {
         <Route path='/calibration-schedule-list' element={<CalibrationScheduleList />}/>
         <Route path='/maintenance-log' element={<MaintenanceLog />}/>
         <Route path='/view-equipment/:id' element={<ViewEquipment />}/>
-
+        <Route path='edit-equipment/:id' element={<EditEquipment/>}></Route>
         {/* Infrastructure */}
         <Route path='/add-department' element={<AddDepartment />}/>
         <Route path='/bed-availability' element={<BedAvailability />}/>
