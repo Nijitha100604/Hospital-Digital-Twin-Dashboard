@@ -21,8 +21,6 @@ import ViewEquipment from './pages/equipment/ViewEquipment';
 import EditEquipment from './pages/equipment/editEquipment'
 import AddDepartment from './pages/infrastructure/AddDepartment';
 import BedAvailability from './pages/infrastructure/BedAvailability';
-import CleaningScheduleList from './pages/infrastructure/CleaningScheduleList';
-import CreateSchedule from './pages/infrastructure/CreateSchedule';
 import Department from './pages/infrastructure/Department';
 import DepartmentsList from './pages/infrastructure/DepartmentsList';
 import FacilityMap from './pages/infrastructure/FacilityMap';
@@ -38,20 +36,21 @@ import StockAlerts from './pages/inventory/StockAlerts';
 import SuppliersList from './pages/inventory/SuppliersList';
 import EditSupplierDetails from "./pages/inventory/editSupplierDetails";
 import ViewMedicineDetails from './pages/inventory/viewMedicineDetails';
-import LabReportsList from './pages/laboratory/LabReportsList';
+import LabReportsList from './pages/laboratory/labReportsList';
 import LabResultsEntry from './pages/laboratory/LabResultsEntry';
 import PatientWiseReports from './pages/laboratory/PatientWiseReports';
 import UploadReport from './pages/laboratory/UploadReport';
 import AddStaff from './pages/staff_management/AddStaff';
 import AssignShift from './pages/staff_management/AssignShift';
-import Attendance from './pages/staff_management/Attendance';
-import LeaveManagement from './pages/staff_management/LeaveManagement';
+import Attendance from './pages/staff_management/attendance';
+import LeaveManagement from './pages/staff_management/leaveManagement';
 import ShiftPlanner from './pages/staff_management/ShiftPlanner';
-import StaffList from './pages/staff_management/StaffList';
+import StaffList from './pages/staff_management/staffList';
 import StaffPerformance from './pages/staff_management/StaffPerformance';
 import StaffProfile from './pages/staff_management/staffProfile';
 import VitalsEntry from "./pages/patient_management/VitalsEntry";
 import Consultations from "./pages/patient_management/Consultations";
+import PatientConsultation from "./pages/patient_management/PatientConsultation";
 
 
 
@@ -85,6 +84,7 @@ function App() {
         <Route path='/view-appointment/:id' element={<ViewAppointment />}/>
         <Route path='/vitals-entry' element={<VitalsEntry />}/>
         <Route path='/consultations' element={<Consultations />}/>
+        <Route path='/patient-consultation/:id' element={<PatientConsultation />} />
 
         {/* Equipment */}
         <Route path='/equipment-list' element={<EquipmentList />}/>
@@ -97,9 +97,7 @@ function App() {
         {/* Infrastructure */}
         <Route path='/add-department' element={<AddDepartment />}/>
         <Route path='/bed-availability' element={<BedAvailability />}/>
-        <Route path='/cleaning-schedule-list' element={<CleaningScheduleList />}/>
-        <Route path='/create-schedule' element={<CreateSchedule />}/>
-        <Route path='/department' element={<Department />}/>
+        <Route path='/department/:id' element={<Department />}/>
         <Route path='/departments-list' element={<DepartmentsList />}/>
         <Route path='/facility-map' element={<FacilityMap />}/>
         <Route path='/issue-report' element={<IssueReport />}/>

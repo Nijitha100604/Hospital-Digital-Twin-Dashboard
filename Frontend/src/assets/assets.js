@@ -28,6 +28,7 @@ import Surgical_light from './equipment_Image/surgical_light.jpg'
 import Ultrasound_machine from './equipment_Image/ultrasound-machine.jpg'
 import Ventilator from './equipment_Image/ventillator.jpg'
 import Xray from './equipment_Image/x_ray.jpeg'
+import hospital_user_profile from './hospital_user_profile.jpg'
 
 export const assets = {
     login_image,
@@ -59,5 +60,6 @@ export const assets = {
     Surgical_light,
     Ultrasound_machine,
     Ventilator,
-    Xray
+    Xray,
+    hospital_user_profile
 }

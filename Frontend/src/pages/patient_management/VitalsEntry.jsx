@@ -42,7 +42,6 @@ function VitalsEntry() {
     const [searchTerm, setSearchTerm] = useState("");
     const [filters, setFilters] = useState({
         status: null,
-        consultation: null,
         date: null
     })
 

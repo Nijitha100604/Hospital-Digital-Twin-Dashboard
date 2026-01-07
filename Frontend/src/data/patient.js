@@ -908,9 +908,9 @@ export const nursePatientVitalsList = [
     status: "Completed",
     date: "09 Jun 2025",
     vitals: [
-      { name: "Blood Pressure", value: "118/76", unit: "mmHg" },
-      { name: "Heart Rate", value: 70, unit: "bpm" },
-      { name: "SpO₂", value: 99, unit: "%" }
+      { name: "Blood Pressure", value: "118/76", unit: "mmHg", status: "Normal" },
+      { name: "Heart Rate", value: 70, unit: "bpm", status: "Normal" },
+      { name: "SpO₂", value: 99, unit: "%", status: "Normal" }
     ]
   },
   {
@@ -934,9 +934,9 @@ export const nursePatientVitalsList = [
     status: "Completed",
     date: "08 Jun 2025",
     vitals: [
-      { name: "Blood Pressure", value: "130/85", unit: "mmHg" },
-      { name: "Heart Rate", value: 76, unit: "bpm" },
-      { name: "Blood Sugar", value: 110, unit: "mg/dL" }
+      { name: "Blood Pressure", value: "130/85", unit: "mmHg", status: "Normal" },
+      { name: "Heart Rate", value: 76, unit: "bpm", status: "Normal" },
+      { name: "Blood Sugar", value: 110, unit: "mg/dL", status: "Normal" }
     ]
   },
   {
@@ -960,8 +960,8 @@ export const nursePatientVitalsList = [
     status: "Completed",
     date: "07 Jun 2025",
     vitals: [
-      { name: "Blood Pressure", value: "115/75", unit: "mmHg" },
-      { name: "Heart Rate", value: 74, unit: "bpm" }
+      { name: "Blood Pressure", value: "115/75", unit: "mmHg", status: "Normal" },
+      { name: "Heart Rate", value: 74, unit: "bpm", status: "Normal" }
     ]
   },
   {
@@ -985,9 +985,9 @@ export const nursePatientVitalsList = [
     status: "Completed",
     date: "06 Jun 2025",
     vitals: [
-      { name: "Blood Pressure", value: "122/82", unit: "mmHg" },
-      { name: "Heart Rate", value: 78, unit: "bpm" },
-      { name: "SpO₂", value: 97, unit: "%" }
+      { name: "Blood Pressure", value: "122/82", unit: "mmHg", status: "Normal" },
+      { name: "Heart Rate", value: 78, unit: "bpm", status: "Normal" },
+      { name: "SpO₂", value: 97, unit: "%", status: "Normal" }
     ]
   },
   {
@@ -1011,8 +1011,8 @@ export const nursePatientVitalsList = [
     status: "Completed",
     date: "05 Jun 2025",
     vitals: [
-      { name: "Heart Rate", value: 88, unit: "bpm" },
-      { name: "Temperature", value: 99, unit: "°F" }
+      { name: "Heart Rate", value: 88, unit: "bpm", status: "Normal" },
+      { name: "Temperature", value: 99, unit: "°F", status: "Normal" }
     ]
   },
   {
@@ -1036,8 +1036,8 @@ export const nursePatientVitalsList = [
     status: "Completed",
     date: "04 Jun 2025",
     vitals: [
-      { name: "Blood Pressure", value: "119/79", unit: "mmHg" },
-      { name: "Heart Rate", value: 73, unit: "bpm" }
+      { name: "Blood Pressure", value: "119/79", unit: "mmHg", status: "Normal" },
+      { name: "Heart Rate", value: 73, unit: "bpm", status: "Normal" }
     ]
   },
   {
@@ -1052,5 +1052,393 @@ export const nursePatientVitalsList = [
     vitals: []
   }
 ];
+
+export const doctorConsultations = [
+
+  // ================== 1. COMPLETED ==================
+  {
+    patientId: "P000123",
+    appointmentId: "APT-00123",
+    consultationStatus: "Completed",
+    consultationType : "In Person",
+
+    patientDetails: {
+      name: "Arun Kumar",
+      gender: "Male",
+      age: 46,
+      bloodGroup: "O+",
+      contact: "9876543210",
+      medicalHistory: ["Hypertension"],
+      allergies: ["Penicillin"]
+    },
+
+    doctorDetails: {
+      name: "Dr. Meera Iyer",
+      department: "Cardiology"
+    },
+
+    appointmentDetails: {
+      date: "10 Jun 2026",
+      timeSlot: "9:00 - 11:00 AM",
+      appointmentType: "Walk-in",
+      reason: "Chest discomfort"
+    },
+
+    vitals: [
+      { name: "Heart Rate", value: 88, unit: "bpm", status: "Normal" },
+      { name: "Blood Pressure", value: "142/92", unit: "mmHg", status: "Abnormal" }
+    ],
+
+    diagnosis: "Stage 1 Hypertension",
+    doctorRemarks: "BP controlled with medication",
+
+    prescriptions: [
+      {
+        medicineName: "Amlodipine",
+        frequency: ["Morning"],
+        duration: "30 days",
+        instruction: "After food"
+      }
+    ],
+
+    labReports: [
+      { testName: "ECG", status: "Completed" }
+    ],
+
+    admissionDetails: {
+      admitted: true,
+      numberOfDays: 2,
+      dailyNotes: [
+        "BP monitored",
+        "No chest pain observed"
+      ],
+      finalVitals: {
+        bloodPressure: "128/82",
+        heartRate: 76
+      },
+      dischargeRemarks: "Stable and discharged"
+    },
+
+    patientInstructions: [
+      "Low salt diet",
+      "Daily walking",
+      "Follow-up after 2 weeks"
+    ]
+  },
+
+  // ================== 2. IN PROGRESS (LAB PENDING) ==================
+  {
+    patientId: "P000124",
+    appointmentId: "APT-00124",
+    consultationStatus: "In Progress",
+    consultationType : "In Person",
+
+    patientDetails: {
+      name: "Sneha R",
+      gender: "Female",
+      age: 28,
+      bloodGroup: "A+",
+      contact: "9898981212",
+      medicalHistory: ["Migraine"],
+      allergies: []
+    },
+
+    doctorDetails: {
+      name: "Dr. Ravi Shankar",
+      department: "General Medicine"
+    },
+
+    appointmentDetails: {
+      date: "10 Jun 2026",
+      timeSlot: "11:00 - 12:00 PM",
+      appointmentType: "Online",
+      reason: "Fever and body pain"
+    },
+
+    vitals: [
+      { name: "Temperature", value: 101.2, unit: "°F", status: "Abnormal" }
+    ],
+
+    diagnosis: "Suspected Viral Fever",
+    doctorRemarks: "Awaiting CBC report",
+
+    prescriptions: [
+      {
+        medicineName: "Paracetamol",
+        frequency: ["Morning", "Evening"],
+        duration: "5 days",
+        instruction: "After food"
+      }
+    ],
+
+    labReports: [
+      { testName: "CBC", status: "Requested" }
+    ],
+
+    admissionDetails: {
+      admitted: false
+    },
+
+    patientInstructions: null
+  },
+
+  // ================== 3. IN PROGRESS (ADMITTED) ==================
+  {
+    patientId: "P000125",
+    appointmentId: "APT-00125",
+    consultationStatus: "In Progress",
+    consultationType : "In Person",
+
+    patientDetails: {
+      name: "Mohammed Ali",
+      gender: "Male",
+      age: 61,
+      bloodGroup: "B+",
+      contact: "9784561230",
+      medicalHistory: ["Diabetes"],
+      allergies: ["Sulfa drugs"]
+    },
+
+    doctorDetails: {
+      name: "Dr. Anjali Menon",
+      department: "Endocrinology"
+    },
+
+    appointmentDetails: {
+      date: "10 Jun 2026",
+      timeSlot: "12:00 - 1:00 PM",
+      appointmentType: "Walk-in",
+      reason: "High blood sugar levels"
+    },
+
+    vitals: [
+      { name: "Blood Glucose", value: 260, unit: "mg/dl", status: "Abnormal" }
+    ],
+
+    diagnosis: "Uncontrolled Type 2 Diabetes",
+    doctorRemarks: "Insulin started, under monitoring",
+
+    prescriptions: [
+      {
+        medicineName: "Insulin",
+        frequency: ["Morning", "Evening"],
+        duration: "Until stabilization",
+        instruction: "As directed"
+      }
+    ],
+
+    labReports: [
+      { testName: "HbA1c", status: "Completed" }
+    ],
+
+    admissionDetails: {
+      admitted: true,
+      numberOfDays: null,
+      dailyNotes: ["Blood glucose monitoring ongoing"],
+      finalVitals: null,
+      dischargeRemarks: null
+    },
+
+    patientInstructions: null
+  },
+
+  // ================== 4. SCHEDULED ==================
+  {
+    patientId: "P000126",
+    appointmentId: "APT-00126",
+    consultationStatus: "Scheduled",
+    consultationType : "Online",
+
+    patientDetails: {
+      name: "Priya Sharma",
+      gender: "Female",
+      age: 34,
+      bloodGroup: "AB+",
+      contact: "9000012345",
+      medicalHistory: ["PCOD"],
+      allergies: []
+    },
+
+    doctorDetails: {
+      name: "Dr. Karthik",
+      department: "Gynecology"
+    },
+
+    appointmentDetails: {
+      date: "12 Jun 2026",
+      timeSlot: "2:00 - 3:00 PM",
+      appointmentType: "Scheduled",
+      reason: "Irregular menstrual cycle"
+    },
+
+    vitals: [
+      { name: "Heart Rate", value: 76, unit: "bpm", status: "Normal" }
+    ],
+
+    diagnosis: null,
+    doctorRemarks: null,
+    prescriptions: null,
+    labReports: null,
+    admissionDetails: null,
+    patientInstructions: null
+  },
+
+  // ================== 5. COMPLETED ==================
+  {
+    patientId: "P000127",
+    appointmentId: "APT-00127",
+    consultationStatus: "Completed",
+    consultationType : "In Person",
+
+    patientDetails: {
+      name: "Ramesh S",
+      gender: "Male",
+      age: 53,
+      bloodGroup: "O-",
+      contact: "9887766554",
+      medicalHistory: ["Arthritis"],
+      allergies: ["NSAIDs"]
+    },
+
+    doctorDetails: {
+      name: "Dr. Vinoth",
+      department: "Orthopedics"
+    },
+
+    appointmentDetails: {
+      date: "11 Jun 2026",
+      timeSlot: "3:00 - 4:00 PM",
+      appointmentType: "Walk-in",
+      reason: "Knee pain"
+    },
+
+    vitals: [
+      { name: "Blood Pressure", value: "132/86", unit: "mmHg", status: "Normal" }
+    ],
+
+    diagnosis: "Osteoarthritis – Knee",
+    doctorRemarks: "Physiotherapy recommended",
+
+    prescriptions: [
+      {
+        medicineName: "Pain Relief Gel",
+        frequency: ["Morning", "Evening"],
+        duration: "14 days",
+        instruction: "Apply externally"
+      }
+    ],
+
+    labReports: [
+      { testName: "X-Ray Knee", status: "Completed" }
+    ],
+
+    admissionDetails: {
+      admitted: false
+    },
+
+    patientInstructions: [
+      "Avoid heavy lifting",
+      "Regular physiotherapy"
+    ]
+  },
+
+  // ================== 6. SCHEDULED ==================
+  {
+    patientId: "P000128",
+    appointmentId: "APT-00128",
+    consultationStatus: "Scheduled",
+    consultationType : "In Person",
+
+    patientDetails: {
+      name: "Kavya N",
+      gender: "Female",
+      age: 22,
+      bloodGroup: "B-",
+      contact: "9123456780",
+      medicalHistory: [],
+      allergies: ["Dust"]
+    },
+
+    doctorDetails: {
+      name: "Dr. Sanjay Rao",
+      department: "Dermatology"
+    },
+
+    appointmentDetails: {
+      date: "13 Jun 2026",
+      timeSlot: "10:00 - 11:00 AM",
+      appointmentType: "Scheduled",
+      reason: "Skin allergy"
+    },
+
+    vitals: [
+      { name: "Heart Rate", value: 72, unit: "bpm", status: "Normal" }
+    ],
+
+    diagnosis: null,
+    doctorRemarks: null,
+    prescriptions: null,
+    labReports: null,
+    admissionDetails: null,
+    patientInstructions: null
+  },
+
+  // ================== 7. IN PROGRESS ==================
+  {
+    patientId: "P000129",
+    appointmentId: "APT-00129",
+    consultationStatus: "In Progress",
+    consultationType : "Online",
+
+    patientDetails: {
+      name: "Suresh Babu",
+      gender: "Male",
+      age: 39,
+      bloodGroup: "A-",
+      contact: "9012345678",
+      medicalHistory: ["Asthma"],
+      allergies: ["Pollen"]
+    },
+
+    doctorDetails: {
+      name: "Dr. Neha Kapoor",
+      department: "Pulmonology"
+    },
+
+    appointmentDetails: {
+      date: "11 Jun 2026",
+      timeSlot: "4:00 - 5:00 PM",
+      appointmentType: "Walk-in",
+      reason: "Breathing difficulty"
+    },
+
+    vitals: [
+      { name: "SpO2", value: 91, unit: "%", status: "Abnormal" }
+    ],
+
+    diagnosis: "Acute Asthma Exacerbation",
+    doctorRemarks: "Nebulization started",
+
+    prescriptions: [
+      {
+        medicineName: "Salbutamol",
+        frequency: ["Morning", "Evening"],
+        duration: "7 days",
+        instruction: "Inhalation"
+      }
+    ],
+
+    labReports: [
+      { testName: "Pulmonary Function Test", status: "Requested" }
+    ],
+
+    admissionDetails: {
+      admitted: false
+    },
+
+    patientInstructions: null
+  }
+];
+
 
 
