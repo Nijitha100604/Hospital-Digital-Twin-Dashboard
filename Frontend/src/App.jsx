@@ -38,7 +38,7 @@ import EditSupplierDetails from "./pages/inventory/editSupplierDetails";
 import ViewMedicineDetails from './pages/inventory/viewMedicineDetails';
 import LabReportsList from './pages/laboratory/labReportsList';
 import LabResultsEntry from './pages/laboratory/LabResultsEntry';
-import PatientWiseReports from './pages/laboratory/PatientWiseReports';
+import PatientWiseReports from './pages/laboratory/patientWiseReports';
 import UploadReport from './pages/laboratory/UploadReport';
 import AddStaff from './pages/staff_management/AddStaff';
 import AssignShift from './pages/staff_management/AssignShift';
@@ -123,6 +123,7 @@ function App() {
         <Route path='/lab-results-entry' element={<LabResultsEntry />}/>
         <Route path='/patient-wise-reports' element={<PatientWiseReports />}/>
         <Route path='/upload-report' element={<UploadReport />}/>
+        
 
         {/* Staff Management */}
         <Route path='/add-staff' element={<AddStaff />}/>
