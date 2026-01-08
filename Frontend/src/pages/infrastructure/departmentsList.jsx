@@ -193,7 +193,7 @@ function DepartmentsList() {
               className="cursor-pointer"
               onClick={(e) => {
               e.stopPropagation();
-              setFilters(prev => ({ ...prev, consultation: null }));
+              setFilters(prev => ({ ...prev, floor: null }));
               setOpenFilter(null);
               }}
             />

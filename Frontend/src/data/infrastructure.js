@@ -462,3 +462,97 @@ export const departmentBedData = [
     ]
   }
 ];
+
+export const infrastructureIssues = [
+  {
+    issueId: "IS0001",
+    reportedBy: "Dr. Meera Iyer",
+    reportedDate: "14 Jul 2025",
+    location: "Cardiology - ICU, 2nd Floor",
+    issueType: "Electrical",
+    priorityLevel: "High",
+    status: "Pending",
+    issueDescription: "Frequent power fluctuations affecting cardiac monitoring equipment."
+  },
+  {
+    issueId: "IS0002",
+    reportedBy: "Anitha R",
+    reportedDate: "15 Jul 2025",
+    location: "Emergency Ward, Ground Floor",
+    issueType: "Plumbing",
+    priorityLevel: "Medium",
+    status: "In Progress",
+    issueDescription: "Water leakage observed near the patient wash area."
+  },
+  {
+    issueId: "IS0003",
+    reportedBy: "Ramesh Kumar",
+    reportedDate: "16 Jul 2025",
+    location: "Radiology Department, 1st Floor",
+    issueType: "Air Conditioning",
+    priorityLevel: "High",
+    status: "On Hold",
+    issueDescription: "Central AC not maintaining required temperature for imaging equipment."
+  },
+  {
+    issueId: "IS0004",
+    reportedBy: "Lakshmi Devi",
+    reportedDate: "17 Jul 2025",
+    location: "General Ward, 3rd Floor",
+    issueType: "Cleaning",
+    priorityLevel: "Low",
+    status: "Resolved",
+    issueDescription: "Routine deep cleaning required due to patient turnover."
+  },
+  {
+    issueId: "IS0005",
+    reportedBy: "Dr. Karthik S",
+    reportedDate: "18 Jul 2025",
+    location: "Neurology ICU, 2nd Floor",
+    issueType: "Medical Gas Supply",
+    priorityLevel: "Critical",
+    status: "Resolved",
+    issueDescription: "Oxygen pressure drop noticed in one of the ICU bays."
+  },
+  {
+    issueId: "IS0006",
+    reportedBy: "Priya N",
+    reportedDate: "19 Jul 2025",
+    location: "Pediatrics Ward, 4th Floor",
+    issueType: "Electrical",
+    priorityLevel: "Medium",
+    status: "Pending",
+    issueDescription: "Faulty lighting in patient rooms causing insufficient illumination."
+  },
+  {
+    issueId: "IS0008",
+    reportedBy: "Suresh B",
+    reportedDate: "21 Jul 2025",
+    location: "Pathology Lab, 1st Floor",
+    issueType: "Equipment",
+    priorityLevel: "High",
+    status: "Resolved",
+    issueDescription: "Centrifuge vibration due to improper mounting."
+  },
+  {
+    issueId: "IS0009",
+    reportedBy: "Kavitha M",
+    reportedDate: "22 Jul 2025",
+    location: "Public Restroom, Ground Floor",
+    issueType: "Plumbing",
+    priorityLevel: "Low",
+    status: "Resolved",
+    issueDescription: "Clogged drainage causing slow water flow."
+  },
+  {
+    issueId: "IS0010",
+    reportedBy: "Arun Prakash",
+    reportedDate: "23 Jul 2025",
+    location: "Operation Theatre Complex, 2nd Floor",
+    issueType: "Sterilization",
+    priorityLevel: "Critical",
+    status: "Pending",
+    issueDescription: "Autoclave temperature calibration mismatch detected during inspection."
+  }
+];
+
