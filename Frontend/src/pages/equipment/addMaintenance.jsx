@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { FaTimes, FaTools, FaSave, FaExclamationCircle, FaUserMd } from "react-icons/fa";
 import { equipment_records } from "../../data/equipment";
-import { staffList } from "../../data/staffList"; // Make sure to import staffList
+import { staffList } from "../../data/staffList";
 import { toast } from "react-toastify";
 
-const AddMaintenance = ({ onClose, equipmentIdProp }) => {
-  const navigate = useNavigate();
-
+const AddMaintenance = ({ onClose, onSave, initialData }) => {
+  
   /* Form State */
-  const [equipmentId, setEquipmentId] = useState(equipmentIdProp || "");
+  const [equipmentId, setEquipmentId] = useState("");
   const [equipmentName, setEquipmentName] = useState("");
   
   const [maintenanceDate, setMaintenanceDate] = useState("");
@@ -28,28 +26,55 @@ const AddMaintenance = ({ onClose, equipmentIdProp }) => {
   const [issueReported, setIssueReported] = useState("");
   const [actionsTaken, setActionsTaken] = useState("");
 
-  /* Auto-fill Equipment Name */
+  /* --- EFFECT: Populate Form if Editing (initialData exists) --- */
+  useEffect(() => {
+    if (initialData) {
+      setEquipmentId(initialData.equipmentId);
+      setEquipmentName(initialData.equipmentName);
+      setMaintenanceDate(initialData.maintenanceDate);
+      setDuration(initialData.duration);
+      setCost(initialData.cost);
+      setStatus(initialData.status);
+      setNextScheduledService(initialData.nextScheduled);
+      setIssueReported(initialData.issueReported);
+      setActionsTaken(initialData.actionsTaken);
+      
+      // Handle Technician Logic
+      setTechnicianInput(initialData.technicianName);
+      // Check if technician exists in staff list
+      const staff = staffList.find(s => s.name === initialData.technicianName);
+      if (staff) {
+        setSelectedStaffId(staff.staffId);
+        setIsSubstitute(false);
+      } else {
+        setIsSubstitute(true);
+        setSubstituteName(initialData.technicianName);
+        // Assuming contact isn't stored in main log for simplicity, or add field to log if needed
+      }
+    }
+  }, [initialData]);
+
+  /* --- EFFECT: Auto-fill Equipment Name when ID changes --- */
   useEffect(() => {
     if (equipmentId) {
       const equip = equipment_records.find(e => e.equipmentId === equipmentId);
       if (equip) setEquipmentName(equip.equipmentName);
-      else setEquipmentName("");
+      // Don't clear name if it's being set by initialData
+      else if (!initialData) setEquipmentName(""); 
     }
-  }, [equipmentId]);
+  }, [equipmentId, initialData]);
 
   /* Handle Technician Selection */
   const handleTechnicianChange = (e) => {
     const val = e.target.value;
     setTechnicianInput(val);
 
-    // Check if "Other" or manual entry
     if (val === "Other / Substitute") {
       setIsSubstitute(true);
       setSelectedStaffId("");
       return;
     }
 
-    // Try to find staff by ID or Name format "Name (ID)"
     const staff = staffList.find(s => 
       s.staffId === val || `${s.name} (${s.staffId})` === val
     );
@@ -57,9 +82,7 @@ const AddMaintenance = ({ onClose, equipmentIdProp }) => {
     if (staff) {
       setIsSubstitute(false);
       setSelectedStaffId(staff.staffId);
-      // You could store staff contact here if needed
     } else {
-      // If typing a name not in list, assume substitute/external
       setIsSubstitute(true);
       setSelectedStaffId("");
     }
@@ -74,47 +97,50 @@ const AddMaintenance = ({ onClose, equipmentIdProp }) => {
       return;
     }
 
-    if (isSubstitute && (!substituteName || !substituteContact)) {
-      toast.error("Please provide Substitute Technician Name and Contact");
-      return;
+    // Determine Final Technician Name
+    let finalTechnicianName = technicianInput;
+    if (!isSubstitute && selectedStaffId) {
+        const staff = staffList.find(s => s.staffId === selectedStaffId);
+        if(staff) finalTechnicianName = staff.name;
+    } else if (isSubstitute) {
+        finalTechnicianName = substituteName || technicianInput;
     }
 
-    if (!isSubstitute && !selectedStaffId) {
-       // Allow manual text if it's not strictly requiring ID, 
-       // but here we enforce either a valid ID selection OR filling substitute fields
-       if(!technicianInput) {
-         toast.error("Please select a technician");
-         return;
-       }
-    }
+    // Create Data Object
+    const formData = {
+        logId: initialData ? initialData.logId : `ML${Date.now()}`, // Keep ID if editing, else new
+        equipmentId,
+        equipmentName,
+        maintenanceDate,
+        technicianName: finalTechnicianName,
+        duration,
+        cost,
+        status,
+        nextScheduled: nextScheduledService,
+        issueReported,
+        actionsTaken,
+        // In a real app, you'd save substitute details separately
+    };
 
-    // --- LOGIC TO UPDATE DB (Mock) ---
-    // In a real app: 
-    // 1. POST to /api/maintenance-log
-    // 2. PUT to /api/equipment/:id (to update last/next service dates)
-    
-    toast.success("Maintenance logged successfully!");
-    
-    // Close Modal first
-    if(onClose) onClose();
-
-    // Navigate to Maintenance Log Page
-    navigate("/maintenance-log"); 
+    // Pass data back to parent
+    onSave(formData);
+    onClose();
   };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
       
-      {/* Modal Container */}
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
         
         {/* Header */}
         <div className="bg-fuchsia-900 p-5 flex justify-between items-center text-white shrink-0">
           <div>
             <h2 className="text-xl font-bold flex items-center gap-2">
-              <FaTools /> Add Maintenance Entry
+              <FaTools /> {initialData ? "Update Maintenance Entry" : "Add Maintenance Entry"}
             </h2>
-            <p className="text-fuchsia-200 text-sm mt-1">Record activity & update schedule</p>
+            <p className="text-fuchsia-200 text-sm mt-1">
+                {initialData ? `Editing Log ID: ${initialData.logId}` : "Record activity & update schedule"}
+            </p>
           </div>
           <button onClick={onClose} className="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full">
             <FaTimes size={20} />
@@ -271,7 +297,6 @@ const AddMaintenance = ({ onClose, equipmentIdProp }) => {
                     onChange={(e) => setNextScheduledService(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-fuchsia-500 outline-none text-sm"
                   />
-                  <p className="text-[10px] text-gray-400">This date will update the Equipment Registry automatically.</p>
                 </div>
 
               </div>
@@ -325,7 +350,7 @@ const AddMaintenance = ({ onClose, equipmentIdProp }) => {
             form="maintenance-form"
             className="px-6 py-2.5 rounded-lg bg-fuchsia-900 text-white font-medium hover:bg-fuchsia-800 transition-colors shadow-md flex items-center gap-2"
           >
-            <FaSave /> Save Entry
+            <FaSave /> {initialData ? "Update Entry" : "Save Entry"}
           </button>
         </div>
 

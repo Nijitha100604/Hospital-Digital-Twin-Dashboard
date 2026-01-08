@@ -126,26 +126,26 @@ const SuppliersList = () => {
           <div className="relative">
             <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
             <select
-              className="pl-9 h-10 pr-3 rounded-md outline-0 border border-gray-400"
+              className="pl-9 h-10 pr-3 cursor-pointer  rounded-md outline-0 border border-gray-400"
               value={statusSort}
               onChange={(e) => setStatusSort(e.target.value)}
             >
               <option
-                className="text-white font-medium bg-fuchsia-500"
+                className="font-medium"
                 value="ALL"
               >
                 All Status
               </option>
 
               <option
-                className="text-white font-medium bg-fuchsia-500"
+                className=" font-medium"
                 value="ACTIVE"
               >
                 Active
               </option>
 
               <option
-                className="text-white font-medium bg-fuchsia-500"
+                className="font-medium"
                 value="INACTIVE"
               >
                 Inactive

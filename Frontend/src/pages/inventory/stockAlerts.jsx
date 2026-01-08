@@ -116,30 +116,30 @@ const StockAlerts = () => {
           <div className="relative">
             <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
             <select
-              className="pl-9 h-10 pr-3 rounded-md outline-0 border border-gray-400"
+              className="pl-9 h-10 cursor-pointer pr-3 rounded-md outline-0 border border-gray-400"
               value={urgencySort}
               onChange={(e) => setUrgencySort(e.target.value)}
             >
               <option
-                className="text-white font-medium bg-fuchsia-500"
+                className="font-medium"
                 value="ALL"
               >
                 All Alerts
               </option>
               <option
-                className="text-white font-medium bg-fuchsia-500"
+                className="font-medium"
                 value="CRITICAL"
               >
                 Critical
               </option>
               <option
-                className="text-white font-medium bg-fuchsia-500"
+                className="font-medium"
                 value="LOW"
               >
                 Low Stock
               </option>
               <option
-                className="text-white font-medium bg-fuchsia-500"
+                className="font-medium"
                 value="EXPIRY"
               >
                 Expiring Soon
@@ -381,7 +381,7 @@ const ExpiryCard = ({ medicine, days }) => {
       <div className="flex gap-3 mt-4">
         <button
           onClick={() => navigate(`/medicine-details/${medicine.medicineId}`)}
-          className="flex items-center gap-2 border border-gray-400 text-fuchsia-800 hover:bg-gray-300 px-4 py-2 rounded-md text-sm"
+          className="flex items-center gap-2 border border-gray-400 text-fuchsia-800 hover:bg-gray-300 px-4 py-2 cursor-pointer rounded-md text-sm"
         >
           <FaEye />
           View Details

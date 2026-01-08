@@ -2,7 +2,6 @@ import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { equipment_records } from "../../data/equipment";
 import CreateCalibrationSchedule from "./CreateCalibrationSchedule";
-// 1. Import the Maintenance Popup
 import AddMaintenance from "./addMaintenance"; 
 
 import {
@@ -96,7 +95,7 @@ const CalibrationScheduleList = () => {
         <div className="flex gap-3 items-center w-full md:w-auto">
            <button
             onClick={handleAddSchedule}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
+            className="flex items-center cursor-pointer justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
           >
             <FaPlus />
             Add Schedule
@@ -233,7 +232,7 @@ const CalibrationScheduleList = () => {
                     <td className="px-6 py-4 text-center">
                       <button 
                         onClick={() => handleMaintenanceClick(item)}
-                        className="text-gray-400 hover:text-fuchsia-700 hover:bg-fuchsia-50 p-2.5 rounded-full transition-all tooltip group relative"
+                        className="text-gray-400 cursor-pointer hover:text-fuchsia-700 hover:bg-fuchsia-50 p-2.5 rounded-full transition-all tooltip group relative"
                       >
                         <FaTools size={16} />
                         <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-max px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
