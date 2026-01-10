@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { equipment_records } from "../../data/equipment"; // Ensure this path is correct
+import { equipment_records } from "../../data/equipment";
 import { assets } from "../../assets/assets";
 
 import {
@@ -18,10 +18,9 @@ import {
   FaCogs,
   FaFileInvoiceDollar,
   FaTruck,
-  FaMapMarkerAlt,
 } from "react-icons/fa";
 
-const ViewEquipment = () => {
+const ViewEquipmentDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -49,19 +48,27 @@ const ViewEquipment = () => {
   // Helper for status colors
   const getStatusColor = (status) => {
     switch (status) {
-      case "Working": return "bg-green-100 text-green-700 border-green-200";
-      case "Under Maintenance": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "Offline": return "bg-red-100 text-red-700 border-red-200";
-      default: return "bg-gray-100 text-gray-700 border-gray-200";
+      case "Working":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "Under Maintenance":
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "Offline":
+        return "bg-red-100 text-red-700 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-700 border-gray-200";
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case "Working": return <FaCheckCircle className="mr-2" />;
-      case "Under Maintenance": return <FaTools className="mr-2" />;
-      case "Offline": return <FaBan className="mr-2" />;
-      default: return null;
+      case "Working":
+        return <FaCheckCircle className="mr-2" />;
+      case "Under Maintenance":
+        return <FaTools className="mr-2" />;
+      case "Offline":
+        return <FaBan className="mr-2" />;
+      default:
+        return null;
     }
   };
 
@@ -109,7 +116,6 @@ const ViewEquipment = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT COLUMN: Image & Service Info */}
         <div className="space-y-6">
-          
           {/* Image & Description Card */}
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
             <div className="bg-gray-50 rounded-lg p-6 mb-4 flex items-center justify-center border border-gray-100">
@@ -130,7 +136,11 @@ const ViewEquipment = () => {
             </div>
 
             <div className="flex flex-wrap gap-2 mb-6">
-              <span className={`px-3 py-1 border text-xs font-bold rounded-full flex items-center ${getStatusColor(equipment.equipmentStatus)}`}>
+              <span
+                className={`px-3 py-1 border text-xs font-bold rounded-full flex items-center ${getStatusColor(
+                  equipment.equipmentStatus
+                )}`}
+              >
                 {getStatusIcon(equipment.equipmentStatus)}
                 {equipment.equipmentStatus}
               </span>
@@ -146,25 +156,31 @@ const ViewEquipment = () => {
             </div>
           </div>
 
-          {/* Service Status Card (Replaces Stock Overview) */}
+          {/* Service Status Card */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="px-5 py-3 border-b border-gray-100 bg-gray-50/50">
               <p className="font-bold text-gray-800">Service Status</p>
             </div>
-            
+
             <div className="p-5 space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-500">Last Service</span>
-                <span className="text-sm font-bold text-gray-800">{equipment.lastService}</span>
+                <span className="text-sm font-bold text-gray-800">
+                  {equipment.lastService}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-500">Next Due</span>
-                <span className="text-sm font-bold text-gray-800">{equipment.nextService}</span>
+                <span className="text-sm font-bold text-gray-800">
+                  {equipment.nextService}
+                </span>
               </div>
 
               <div className="pt-2">
-                <div className="w-full bg-fuchsia-900 text-white cursor-pointer text-center py-2 rounded-lg text-sm font-medium shadow-sm">
-                  {equipment.equipmentStatus === "Working" ? "Scheduled Device" : "Check Schedule"}
+                <div className="w-full bg-fuchsia-900 text-white text-center py-2 rounded-lg text-sm font-medium shadow-sm">
+                  {equipment.equipmentStatus === "Working"
+                    ? "Scheduled Device"
+                    : "Check Schedule"}
                 </div>
               </div>
             </div>
@@ -173,7 +189,6 @@ const ViewEquipment = () => {
 
         {/* RIGHT COLUMN: Details Grid */}
         <div className="lg:col-span-2 space-y-6">
-          
           {/* Basic Information */}
           <InfoCard title="Basic Information" icon={<FaInfoCircle />}>
             <InfoRow label="Equipment ID" value={equipment.equipmentId} />
@@ -191,11 +206,18 @@ const ViewEquipment = () => {
             <InfoRow label="Bore Size" value={equipment.boreSize} />
             <InfoRow label="Max Gradient" value={equipment.maxGradient} />
             <InfoRow label="Slew Rate" value={equipment.slewRate} />
-            <InfoRow label="Power Requirement" value={equipment.powerRequirement} fullWidth />
+            <InfoRow
+              label="Power Requirement"
+              value={equipment.powerRequirement}
+              fullWidth
+            />
           </InfoCard>
 
           {/* Purchase & Warranty Details */}
-          <InfoCard title="Purchase & Warranty Details" icon={<FaFileInvoiceDollar />}>
+          <InfoCard
+            title="Purchase & Warranty Details"
+            icon={<FaFileInvoiceDollar />}
+          >
             <IconRow
               icon={<FaCalendarAlt className="text-purple-600" />}
               label="Installation Date"
@@ -228,14 +250,13 @@ const ViewEquipment = () => {
             <InfoRow label="Contact Number" value={equipment.contactNumber} />
             <InfoRow label="Email ID" value={equipment.emailId} fullWidth />
           </InfoCard>
-
         </div>
       </div>
     </div>
   );
 };
 
-export default ViewEquipment;
+export default ViewEquipmentDetails;
 
 /* ---------- Reusable Components ---------- */
 
@@ -258,8 +279,12 @@ const InfoRow = ({ label, value, fullWidth }) => (
     <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
       {label}
     </p>
-    <p className="text-sm font-semibold text-gray-700">
-      {value === "N/A" ? <span className="text-gray-400 italic">N/A</span> : value || "N/A"}
+    <p className="text-sm font-semibold text-gray-700 wrap-break">
+      {value === "N/A" ? (
+        <span className="text-gray-400 italic">N/A</span>
+      ) : (
+        value || "N/A"
+      )}
     </p>
   </div>
 );

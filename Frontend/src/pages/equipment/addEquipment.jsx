@@ -277,7 +277,7 @@ const AddEquipment = () => {
                       <button
                         type="button"
                         onClick={removeImage}
-                        className="mt-3 text-xs text-red-600 cursor-pointer hover:text-red-800 font-medium flex items-center gap-1 bg-white px-2 py-1 rounded border border-red-200 shadow-sm"
+                        className="mt-3 text-xs  text-red-600 cursor-pointer hover:text-red-800 font-medium flex items-center gap-1 bg-white px-2 py-1 rounded border border-red-200 shadow-sm"
                       >
                         <FaTrash /> Remove
                       </button>
@@ -359,14 +359,14 @@ const AddEquipment = () => {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors"
+            className="flex items-center cursor-pointer gap-2 bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors"
           >
             <FaTimes /> Cancel
           </button>
 
           <button
             type="submit"
-            className="flex items-center gap-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-4 py-2 rounded-md transition-colors"
+            className="flex items-center cursor-pointer gap-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-4 py-2 rounded-md transition-colors"
           >
             <FaSave /> Save Equipment
           </button>

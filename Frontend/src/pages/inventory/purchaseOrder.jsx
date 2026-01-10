@@ -30,8 +30,7 @@ const PurchaseOrder = () => {
         o.medicineName.toLowerCase().includes(search.toLowerCase()) ||
         o.orderId.toLowerCase().includes(search.toLowerCase());
 
-      const matchesStatus =
-        statusFilter === "ALL" || o.status === statusFilter;
+      const matchesStatus = statusFilter === "ALL" || o.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -39,15 +38,9 @@ const PurchaseOrder = () => {
 
   /* ---------------- SUMMARY COUNTS ---------------- */
   const totalCount = orders.length;
-  const requestedCount = orders.filter(
-    (o) => o.status === "Requested"
-  ).length;
-  const orderedCount = orders.filter(
-    (o) => o.status === "Ordered"
-  ).length;
-  const receivedCount = orders.filter(
-    (o) => o.status === "Received"
-  ).length;
+  const requestedCount = orders.filter((o) => o.status === "Requested").length;
+  const orderedCount = orders.filter((o) => o.status === "Ordered").length;
+  const receivedCount = orders.filter((o) => o.status === "Received").length;
 
   /* ---------------- DELETE HANDLER ---------------- */
   const handleDelete = (orderId) => {
@@ -61,13 +54,11 @@ const PurchaseOrder = () => {
       <div className="bg-white p-6 rounded-lg mb-4 border border-gray-300 shadow flex justify-between items-center">
         <div>
           <div className="flex gap-3 items-center">
-                      <div size={24} className="p-2 text-gray-500">
-                        <FaShoppingCart className="text-xl" />
-                      </div>
-                      <h2 className="font-bold text-lg text-gray-800">
-                        Purchase Orders
-                      </h2>
-                    </div>
+            <div size={24} className="p-2 text-gray-500">
+              <FaShoppingCart className="text-xl" />
+            </div>
+            <h2 className="font-bold text-lg text-gray-800">Purchase Orders</h2>
+          </div>
           <p className="text-sm text-gray-500">
             Create and track purchase orders
           </p>
@@ -75,7 +66,7 @@ const PurchaseOrder = () => {
 
         <button
           onClick={() => navigate("/create-purchase-order")}
-          className="flex items-center gap-2 bg-fuchsia-800 hover:bg-fuchsia-700 text-white px-4 py-2 rounded-md text-sm"
+          className="flex items-center cursor-pointer gap-2 bg-fuchsia-800 hover:bg-fuchsia-700 text-white px-4 py-2 rounded-md text-sm"
         >
           <FaPlus />
           Create Order
@@ -130,7 +121,7 @@ const PurchaseOrder = () => {
         <div className="relative">
           <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
           <select
-            className="pl-9 h-10 pr-3 rounded-md border border-gray-400 outline-0"
+            className="pl-9 h-10 cursor-pointer pr-3 rounded-md border border-gray-400 outline-0"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -202,7 +193,9 @@ const OrderCard = ({ order, onEdit, onDelete }) => {
         </div>
 
         <span
-          className={`text-xs px-3 py-1 rounded-full ${statusStyles[order.status]}`}
+          className={`text-xs px-3 py-1 rounded-full ${
+            statusStyles[order.status]
+          }`}
         >
           {order.status}
         </span>
@@ -212,10 +205,7 @@ const OrderCard = ({ order, onEdit, onDelete }) => {
         <Info label="Quantity" value={`${order.quantity} units`} />
         <Info label="Total Cost" value={`₹${order.totalCost}`} />
         <Info label="Order Date" value={order.orderDate || "—"} />
-        <Info
-          label="Expected Delivery"
-          value={order.expectedDelivery || "—"}
-        />
+        <Info label="Expected Delivery" value={order.expectedDelivery || "—"} />
       </div>
 
       {/* ACTIONS */}
@@ -223,7 +213,7 @@ const OrderCard = ({ order, onEdit, onDelete }) => {
         {(order.status === "Requested" || order.status === "Ordered") && (
           <button
             onClick={onEdit}
-            className="flex items-center gap-2 text-sm border px-4 py-2 rounded hover:bg-gray-300 text-fuchsia-700"
+            className="flex cursor-pointer items-center gap-2 text-sm border px-4 py-2 rounded hover:bg-gray-300 text-fuchsia-700"
           >
             <FaEdit />
             Update Info
@@ -233,7 +223,7 @@ const OrderCard = ({ order, onEdit, onDelete }) => {
         {order.status === "Received" && (
           <button
             onClick={onDelete}
-            className="flex items-center gap-2 text-sm border px-4 py-2 rounded hover:bg-red-100 text-red-600"
+            className="flex cursor-pointer items-center gap-2 text-sm border px-4 py-2 rounded hover:bg-red-100 text-red-600"
           >
             <FaTrash />
             Remove
