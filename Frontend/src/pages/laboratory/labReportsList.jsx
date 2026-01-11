@@ -1,30 +1,35 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; 
 import { 
   Search, FileText, ChevronLeft, ChevronRight, 
-  ChevronsLeft, ChevronsRight, Filter
+  ChevronsLeft, ChevronsRight, Filter, Eye 
 } from "lucide-react";
 
-/* -------------------- DUMMY DATA -------------------- */
-export const initialReports = [
-  { reportId: "LR00101", patientId: "P000123", patientName: "Alice Williams", testType: "CBC", date: "2025-10-20", status: "Completed", age: 34, gender: "Female", phone: "+1 555 010 9988", bloodGroup: "O+" },
-  { reportId: "LR00102", patientId: "P000124", patientName: "Bob Gruns", testType: "Lipid Profile", date: "2025-10-21", status: "Pending", age: 45, gender: "Male", phone: "+1 555 019 2834", bloodGroup: "A-" },
-  { reportId: "LR00103", patientId: "P000124", patientName: "Bob Gruns", testType: "Lipid Profile", date: "2025-10-22", status: "Pending", age: 45, gender: "Male", phone: "+1 555 019 2834", bloodGroup: "A-" },
-  { reportId: "LR00105", patientId: "P000125", patientName: "Korny Smith", testType: "Lipid Profile", date: "2025-10-22", status: "Completed", age: 29, gender: "Male", phone: "+1 555 091 1122", bloodGroup: "B+" },
-  { reportId: "LR00106", patientId: "P000126", patientName: "Alice Williams", testType: "CBC", date: "2025-10-23", status: "Completed", age: 34, gender: "Female", phone: "+1 555 010 9988", bloodGroup: "O+" },
-  { reportId: "LR00107", patientId: "P000127", patientName: "Bob Gruns", testType: "Lipid Profile", date: "2025-10-24", status: "Pending", age: 45, gender: "Male", phone: "+1 555 019 2834", bloodGroup: "A-" },
-  { reportId: "LR00108", patientId: "P000128", patientName: "Korny Smith", testType: "Lipid Profile", date: "2025-10-25", status: "Completed", age: 29, gender: "Male", phone: "+1 555 091 1122", bloodGroup: "B+" },
-  { reportId: "LR00109", patientId: "P000129", patientName: "Alice Williams", testType: "Lipid Profile", date: "2025-10-26", status: "Pending", age: 34, gender: "Female", phone: "+1 555 010 9988", bloodGroup: "O+" },
-  { reportId: "LR00110", patientId: "P000130", patientName: "Jamn Smith", testType: "CBC", date: "2025-10-27", status: "Pending", age: 38, gender: "Male", phone: "+1 555 088 7766", bloodGroup: "AB-" },
-  { reportId: "LR00111", patientId: "P000131", patientName: "Alice Williams", testType: "Lipid Profile", date: "2025-10-28", status: "Pending", age: 34, gender: "Female", phone: "+1 555 010 9988", bloodGroup: "O+" },
-  { reportId: "LR00112", patientId: "P000132", patientName: "David Rose", testType: "MRI Scan", date: "2025-10-29", status: "Completed", age: 52, gender: "Male", phone: "+1 555 222 3344", bloodGroup: "AB+" },
-  { reportId: "LR00113", patientId: "P000133", patientName: "Emily Blunt", testType: "X-Ray", date: "2025-10-30", status: "Completed", age: 27, gender: "Female", phone: "+1 555 999 0000", bloodGroup: "O-" },
-];
+// Import Initial Data
+import { labReportsData } from "../../data/labReportsData"; 
 
 export default function LabReportList() {
   const navigate = useNavigate(); 
 
-  /* -------------------- STATES & LOGIC -------------------- */
+  // --- STATE FOR REPORTS ---
+  const [reports, setReports] = useState([]);
+
+  // --- 1. LOAD DATA FROM LOCAL STORAGE ON MOUNT ---
+  useEffect(() => {
+    // Check if data exists in browser
+    const storedReports = localStorage.getItem("labReportsDB");
+
+    if (storedReports) {
+      // If found, load it
+      setReports(JSON.parse(storedReports));
+    } else {
+      // If empty (first time), load dummy data AND save it to storage
+      setReports(labReportsData);
+      localStorage.setItem("labReportsDB", JSON.stringify(labReportsData));
+    }
+  }, []);
+
+  /* -------------------- FILTERS & SORTING STATE -------------------- */
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
@@ -32,32 +37,43 @@ export default function LabReportList() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  /* -------------------- LOGIC -------------------- */
   const filteredData = useMemo(() => {
-    let data = initialReports.filter((item) => {
+    // Filter on 'reports' (which comes from Local Storage)
+    let data = reports.filter((item) => {
       const matchesSearch = 
         item.patientName.toLowerCase().includes(searchTerm.toLowerCase()) || 
         item.patientId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.reportId.toLowerCase().includes(searchTerm.toLowerCase());
+      
       const matchesType = filterType === "All" || item.testType === filterType;
       const matchesStatus = filterStatus === "All" || item.status === filterStatus;
+
       return matchesSearch && matchesType && matchesStatus;
     });
+
     data.sort((a, b) => {
       const dateA = new Date(a.date);
       const dateB = new Date(b.date);
       return sortOrder === "Newest" ? dateB - dateA : dateA - dateB;
     });
+
     return data;
-  }, [searchTerm, filterType, filterStatus, sortOrder]);
+  }, [searchTerm, filterType, filterStatus, sortOrder, reports]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const currentData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
-  const completedCount = initialReports.filter(r => r.status === "Completed").length;
-  const pendingCount = initialReports.filter(r => r.status === "Pending").length;
+  const completedCount = reports.filter(r => r.status === "Completed").length;
+  const pendingCount = reports.filter(r => r.status === "Pending").length;
 
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) setCurrentPage(newPage);
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
   };
 
   const getStatusColor = (status) => {
@@ -136,39 +152,30 @@ export default function LabReportList() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {currentData.length > 0 ? (
-                currentData.map((report) => (
-                  <tr key={report.reportId} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-4 text-sm font-mono text-gray-500 font-bold">{report.reportId}</td>
-                    <td className="p-4">
-                        <div className="text-sm font-bold text-gray-800">{report.patientName}</div>
-                        <div className="text-xs text-gray-400 font-mono">{report.patientId}</div>
-                    </td>
-                    <td className="p-4 text-sm text-gray-600 font-medium">{report.testType}</td>
-                    <td className="p-4 text-sm text-gray-600">{report.date}</td>
-                    <td className="p-4 text-center">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(report.status)}`}>
-                        {report.status}
-                      </span>
-                    </td>
-                    <td className="p-4 text-center">
-                      <button 
-                        onClick={() => handleViewDetails(report)}
-                        className="cursor-pointer text-purple-700 hover:text-white hover:bg-purple-700 border border-purple-200 hover:border-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="p-8 text-center text-gray-500">
-                    <FileText className="mx-auto mb-2 opacity-30" size={48} />
-                    <p>No reports found.</p>
+              {currentData.map((report) => (
+                <tr key={report.reportId} className="hover:bg-gray-50 transition-colors">
+                  <td className="p-4 text-sm font-mono text-gray-500 font-bold">{report.reportId}</td>
+                  <td className="p-4">
+                      <div className="text-sm font-bold text-gray-800">{report.patientName}</div>
+                      <div className="text-xs text-gray-400 font-mono">{report.patientId}</div>
+                  </td>
+                  <td className="p-4 text-sm text-gray-600 font-medium">{report.testType}</td>
+                  <td className="p-4 text-sm text-gray-600">{report.date}</td>
+                  <td className="p-4 text-center">
+                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(report.status)}`}>
+                      {report.status}
+                    </span>
+                  </td>
+                  <td className="p-4 text-center">
+                    <button 
+                      onClick={() => handleViewDetails(report)}
+                      className="cursor-pointer text-purple-700 hover:text-white hover:bg-purple-700 border border-purple-200 hover:border-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
+                    >
+                      View
+                    </button>
                   </td>
                 </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
@@ -186,10 +193,7 @@ export default function LabReportList() {
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-gray-50">
                          <span className={`px-2 py-1 rounded text-[10px] font-bold border uppercase ${getStatusColor(report.status)}`}>{report.status}</span>
-                         <button 
-                            onClick={() => handleViewDetails(report)}
-                            className="cursor-pointer text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-100 px-3 py-1.5 rounded text-xs font-bold transition-colors"
-                         >
+                         <button onClick={() => handleViewDetails(report)} className="cursor-pointer text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-100 px-3 py-1.5 rounded text-xs font-bold transition-colors">
                             View
                          </button>
                     </div>
@@ -197,9 +201,14 @@ export default function LabReportList() {
             ))}
         </div>
         
-        {/* Pagination */}
+        {/* Pagination Footer */}
         <div className="p-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50">
-           {/* Pagination controls... */}
+           {/* (Simplified pagination controls for brevity) */}
+           <p className="text-xs text-gray-500 font-medium">Showing {filteredData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} to {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length}</p>
+           <div className="flex items-center gap-1">
+              <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="p-1.5 border rounded hover:bg-gray-100 disabled:opacity-50"><ChevronLeft size={14}/></button>
+              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="p-1.5 border rounded hover:bg-gray-100 disabled:opacity-50"><ChevronRight size={14}/></button>
+           </div>
         </div>
       </div>
     </div>

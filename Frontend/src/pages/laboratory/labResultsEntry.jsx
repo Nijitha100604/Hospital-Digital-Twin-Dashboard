@@ -13,33 +13,75 @@ const technicians = [
   { id: "T004", name: "Dr. Emily W (Pathologist)" },
 ];
 
+// EXPANDED TEST TEMPLATES
 const testTemplates = {
+  "CBC (Hemogram)": [
+    { id: "cbc1", param: "Hemoglobin", unit: "g/dL", min: 13.0, max: 17.0 },
+    { id: "cbc2", param: "RBC Count", unit: "mill/mm³", min: 4.5, max: 5.5 },
+    { id: "cbc3", param: "WBC Count (Total)", unit: "cells/mcL", min: 4000, max: 11000 },
+    { id: "cbc4", param: "Platelet Count", unit: "lakh/mm³", min: 1.5, max: 4.5 },
+    { id: "cbc5", param: "PCV (Hematocrit)", unit: "%", min: 40, max: 50 },
+    { id: "cbc6", param: "MCV", unit: "fL", min: 80, max: 100 },
+  ],
   "Lipid Profile": [
     { id: "lp1", param: "Total Cholesterol", unit: "mg/dL", min: 0, max: 200 },
-    { id: "lp2", param: "HDL Cholesterol", unit: "mg/dL", min: 40, max: 60 },
-    { id: "lp3", param: "LDL Cholesterol", unit: "mg/dL", min: 0, max: 100 },
+    { id: "lp2", param: "HDL Cholesterol (Good)", unit: "mg/dL", min: 40, max: 60 },
+    { id: "lp3", param: "LDL Cholesterol (Bad)", unit: "mg/dL", min: 0, max: 100 },
     { id: "lp4", param: "Triglycerides", unit: "mg/dL", min: 0, max: 150 },
+    { id: "lp5", param: "VLDL Cholesterol", unit: "mg/dL", min: 2, max: 30 },
   ],
-  "CBC (Hemogram)": [
-    { id: "cbc1", param: "Hemoglobin", unit: "g/dL", min: 13.5, max: 17.5 },
-    { id: "cbc2", param: "RBC Count", unit: "mill/mm3", min: 4.5, max: 5.5 },
-    { id: "cbc3", param: "WBC Count", unit: "cells/mcL", min: 4500, max: 11000 },
-    { id: "cbc4", param: "Platelet Count", unit: "lakh/mm3", min: 1.5, max: 4.5 },
+  "Liver Function Test (LFT)": [
+    { id: "lft1", param: "Bilirubin Total", unit: "mg/dL", min: 0.1, max: 1.2 },
+    { id: "lft2", param: "Bilirubin Direct", unit: "mg/dL", min: 0, max: 0.3 },
+    { id: "lft3", param: "SGOT (AST)", unit: "U/L", min: 5, max: 40 },
+    { id: "lft4", param: "SGPT (ALT)", unit: "U/L", min: 7, max: 56 },
+    { id: "lft5", param: "Alkaline Phosphatase", unit: "U/L", min: 44, max: 147 },
+    { id: "lft6", param: "Total Protein", unit: "g/dL", min: 6.0, max: 8.3 },
+    { id: "lft7", param: "Albumin", unit: "g/dL", min: 3.5, max: 5.5 },
+  ],
+  "Kidney Function Test (KFT)": [
+    { id: "kft1", param: "Blood Urea", unit: "mg/dL", min: 15, max: 40 },
+    { id: "kft2", param: "Serum Creatinine", unit: "mg/dL", min: 0.6, max: 1.2 },
+    { id: "kft3", param: "Uric Acid", unit: "mg/dL", min: 3.5, max: 7.2 },
+    { id: "kft4", param: "Calcium (Total)", unit: "mg/dL", min: 8.5, max: 10.2 },
+    { id: "kft5", param: "Phosphorus", unit: "mg/dL", min: 2.5, max: 4.5 },
   ],
   "Thyroid Profile": [
     { id: "th1", param: "T3 (Triiodothyronine)", unit: "ng/dL", min: 80, max: 200 },
     { id: "th2", param: "T4 (Thyroxine)", unit: "µg/dL", min: 5.0, max: 12.0 },
-    { id: "th3", param: "TSH", unit: "µIU/mL", min: 0.4, max: 4.0 },
+    { id: "th3", param: "TSH (Thyroid Stimulating Hormone)", unit: "µIU/mL", min: 0.4, max: 4.0 },
   ],
-  "Liver Function Test": [
-    { id: "lft1", param: "Bilirubin Total", unit: "mg/dL", min: 0.1, max: 1.2 },
-    { id: "lft2", param: "SGOT (AST)", unit: "U/L", min: 5, max: 40 },
-    { id: "lft3", param: "SGPT (ALT)", unit: "U/L", min: 7, max: 56 },
-  ],
-  "Glucometry": [
-    { id: "glu1", param: "Fasting Blood Sugar", unit: "mg/dL", min: 70, max: 100 },
-    { id: "glu2", param: "Post Prandial (PP)", unit: "mg/dL", min: 70, max: 140 },
+  "Glucometry (Diabetes)": [
+    { id: "glu1", param: "Fasting Blood Sugar (FBS)", unit: "mg/dL", min: 70, max: 100 },
+    { id: "glu2", param: "Post Prandial (PPBS)", unit: "mg/dL", min: 70, max: 140 },
     { id: "glu3", param: "HbA1c", unit: "%", min: 4.0, max: 5.6 },
+    { id: "glu4", param: "Random Blood Sugar", unit: "mg/dL", min: 70, max: 140 },
+  ],
+  "Electrolytes": [
+    { id: "ele1", param: "Sodium (Na+)", unit: "mEq/L", min: 135, max: 145 },
+    { id: "ele2", param: "Potassium (K+)", unit: "mEq/L", min: 3.5, max: 5.1 },
+    { id: "ele3", param: "Chloride (Cl-)", unit: "mEq/L", min: 96, max: 106 },
+  ],
+  "Iron Profile": [
+    { id: "irp1", param: "Serum Iron", unit: "mcg/dL", min: 60, max: 170 },
+    { id: "irp2", param: "TIBC", unit: "mcg/dL", min: 240, max: 450 },
+    { id: "irp3", param: "Transferrin Saturation", unit: "%", min: 20, max: 50 },
+    { id: "irp4", param: "Ferritin", unit: "ng/mL", min: 12, max: 150 },
+  ],
+  "Vitamin Profile": [
+    { id: "vit1", param: "Vitamin B12", unit: "pg/mL", min: 200, max: 900 },
+    { id: "vit2", param: "Vitamin D (25-OH)", unit: "ng/mL", min: 30, max: 100 },
+  ],
+  "Coagulation Profile": [
+    { id: "coag1", param: "Prothrombin Time (PT)", unit: "sec", min: 11, max: 13.5 },
+    { id: "coag2", param: "INR", unit: "ratio", min: 0.8, max: 1.2 },
+    { id: "coag3", param: "APTT", unit: "sec", min: 30, max: 40 },
+  ],
+  "Urine Routine": [
+    { id: "uri1", param: "pH", unit: "-", min: 4.5, max: 8.0 },
+    { id: "uri2", param: "Specific Gravity", unit: "-", min: 1.005, max: 1.030 },
+    { id: "uri3", param: "Pus Cells", unit: "/hpf", min: 0, max: 5 },
+    { id: "uri4", param: "Epithelial Cells", unit: "/hpf", min: 0, max: 5 },
   ]
 };
 
@@ -55,7 +97,7 @@ export default function LabResultEntry() {
     dept: "Pathology"
   });
 
-  const [selectedTestType, setSelectedTestType] = useState("Glucometry");
+  const [selectedTestType, setSelectedTestType] = useState("Glucometry (Diabetes)");
   const [results, setResults] = useState({});
   const [verifiedBy, setVerifiedBy] = useState("");
   const [comments, setComments] = useState("");
@@ -93,8 +135,7 @@ export default function LabResultEntry() {
           <p className="text-xs md:text-sm text-gray-500 mt-1">Manually enter patient details and test results.</p>
         </div>
         
-        {/* Compact Test Type Selector */}
-        {/* 'w-full md:w-auto' ensures it fits screen width but doesn't overflow */}
+        {/* Test Type Selector */}
         <div className="bg-white p-2 rounded-lg border border-gray-300 shadow-sm flex items-center gap-2 w-full md:w-auto max-w-full">
             <FlaskConical size={18} className="text-purple-600 shrink-0"/>
             <span className="text-xs font-bold text-gray-500 uppercase whitespace-nowrap hidden sm:inline">Test Type:</span>
@@ -106,7 +147,6 @@ export default function LabResultEntry() {
                >
                  {Object.keys(testTemplates).map(t => <option key={t} value={t}>{t}</option>)}
                </select>
-               {/* Custom arrow to save space/styling */}
                <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14}/>
             </div>
         </div>
@@ -216,11 +256,11 @@ export default function LabResultEntry() {
                   <tr key={item.id} className="hover:bg-gray-50 transition-colors">
                     <td className="p-4 text-sm font-bold text-gray-700">{item.param}</td>
                     <td className="p-4">
-                       <input 
-                        type="number" placeholder="0.00"
-                        className={`w-full p-2.5 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500 transition-all font-mono font-bold text-sm ${flag?.label === 'High' ? 'bg-red-50 border-red-200 text-red-700' : flag?.label === 'Low' ? 'bg-yellow-50 border-yellow-200 text-yellow-800' : 'bg-white border-gray-300 text-gray-800'}`}
-                        value={currentVal} onChange={(e) => handleResultChange(item.id, e.target.value)}
-                       />
+                        <input 
+                         type="number" placeholder="0.00"
+                         className={`w-full p-2.5 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500 transition-all font-mono font-bold text-sm ${flag?.label === 'High' ? 'bg-red-50 border-red-200 text-red-700' : flag?.label === 'Low' ? 'bg-yellow-50 border-yellow-200 text-yellow-800' : 'bg-white border-gray-300 text-gray-800'}`}
+                         value={currentVal} onChange={(e) => handleResultChange(item.id, e.target.value)}
+                        />
                     </td>
                     <td className="p-4 text-sm text-gray-500 font-medium">{item.unit}</td>
                     <td className="p-4 text-sm text-gray-500 font-medium whitespace-nowrap">{item.min} - {item.max}</td>
@@ -240,7 +280,6 @@ export default function LabResultEntry() {
         </div>
 
         {/* --- 2. MOBILE VIEW (CARDS) --- */}
-        {/* Shows vertical blocks instead of a horizontal scrolling table */}
         <div className="md:hidden space-y-4">
            {currentParams.map((item) => {
              const currentVal = results[item.id] || "";
@@ -254,18 +293,18 @@ export default function LabResultEntry() {
                   
                   <div className="flex gap-2 items-center">
                      <input 
-                        type="number" placeholder="Enter Value"
-                        className={`flex-1 p-2 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500 transition-all font-mono font-bold text-sm ${flag?.label === 'High' ? 'bg-red-50 border-red-200 text-red-700' : flag?.label === 'Low' ? 'bg-yellow-50 border-yellow-200 text-yellow-800' : 'bg-white border-gray-300 text-gray-800'}`}
-                        value={currentVal} onChange={(e) => handleResultChange(item.id, e.target.value)}
+                       type="number" placeholder="Enter Value"
+                       className={`flex-1 p-2 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500 transition-all font-mono font-bold text-sm ${flag?.label === 'High' ? 'bg-red-50 border-red-200 text-red-700' : flag?.label === 'Low' ? 'bg-yellow-50 border-yellow-200 text-yellow-800' : 'bg-white border-gray-300 text-gray-800'}`}
+                       value={currentVal} onChange={(e) => handleResultChange(item.id, e.target.value)}
                      />
                      <div className="w-20 flex justify-center">
-                        {flag ? (
-                          <span className={`inline-flex items-center justify-center w-full px-2 py-2 rounded-lg text-[10px] font-bold border ${flag.color}`}>
-                            {flag.label.toUpperCase()}
-                          </span>
-                        ) : (
-                          <span className="text-[10px] text-gray-400 font-medium px-2">—</span>
-                        )}
+                       {flag ? (
+                         <span className={`inline-flex items-center justify-center w-full px-2 py-2 rounded-lg text-[10px] font-bold border ${flag.color}`}>
+                           {flag.label.toUpperCase()}
+                         </span>
+                       ) : (
+                         <span className="text-[10px] text-gray-400 font-medium px-2">—</span>
+                       )}
                      </div>
                   </div>
                </div>
@@ -281,10 +320,10 @@ export default function LabResultEntry() {
             <div>
                <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-2 block">Pathologist Comments</label>
                <textarea 
-                  rows="3" 
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none text-sm"
-                  placeholder="Clinical notes..."
-                  value={comments} onChange={(e) => setComments(e.target.value)}
+                 rows="3" 
+                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none text-sm"
+                 placeholder="Clinical notes..."
+                 value={comments} onChange={(e) => setComments(e.target.value)}
                ></textarea>
             </div>
 

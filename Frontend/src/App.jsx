@@ -39,7 +39,7 @@ import ViewMedicineDetails from './pages/inventory/viewMedicineDetails';
 import LabReportsList from './pages/laboratory/labReportsList';
 import LabResultsEntry from './pages/laboratory/LabResultsEntry';
 import PatientWiseReports from './pages/laboratory/patientWiseReports';
-import UploadReport from './pages/laboratory/UploadReport';
+import UploadReport from './pages/laboratory/uploadReport';
 import AddStaff from './pages/staff_management/AddStaff';
 import AssignShift from './pages/staff_management/AssignShift';
 import Attendance from './pages/staff_management/attendance';
@@ -70,6 +70,7 @@ function App() {
         setIsSidebarOpen={setIsSidebarOpen}
       />
 
+      
       <div className = "flex-1 ml-0 mt-16 p-4">
 
       <Routes>

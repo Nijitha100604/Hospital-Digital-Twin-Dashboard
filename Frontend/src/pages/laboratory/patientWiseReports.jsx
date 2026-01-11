@@ -1,290 +1,326 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom"; 
-import { 
-  Search, Printer, Download, FileText, User, 
-  Phone, CheckCircle, ChevronDown, ArrowLeft, 
-  FileSearch, AlertTriangle, Clock, FlaskConical,
-  XCircle
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Download, Printer, Search, Phone, ArrowLeft,
+  AlertTriangle, Clock, FileSearch, XCircle, Eye,
+  User, Calendar, Activity, FileText, Share2
 } from "lucide-react";
 
-// --- 1. MOCK DATABASE ---
-// Added multiple tests for "Alice (P000123)" to demonstrate switching
-const MOCK_DB = [
-  // Alice - Has CBC (Completed) AND Lipid Profile (Pending)
-  { reportId: "LR00101", patientId: "P000123", patientName: "Alice Williams", testType: "Complete Blood Count (CBC)", date: "2025-10-20", status: "Completed", age: 34, gender: "Female", phone: "+1 555 010 9988", bloodGroup: "O+" },
-  { reportId: "LR00199", patientId: "P000123", patientName: "Alice Williams", testType: "Lipid Profile", date: "2025-10-21", status: "Pending", age: 34, gender: "Female", phone: "+1 555 010 9988", bloodGroup: "O+" },
-  
-  // Bob
-  { reportId: "LR00102", patientId: "P000124", patientName: "Bob Gruns", testType: "Lipid Profile", date: "2025-10-21", status: "Pending", age: 45, gender: "Male", phone: "+1 555 019 2834", bloodGroup: "A-" },
-  
-  // Korny
-  { reportId: "LR00105", patientId: "P000125", patientName: "Korny Smith", testType: "Lipid Profile", date: "2025-10-22", status: "Completed", age: 29, gender: "Male", phone: "+1 555 091 1122", bloodGroup: "B+" },
-  
-  // David
-  { reportId: "LR00112", patientId: "P000132", patientName: "David Rose", testType: "MRI Scan", date: "2025-10-29", status: "Completed", age: 52, gender: "Male", phone: "+1 555 222 3344", bloodGroup: "AB+" },
-];
+// Import Data
+import { labReportsData } from "../../data/labReportsData";
 
-// List of all possible tests available in the drop-down
+// Tests available for the dropdown
 const STANDARD_TESTS = [
-  "Complete Blood Count (CBC)",
-  "Lipid Profile",
-  "Thyroid Profile",
-  "Liver Function Test",
-  "Glucometry",
-  "MRI Scan",
-  "X-Ray"
+  "CBC", "Lipid Profile", "Thyroid Profile", 
+  "MRI Scan", "X-Ray", "Glucometry", "HbA1c"
 ];
 
 export default function PatientWiseReport() {
   const location = useLocation();
   const navigate = useNavigate();
-  
-  // State
-  const [currentPatient, setCurrentPatient] = useState(null); // Stores basic patient info
-  const [selectedTestType, setSelectedTestType] = useState(""); // Currently selected test
+
+  // --- STATE ---
+  const [currentPatientId, setCurrentPatientId] = useState(null);
+  const [selectedTestType, setSelectedTestType] = useState("CBC");
   const [searchInput, setSearchInput] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // 1. INITIALIZATION
+  // --- INITIAL LOAD ---
   useEffect(() => {
     if (location.state?.reportData) {
-      const data = location.state.reportData;
-      // Set Patient Info
-      setCurrentPatient({
-        id: data.patientId,
-        name: data.patientName,
-        age: data.age || 40,
-        gender: data.gender || "Male",
-        bloodGroup: data.bloodGroup || "O+",
-        phone: data.phone || "+1 555 000 0000",
-        initials: data.patientName.substring(0, 2).toUpperCase()
-      });
-      // Set the test type that was clicked
-      setSelectedTestType(data.testType === "CBC" ? "Complete Blood Count (CBC)" : data.testType);
+      const { patientId, testType } = location.state.reportData;
+      setCurrentPatientId(patientId);
+      setSelectedTestType(testType);
+      setSearchInput(patientId);
     }
   }, [location.state]);
 
-  // 2. SEARCH LOGIC
+  // --- DATA LOGIC ---
+  const patientProfile = currentPatientId 
+    ? labReportsData.find(r => r.patientId === currentPatientId)
+    : null;
+
+  const activeReport = currentPatientId
+    ? labReportsData.find(r => r.patientId === currentPatientId && r.testType === selectedTestType)
+    : null;
+
+  // --- HANDLERS ---
   const handleSearch = () => {
     setErrorMsg("");
-    if(!searchInput.trim()) return;
+    if (!searchInput.trim()) return;
 
-    // Find ANY report for this patient to get their basic details
-    const found = MOCK_DB.find(item => 
-      item.patientName.toLowerCase().includes(searchInput.toLowerCase()) || 
-      item.patientId.toLowerCase() === searchInput.toLowerCase() ||
-      item.reportId.toLowerCase() === searchInput.toLowerCase()
+    const found = labReportsData.find(r => 
+      r.patientId.toLowerCase() === searchInput.toLowerCase() || 
+      r.patientName.toLowerCase().includes(searchInput.toLowerCase())
     );
 
     if (found) {
-      setCurrentPatient({
-        id: found.patientId,
-        name: found.patientName,
-        age: found.age,
-        gender: found.gender,
-        bloodGroup: found.bloodGroup,
-        phone: found.phone,
-        initials: found.patientName.substring(0, 2).toUpperCase()
-      });
-      // Default to the test found, or the first standard one
-      setSelectedTestType(found.testType === "CBC" ? "Complete Blood Count (CBC)" : found.testType);
+      setCurrentPatientId(found.patientId);
+      setSelectedTestType(found.testType);
     } else {
-      setErrorMsg("Patient not found. Try 'Alice' or 'P000123'");
-      setCurrentPatient(null);
+      setErrorMsg("No records found. Please check Patient ID.");
+      setCurrentPatientId(null);
     }
   };
 
-  // 3. GET REPORT FOR SELECTED TEST
-  // Looks through DB to see if the current patient has a report for the selected test
-  const activeReport = currentPatient 
-    ? MOCK_DB.find(r => r.patientId === currentPatient.id && (r.testType === selectedTestType || (selectedTestType.includes("CBC") && r.testType === "CBC"))) 
-    : null;
+  const renderResults = () => {
+    // Mock data generation for UI demonstration
+    if (selectedTestType === "CBC") {
+      return [
+        { name: "Hemoglobin", value: "11.2", unit: "g/dL", range: "11.5 - 15.0", status: "Low" },
+        { name: "RBC Count", value: "4.1", unit: "mil/µL", range: "3.8 - 4.8", status: "Normal" },
+        { name: "WBC Count", value: "12500", unit: "/µL", range: "4000 - 11000", status: "High" },
+        { name: "Platelets", value: "245", unit: "10³/µL", range: "150 - 450", status: "Normal" },
+        { name: "HCT", value: "34.0", unit: "%", range: "36.0 - 46.0", status: "Low" },
+      ];
+    }
+    if (selectedTestType === "Lipid Profile") {
+      return [
+        { name: "Total Cholesterol", value: "240", unit: "mg/dL", range: "< 200", status: "High" },
+        { name: "HDL", value: "35", unit: "mg/dL", range: "> 40", status: "Low" },
+        { name: "LDL", value: "160", unit: "mg/dL", range: "< 100", status: "High" },
+      ];
+    }
+    return [];
+  };
+
+  const getStatusStyle = (status) => {
+    if (status === "High") return "bg-red-50 text-red-600 border-red-100";
+    if (status === "Low") return "bg-amber-50 text-amber-600 border-amber-100";
+    if (status === "Abnormal") return "bg-red-50 text-red-600 border-red-100";
+    return "bg-emerald-50 text-emerald-600 border-emerald-100";
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6 font-sans">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-800">
       
-      {/* --- HEADER --- */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-6">
-           <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-200 rounded-full transition-colors cursor-pointer">
-              <ArrowLeft size={20} className="text-gray-600"/>
-           </button>
-           <h1 className="text-xl md:text-2xl font-bold text-gray-800">Patient-Wise Report</h1>
+      {/* --- TOP HEADER --- */}
+      <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 shadow-sm transition-all">
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">Lab Results</h1>
+            <p className="text-sm text-slate-500">View and manage patient diagnostics</p>
+          </div>
         </div>
-        
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col items-center justify-center gap-4">
-           <div className="w-full max-w-2xl relative">
-              <input 
-                type="text" 
-                placeholder="Search Patient Name or ID..."
-                className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-lg shadow-inner"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              />
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={24} />
-              <button 
-                onClick={handleSearch}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-purple-700 hover:bg-purple-800 text-white px-6 py-2 rounded-lg font-bold transition-colors cursor-pointer"
-              >
-                Search
-              </button>
-           </div>
-           {errorMsg && <p className="text-red-500 font-medium flex items-center gap-2"><AlertTriangle size={16}/> {errorMsg}</p>}
+
+        {/* Search Bar */}
+        <div className="bg-white p-1.5 pl-4 rounded-xl shadow-sm border border-slate-200 flex items-center w-full md:w-96 transition-all focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-400">
+          <Search size={18} className="text-slate-400" />
+          <input 
+            type="text"
+            placeholder="Search Patient ID / Name..."
+            className="flex-1 px-3 py-1.5 text-sm outline-none text-slate-700 placeholder:text-slate-400"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          />
+          <button 
+            onClick={handleSearch}
+            className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+          >
+            Find
+          </button>
         </div>
       </div>
 
-      {/* --- MAIN CONTENT --- */}
-      {currentPatient ? (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
-          
-          {/* 1. Patient Card */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex flex-col md:flex-row gap-6 items-center">
-               <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center text-3xl font-bold text-purple-600 uppercase">
-                  {currentPatient.initials}
-               </div>
-               <div className="flex-1 text-center md:text-left">
-                  <h2 className="text-2xl font-bold text-gray-800">{currentPatient.name}</h2>
-                  <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-600 mt-2">
-                     <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded"><strong>ID:</strong> {currentPatient.id}</span>
-                     <span className="flex items-center gap-1"><User size={14}/> {currentPatient.age} Yrs / {currentPatient.gender}</span>
-                     <span className="flex items-center gap-1"><SimpleCheckIcon size={14} className="text-gray-400"/> {currentPatient.bloodGroup}</span>
-                     <span className="flex items-center gap-1"><Phone size={14}/> {currentPatient.phone}</span>
-                  </div>
-               </div>
-               <div className="flex gap-2">
-                  <button className="px-4 py-2 bg-[#A03657] text-white rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-[#8a2d4a] transition cursor-pointer"><Download size={16}/> Download</button>
-                  <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-gray-50 transition cursor-pointer"><Printer size={16}/> Print</button>
-               </div>
+      {/* --- MAIN CONTENT AREA --- */}
+      <div className="max-w-7xl mx-auto">
+        
+        {/* ERROR MESSAGE */}
+        {errorMsg && (
+          <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl mb-6 flex items-center gap-2 text-sm animate-in fade-in slide-in-from-top-2">
+            <AlertTriangle size={16} /> {errorMsg}
+          </div>
+        )}
+
+        {!currentPatientId ? (
+          /* EMPTY STATE */
+          <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
+            <div className="bg-slate-50 p-4 rounded-full mb-4">
+              <User size={32} className="text-slate-400" />
             </div>
+            <h3 className="text-lg font-semibold text-slate-700">No Patient Selected</h3>
+            <p className="text-slate-500 text-sm mt-1 max-w-xs">Use the search bar above or select a patient from the main list to view report details.</p>
           </div>
+        ) : (
+          /* REPORT DASHBOARD */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in duration-500">
+            
+            {/* LEFT COLUMN: PATIENT INFO & ACTIONS */}
+            <div className="lg:col-span-4 space-y-6">
+              
+              {/* Patient Card */}
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="bg-slate-900 p-6 text-white flex items-center gap-4">
+                  <div className="w-14 h-14 bg-white/10 rounded-full flex items-center justify-center text-xl font-bold border border-white/20">
+                    {patientProfile?.patientName.substring(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold">{patientProfile?.patientName}</h2>
+                    <p className="text-slate-300 text-xs uppercase tracking-wider font-medium">{patientProfile?.patientId}</p>
+                  </div>
+                </div>
+                
+                <div className="p-6 space-y-4">
+                  <div className="flex justify-between border-b border-slate-50 pb-3">
+                    <span className="text-sm text-slate-500 flex items-center gap-2"><User size={14}/> Age / Gender</span>
+                    <span className="text-sm font-medium text-slate-700">{patientProfile?.age} Yrs / {patientProfile?.gender}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-50 pb-3">
+                    <span className="text-sm text-slate-500 flex items-center gap-2"><Activity size={14}/> Blood Group</span>
+                    <span className="text-sm font-medium text-slate-700">{patientProfile?.bloodGroup}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-50 pb-3">
+                    <span className="text-sm text-slate-500 flex items-center gap-2"><Phone size={14}/> Contact</span>
+                    <span className="text-sm font-medium text-slate-700">{patientProfile?.phone}</span>
+                  </div>
+                </div>
 
-          {/* 2. Test Selection Dropdown */}
-          <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-             <span className="text-sm font-bold text-gray-500 uppercase whitespace-nowrap"><FlaskConical size={16} className="inline mb-1 text-purple-600"/> Select Test:</span>
-             <div className="relative w-full md:w-1/3">
-                <select 
-                  className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg outline-none font-bold text-gray-700 appearance-none cursor-pointer focus:ring-2 focus:ring-purple-500"
-                  value={selectedTestType}
-                  onChange={(e) => setSelectedTestType(e.target.value)}
-                >
-                  {STANDARD_TESTS.map(test => (
-                    <option key={test} value={test}>{test}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16}/>
-             </div>
+                <div className="px-6 pb-6 pt-2 grid grid-cols-2 gap-3">
+                  <button className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-sm font-medium transition-colors">
+                    <Download size={16} /> Report
+                  </button>
+                  <button className="flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <Printer size={16} /> Print
+                  </button>
+                </div>
+              </div>
+
+              {/* Selector Card */}
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <label className="text-xs font-bold text-slate-400 uppercase mb-3 block">Switch Test Report</label>
+                <div className="relative">
+                  <select 
+                    className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 cursor-pointer"
+                    value={selectedTestType}
+                    onChange={(e) => setSelectedTestType(e.target.value)}
+                  >
+                    {STANDARD_TESTS.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                  <ArrowLeft className="absolute right-4 top-1/2 -translate-y-1/2 -rotate-90 text-slate-400 pointer-events-none" size={16}/>
+                </div>
+              </div>
+
+            </div>
+
+            {/* RIGHT COLUMN: REPORT DETAILS */}
+            <div className="lg:col-span-8">
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 min-h-[500px] flex flex-col">
+                
+                {/* Report Header */}
+                <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                      <FileText className="text-indigo-500" size={20}/> 
+                      {selectedTestType}
+                    </h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1 uppercase tracking-wide">Pathology Department</p>
+                  </div>
+                  
+                  {activeReport && (
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${
+                      activeReport.status === 'Completed' 
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+                        : 'bg-amber-50 text-amber-600 border-amber-100'
+                    }`}>
+                      {activeReport.status}
+                    </span>
+                  )}
+                </div>
+
+                {/* Conditional Content */}
+                {!activeReport ? (
+                  <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-slate-400">
+                    <XCircle size={48} className="mb-4 text-slate-200" />
+                    <p className="font-medium text-slate-600">Test Not Undergone</p>
+                    <p className="text-sm mt-1">No data available for {selectedTestType}</p>
+                  </div>
+                ) : activeReport.status === 'Pending' ? (
+                  <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                    <div className="bg-amber-50 p-4 rounded-full mb-4 animate-pulse">
+                      <Clock size={40} className="text-amber-500" />
+                    </div>
+                    <h4 className="text-lg font-bold text-slate-800">Processing in Progress</h4>
+                    <p className="text-slate-500 text-sm mt-2 max-w-sm">
+                      Sample collected on <span className="font-semibold text-slate-700">{activeReport.date}</span>. 
+                      Results will be updated automatically once approved.
+                    </p>
+                  </div>
+                ) : (
+                  /* RESULTS TABLE */
+                  <div className="p-6">
+                    {/* Meta Info */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Collected On</p>
+                        <p className="text-sm font-semibold text-slate-700">{activeReport.date}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Sample ID</p>
+                        <p className="text-sm font-semibold text-slate-700">{activeReport.reportId}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Technician</p>
+                        <p className="text-sm font-semibold text-slate-700">R. Kumar</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Referred By</p>
+                        <p className="text-sm font-semibold text-slate-700">Dr. Smith</p>
+                      </div>
+                    </div>
+
+                    {/* Table */}
+                    <div className="overflow-hidden rounded-xl border border-slate-200 mb-8">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                          <tr>
+                            <th className="px-6 py-3">Investigation</th>
+                            <th className="px-6 py-3">Result</th>
+                            <th className="px-6 py-3">Units</th>
+                            <th className="px-6 py-3 hidden sm:table-cell">Ref. Range</th>
+                            <th className="px-6 py-3 text-right">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {renderResults().map((row, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="px-6 py-3 font-medium text-slate-700">{row.name}</td>
+                              <td className="px-6 py-3 font-bold text-slate-900">{row.value}</td>
+                              <td className="px-6 py-3 text-slate-500 text-xs">{row.unit}</td>
+                              <td className="px-6 py-3 text-slate-500 text-xs hidden sm:table-cell">{row.range}</td>
+                              <td className="px-6 py-3 text-right">
+                                <span className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border ${getStatusStyle(row.status)}`}>
+                                  {row.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Doctor's Note */}
+                    <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-5">
+                      <h5 className="text-amber-900 font-bold text-sm mb-2 flex items-center gap-2">
+                        <Activity size={16}/> Pathologist Impression
+                      </h5>
+                      <p className="text-sm text-amber-800/80 leading-relaxed">
+                        Results indicate iron deficiency anemia. White blood cell count suggests acute infection. 
+                        Recommended clinical correlation and follow-up in 2 weeks.
+                      </p>
+                    </div>
+
+                  </div>
+                )}
+              </div>
+            </div>
+
           </div>
-
-          {/* 3. REPORT CONTENT (CONDITIONAL RENDERING) */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden min-h-[400px]">
-             
-             {/* CASE A: No Data Found for this Test */}
-             {!activeReport && (
-                <div className="flex flex-col items-center justify-center h-full p-12 text-center">
-                   <div className="bg-gray-100 p-4 rounded-full mb-4">
-                      <XCircle size={48} className="text-gray-400" />
-                   </div>
-                   <h3 className="text-xl font-bold text-gray-700">Test Not Undergone</h3>
-                   <p className="text-gray-500 mt-2 max-w-md">
-                      No records found for <strong>{selectedTestType}</strong>. The patient has not undergone this test or the data hasn't been entered into the system yet.
-                   </p>
-                </div>
-             )}
-
-             {/* CASE B: Report is Pending */}
-             {activeReport && activeReport.status === "Pending" && (
-                <div className="flex flex-col items-center justify-center h-full p-12 text-center bg-orange-50/30">
-                   <div className="bg-orange-100 p-4 rounded-full mb-4">
-                      <Clock size={48} className="text-orange-500" />
-                   </div>
-                   <h3 className="text-2xl font-bold text-orange-800">Report Not Yet Uploaded</h3>
-                   <p className="text-orange-600 mt-2 max-w-md">
-                      The results for <strong>{activeReport.testType}</strong> (Date: {activeReport.date}) are currently processing or pending verification.
-                   </p>
-                   <button className="mt-6 px-6 py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition cursor-pointer">
-                      Notify When Ready
-                   </button>
-                </div>
-             )}
-
-             {/* CASE C: Report Completed (Show Table) */}
-             {activeReport && activeReport.status === "Completed" && (
-                <div className="animate-in fade-in">
-                   {/* Meta Header */}
-                   <div className="bg-gray-50/50 p-6 border-b border-gray-200 flex flex-wrap gap-6 text-sm">
-                      <div>
-                         <p className="text-gray-400 text-xs font-bold uppercase mb-1">Sample Date</p>
-                         <p className="font-bold text-gray-700">{activeReport.date}</p>
-                      </div>
-                      <div>
-                         <p className="text-gray-400 text-xs font-bold uppercase mb-1">Technician</p>
-                         <p className="font-bold text-gray-700 flex items-center gap-1"><User size={14}/> R. Kumar</p>
-                      </div>
-                      <div>
-                         <p className="text-gray-400 text-xs font-bold uppercase mb-1">Status</p>
-                         <span className="px-2 py-0.5 bg-green-100 text-green-700 border border-green-200 rounded text-xs font-bold uppercase">Completed</span>
-                      </div>
-                   </div>
-
-                   {/* Results Table */}
-                   <div className="p-6">
-                      <h4 className="font-bold text-gray-800 mb-4 text-lg border-l-4 border-purple-600 pl-3">Detailed Analysis</h4>
-                      <div className="overflow-x-auto rounded-lg border border-gray-100">
-                         <table className="w-full text-left">
-                            <thead className="bg-gray-50 text-gray-600 border-b border-gray-100">
-                               <tr><th className="p-3 text-xs">Test Parameter</th><th className="p-3 text-xs">Result</th><th className="p-3 text-xs">Ref Range</th><th className="p-3 text-xs">Flag</th></tr>
-                            </thead>
-                            <tbody>
-                               {/* Mock Data based on Test Type - simplified for demo */}
-                               <tr className="border-b border-gray-50 hover:bg-gray-50">
-                                  <td className="p-3 text-sm font-medium">Parameter 1</td>
-                                  <td className="p-3 text-sm font-bold">12.5 <span className="text-xs font-normal text-gray-400">units</span></td>
-                                  <td className="p-3 text-xs text-gray-500">10.0 - 15.0</td>
-                                  <td className="p-3"><span className="px-2 py-0.5 rounded text-[10px] font-bold border bg-green-100 text-green-700 border-green-200">Normal</span></td>
-                               </tr>
-                               <tr className="border-b border-gray-50 hover:bg-gray-50">
-                                  <td className="p-3 text-sm font-medium">Parameter 2</td>
-                                  <td className="p-3 text-sm font-bold">8.0 <span className="text-xs font-normal text-gray-400">units</span></td>
-                                  <td className="p-3 text-xs text-gray-500">9.0 - 20.0</td>
-                                  <td className="p-3"><span className="px-2 py-0.5 rounded text-[10px] font-bold border bg-red-100 text-red-600 border-red-200">Low</span></td>
-                               </tr>
-                            </tbody>
-                         </table>
-                      </div>
-                      
-                      {/* Impression */}
-                      <div className="mt-6 bg-[#FFF8F0] border border-[#FFE4C4] rounded-lg p-4">
-                         <h5 className="font-bold text-gray-800 mb-2">Pathologist Impression</h5>
-                         <p className="text-sm text-gray-700">Results correlate with clinical findings. Mild deviation observed in Parameter 2.</p>
-                      </div>
-                   </div>
-                </div>
-             )}
-
-          </div>
-
-        </div>
-      ) : (
-        // --- EMPTY STATE (Initial View) ---
-        <div className="flex flex-col items-center justify-center h-[50vh] text-center text-gray-400 animate-in fade-in zoom-in-95 duration-300">
-           <div className="bg-white p-6 rounded-full shadow-sm mb-4">
-              <FileSearch size={64} className="text-purple-200" />
-           </div>
-           <h3 className="text-xl font-bold text-gray-700">No Patient Selected</h3>
-           <p className="text-sm mt-2 max-w-xs mx-auto">Use the search bar above to find a patient by Name or ID, or select "View Details" from the Report List.</p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
-  );
-}
-
-// Simple Icon
-function SimpleCheckIcon({ size, className }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <polyline points="20 6 9 17 4 12"></polyline>
-    </svg>
   );
 }
