@@ -51,6 +51,7 @@ import StaffProfile from './pages/staff_management/staffProfile';
 import VitalsEntry from "./pages/patient_management/VitalsEntry";
 import Consultations from "./pages/patient_management/Consultations";
 import PatientConsultation from "./pages/patient_management/PatientConsultation";
+import AdminDashboard from "./pages/AdminDashboard";
 
 
 
@@ -74,6 +75,9 @@ function App() {
       <div className = "flex-1 ml-0 mt-16 p-4">
 
       <Routes>
+
+        {/* Admin Dashboard */}
+        <Route path='/admin-dashboard' element={<AdminDashboard />}/>
 
         {/* patient management routes */}
         <Route path="/" element={uToken ? <PatientList /> : <Navigate to="/login" />}/>
