@@ -10,10 +10,22 @@ import {
   FaArrowUp,
   FaArrowDown,
   FaBoxes,
-  FaProcedures
-} from "react-icons/fa"
+  FaProcedures,
+  FaInfoCircle,
+  FaBuilding,
+  FaClock,
+  FaUserPlus,
+  FaHeartbeat,
+  FaFlask
+} from "react-icons/fa";
 
-import { dashboardStatus } from '../data/admin';
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, BarChart, Bar
+} from "recharts";
+
+import { criticalAlerts, dashboardStatus, patientFlowTrends, departmentDistribution, revenueVsExpenses, departmentBedOccupancy } from '../data/admin';
+import { useNavigate } from "react-router-dom";
 
 function AdminDashboard() {
 
@@ -66,37 +78,83 @@ function AdminDashboard() {
     };
 
     // Values for dashboard status
-const patientChange = calculatePercentage(
-    dashboardStatus.patients.today,
-    dashboardStatus.patients.previous
-);
+    const patientChange = calculatePercentage(
+        dashboardStatus.patients.today,
+        dashboardStatus.patients.previous
+    );
 
-const bedOccupancyPercent = (
-    (dashboardStatus.beds.todayOccupied / dashboardStatus.beds.totalBeds) * 100
-).toFixed(1);
+    const bedOccupancyPercent = (
+        (dashboardStatus.beds.todayOccupied / dashboardStatus.beds.totalBeds) * 100
+    ).toFixed(1);
 
-const bedChange = calculatePercentage(
-    dashboardStatus.beds.todayOccupied,
-    dashboardStatus.beds.previousOccupied
-);
+    const bedChange = calculatePercentage(
+        dashboardStatus.beds.todayOccupied,
+        dashboardStatus.beds.previousOccupied
+    );
 
-const emergencyChange = calculatePercentage(
-    dashboardStatus.emergencyCases.today,
-    dashboardStatus.emergencyCases.previous
-);
+    const emergencyChange = calculatePercentage(
+        dashboardStatus.emergencyCases.today,
+        dashboardStatus.emergencyCases.previous
+    );
 
-const surgeryChange = calculatePercentage(
-    dashboardStatus.surgeries.today,
-    dashboardStatus.surgeries.previous
-);
+    const surgeryChange = calculatePercentage(
+        dashboardStatus.surgeries.today,
+        dashboardStatus.surgeries.previous
+    );
 
-const staffAbsent = dashboardStatus.staff.total - dashboardStatus.staff.present;
-const staffAbsentPercent = ((staffAbsent / dashboardStatus.staff.total) * 100).toFixed(1);
+    const staffAbsent = dashboardStatus.staff.total - dashboardStatus.staff.present;
+    const staffAbsentPercent = ((staffAbsent / dashboardStatus.staff.total) * 100).toFixed(1);
 
-const revenueChange = calculatePercentage(
-    dashboardStatus.revenue.today,
-    dashboardStatus.revenue.previous
-);
+    const revenueChange = calculatePercentage(
+        dashboardStatus.revenue.today,
+        dashboardStatus.revenue.previous
+    );
+
+    const warningsLength = criticalAlerts.length;
+
+    const COLORS = [
+        "#6366F1",
+        "#8B5CF6",
+        "#EC4899",
+        "#F59E0B",
+        "#10B981",
+        "#94A3B8"
+    ];
+
+    const navigate = useNavigate();
+
+    const actions = [
+    {
+      label: "Add Patient",
+      icon: <FaUserPlus />,
+      path: "/add-new-patient"
+    },
+    {
+      label: "Bed Status",
+      icon: <FaBed />,
+      path: "/bed-availability"
+    },
+    {
+      label: "Equipment",
+      icon: <FaHeartbeat />,
+      path: "/equipment-list"
+    },
+    {
+      label: "Inventory",
+      icon: <FaBoxes />,
+      path: "/medicine-stocks"
+    },
+    {
+      label: "Staff",
+      icon: <FaUsers />,
+      path: "/staff-list"
+    },
+    {
+      label: "Lab Reports",
+      icon: <FaFlask />,
+      path: "/lab-reports-list"
+    }
+  ];
 
 
   return (
@@ -210,6 +268,233 @@ const revenueChange = calculatePercentage(
       </div>
     </div>
 
+    <div className="mt-5 w-full border border-red-400 p-3 rounded-lg">
+
+        <div className="flex flex-wrap justify-between gap-3 items-center mb-4">
+
+            <div className="flex gap-2 items-center">
+                <FaInfoCircle size={18} className="text-red-500"/>
+                <p className="text-md text-gray-800 font-semibold">Critical Warnings & Alerts</p>
+            </div>
+
+            {/* Warnings length */}
+            <p className={`px-3 py-1 text-sm rounded-lg font-semibold ${warningsLength > 0 ? "bg-red-300" : "bg-gray-300"}`}>{warningsLength} Active</p>
+
+        </div>
+
+        {
+            criticalAlerts.length > 0 ?
+            <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-4 m-4">
+            {
+                criticalAlerts.map((item, index)=>(
+                    <div 
+                        key={index}
+                        className="flex flex-col gap-2 px-4 py-2 border border-red-300 rounded-lg hover:bg-red-50 transform cursor-pointer"
+                    >
+                        <div className="flex justify-between gap-2 items-center flex-wrap">
+                            <p className="text-sm font-semibold text-gray-800">{item.title}</p>
+                            <span className={`px-2 py-1 text-xs font-semibold rounded-lg
+                                ${item.severity === "critical" ? "bg-red-400 text-white" :
+                                  item.severity === "high" ? "bg-orange-300 text-white" :
+                                    "bg-yellow-200 text-gray-800"}`}>
+                                {item.severity.toUpperCase()}
+                            </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-2 mb-2">{item.description}</p>
+                        <div className="flex justify-between gap-3 flex-wrap items-center">
+                            <div className="flex gap-2 items-center">
+                                <FaBuilding size={16} className="text-gray-500"/>
+                                <p className="text-sm text-gray-500">{item.department}</p>
+                            </div>
+                            <div className="flex gap-2 items-center">
+                                <FaClock size={16} className="text-gray-500"/>
+                                <p className="text-sm text-gray-500">{item.time}</p>
+                            </div>
+                        </div>
+                    </div>
+                ))
+            }
+            </div> :
+            <p className="text-gray-800 text-md font-semibold text-center">
+                No Data available
+            </p>
+        }
+        
+
+    </div>
+
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full mt-8">
+      
+      {/* Patient Flow Trends */}
+      <div className="bg-white rounded-xl border p-4">
+        <h3 className="text-sm font-semibold text-gray-600 mb-3">
+          Patient Flow Trends
+        </h3>
+
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={patientFlowTrends}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              
+              <Area
+                type="monotone"
+                dataKey="consultations"
+                stroke="#3B82F6"
+                fill="#93C5FD"
+                name="Consultations"
+              />
+              <Area
+                type="monotone"
+                dataKey="admissions"
+                stroke="#8B5CF6"
+                fill="#C4B5FD"
+                name="Admissions"
+              />
+              <Area
+                type="monotone"
+                dataKey="emergencies"
+                stroke="#EF4444"
+                fill="#FCA5A5"
+                name="Emergencies"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Department-wise Distribution */}
+      <div className="bg-white rounded-xl border p-4">
+        <h3 className="text-sm font-semibold text-gray-600 mb-3">
+          Department-wise Patient Distribution
+        </h3>
+
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={departmentDistribution}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={55}
+                outerRadius={90}
+                paddingAngle={4}
+              >
+                {departmentDistribution.map((_, index) => (
+                  <Cell
+                    key={index}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend verticalAlign="bottom" height={36} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+    </div>
+
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full mt-8">
+
+      {/* Revenue vs Expenses */}
+      <div className="bg-white rounded-xl border p-4">
+        <h3 className="text-sm font-semibold text-gray-600 mb-3">
+          Revenue vs Expenses
+        </h3>
+
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={revenueVsExpenses}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Legend />
+              <Bar dataKey="revenue" fill="#10B981" />
+              <Bar dataKey="expenses" fill="#F59E0B" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Department Bed Occupancy */}
+      <div className="bg-white rounded-xl border p-4">
+        <h3 className="text-sm font-semibold text-gray-600 mb-4">
+          Department Bed Occupancy
+        </h3>
+
+        <div className="flex flex-col gap-4">
+          {departmentBedOccupancy.map((item, index) => {
+            const percent = ((item.occupied / item.total) * 100).toFixed(0);
+
+            return (
+              <div key={index}>
+                <div className="flex justify-between text-sm text-gray-600 mb-1">
+                  <span>{item.department}</span>
+                  <span>{item.occupied}/{item.total}</span>
+                </div>
+
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full ${
+                      percent > 85
+                        ? "bg-red-500"
+                        : percent > 65
+                        ? "bg-yellow-500"
+                        : "bg-green-500"
+                    }`}
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+    </div>
+
+    <div className="bg-white border border-gray-400 rounded-xl p-5 w-full mt-8">
+      <h3 className="text-md font-semibold text-gray-700 mb-4">
+        Quick Actions
+      </h3>
+
+      <div className="grid md:grid-cols-6 sm:grid-cols-3 gap-4">
+        {actions.map((item, index) => (
+          <div
+            key={index}
+            onClick={() => {navigate(item.path); window.scroll(0,0)}}
+            className="
+              group cursor-pointer
+              border-2 border-purple-400 rounded-xl
+              flex flex-col items-center justify-center
+              h-28
+              transition-all duration-200
+              hover:bg-purple-50
+              hover:border-purple-300
+            "
+          >
+            <div
+              className="
+                text-purple-600 text-2xl mb-2
+                transition-transform duration-200
+                group-hover:scale-110
+              "
+            >
+              {item.icon}
+            </div>
+
+            <p className="text-sm text-gray-700 font-medium">
+              {item.label}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+
     </div>
     
     </>
@@ -241,3 +526,4 @@ const Trend = ({ value }) => (
         {Math.abs(value)}%
     </div>
 );
+
