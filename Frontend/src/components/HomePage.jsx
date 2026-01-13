@@ -2,8 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FaUserInjured, 
-  FaProcedures, 
-  FaUserMd, 
   FaCalendarCheck, 
   FaArrowRight, 
   FaChartLine, 
@@ -21,9 +19,7 @@ import { MdEmail } from "react-icons/md";
 const HomePage = ({ user, setActiveCategory }) => {
   const navigate = useNavigate();
 
-  // --- 1. User Context (Simulated) ---
-  // In a real app, this comes from your AuthContext. 
-  // Defaulting to Michael Wilson (Admin) from staffList for this demo.
+  // User Context 
   const currentUser = user || {
     name: "Michael Wilson",
     role: "Admin", 
@@ -31,7 +27,7 @@ const HomePage = ({ user, setActiveCategory }) => {
   };
 
 
-  // --- 3. Quick Access Modules Configuration ---
+  // Quick Access Modules Configuration 
   const quickLinks = [
     {
       id: 1,
@@ -115,9 +111,9 @@ const HomePage = ({ user, setActiveCategory }) => {
     }
   ];
 
-  // --- 4. Navigation Handler ---
+  // Navigation Handler 
   const handleNavigation = (route, category) => {
-    // Update Sidebar state if the prop function exists
+    
     if (setActiveCategory) {
       setActiveCategory(category);
     }
