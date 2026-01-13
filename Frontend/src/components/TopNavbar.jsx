@@ -2,10 +2,16 @@ import React from 'react'
 import { assets } from './../assets/assets';
 import { FaRegBell } from "react-icons/fa";
 import { FaArrowRightFromBracket } from "react-icons/fa6";
+import { MdOutlineHome } from "react-icons/md";
 import { FaBars } from "react-icons/fa";
+import { useNavigate } from 'react-router-dom';
 
 function TopNavbar({ setIsSidebarOpen }) {
+
+  const navigate = useNavigate();
+
   return (
+
     <div className="flex justify-between items-center fixed top-0 left-0 w-full h-16 z-50 bg-white px-4 border-b border-gray-300">
 
       {/* Left section */}
@@ -20,6 +26,13 @@ function TopNavbar({ setIsSidebarOpen }) {
 
       {/* Right section */}
       <div className="flex gap-6 items-center">
+
+        {/* Home  */}
+        <MdOutlineHome 
+          size={28} 
+          className="cursor-pointer text-gray-600"
+          onClick={()=>navigate('/')}
+        />
 
         {/* Notification */}
         <FaRegBell size={22} className="cursor-pointer text-gray-600"/>
