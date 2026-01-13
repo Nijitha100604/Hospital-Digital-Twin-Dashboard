@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { FaUserPlus } from "react-icons/fa";
+import { FaArrowLeft, FaUserPlus } from "react-icons/fa";
 import { FaUpload } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
 import { FaSave } from "react-icons/fa";
@@ -81,10 +81,38 @@ function AddNewPatient() {
     navigate("/");
   }
 
+  const handleCancel = () => {
+  const confirmCancel = window.confirm(
+    "Are you sure you want to cancel? All entered data will be lost."
+  );
+
+  if (!confirmCancel) return;
+
+  setName("");
+  setAge("");
+  setGender("");
+  setBloodGroup("");
+  setContact("");
+  setEmail("");
+  setAddress("");
+  setGuardianName("");
+  setGuardianContact("");
+  setAllergies([]);
+  setAllergyInput("");
+  setMedicalHistory([]);
+  sethistoryInput("");
+  setIdProof(null);
+  setFileName("");
+
+  toast.info("All fields cleared !");
+  };
+
+
   return (
-    <>
+    <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
 
       {/* Top Section */}
+      <div className="flex flex-wrap justify-between items-center gap-2">
 
       <div className="flex flex-col gap-1">
         <div className="flex gap-3 items-center">
@@ -97,9 +125,22 @@ function AddNewPatient() {
         <p className="text-gray-500 text-sm">Create a New Patient Record</p>
       </div>
 
+      <div 
+        className="px-3 py-2 flex gap-2 rounded-lg bg-fuchsia-800 text-white cursor-pointer shadow-sm shadow-fuchsia-600
+        transition-all duration-300 ease-in-out hover:bg-fuchsia-900 hover:scale-105 active:scale-95"
+        onClick={()=>navigate('/')}
+      >
+        <FaArrowLeft 
+          size={18}
+          className="text-white" 
+        />
+        <p className="text-sm font-medium">Back</p>
+      </div>
+      </div>
+
       {/* Input fields */}
       <form 
-        className="bg-white px-4 py-2 mt-4 rounded-lg"
+        className="bg-white px-4 py-2 mt-4 rounded-lg border border-gray-400"
         onSubmit = {handleSubmit}
       >
       
@@ -316,15 +357,24 @@ function AddNewPatient() {
       </div>
 
       {/* Action Buttons */}
-      <div className="mt-10 flex gap-4 items-center justify-end">
+      <div className="mt-10 flex gap-4 items-center justify-end mb-5">
 
-        <button className="px-3 py-2 bg-gray-500 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-gray-700">
+        <button 
+          type="button"
+          onClick={handleCancel}
+          className="px-3 py-2 bg-gray-500 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-gray-700
+          transition-all duration-300 ease-in-out
+          hover:scale-105
+          active:scale-95"
+
+        >
           <FaTimes /> Cancel
         </button>
 
         <button 
           type = "submit"
-          className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800"
+          className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800
+          transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         >
           <FaSave /> Save Patient
         </button>
@@ -332,7 +382,7 @@ function AddNewPatient() {
       </div>
 
       </form>
-    </>
+    </div>
   )
 }
 

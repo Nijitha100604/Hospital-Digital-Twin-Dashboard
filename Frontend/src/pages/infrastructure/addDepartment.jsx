@@ -105,7 +105,8 @@ function AddDepartment() {
     </div>
 
     <div 
-      className="px-3 py-2 flex gap-2 rounded-lg bg-fuchsia-400 cursor-pointer"
+      className="px-3 py-2 flex gap-2 rounded-lg bg-fuchsia-400 cursor-pointer
+      transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
       onClick={()=>navigate('/departments-list')}
     >
       <FaArrowLeft 
@@ -376,14 +377,14 @@ function AddDepartment() {
         <div className="flex gap-2">
           <p
             onClick={() => setPowerBackup(true)}
-            className={`px-4 py-1 rounded-md border text-sm
+            className={`px-4 py-1 rounded-md border text-sm cursor-pointer
             ${powerBackup ? "bg-green-500 text-white" : "bg-white"}`}
           >
             Yes
           </p>
           <p
             onClick={() => setPowerBackup(false)}
-            className={`px-4 py-1 rounded-md border text-sm
+            className={`px-4 py-1 rounded-md border text-sm cursor-pointer
             ${!powerBackup ? "bg-red-500 text-white" : "bg-white"}`}
           >
             No
@@ -397,14 +398,14 @@ function AddDepartment() {
         <div className="flex gap-2">
           <p
             onClick={() => setFireExtinguisher(true)}
-            className={`px-4 py-1 rounded-md border text-sm
+            className={`px-4 py-1 rounded-md border text-sm cursor-pointer
             ${fireExtinguisher ? "bg-green-500 text-white" : "bg-white"}`}
           >
             Yes
           </p>
           <p
             onClick={() => setFireExtinguisher(false)}
-            className={`px-4 py-1 rounded-md border text-sm
+            className={`px-4 py-1 rounded-md border text-sm cursor-pointer
             ${!fireExtinguisher ? "bg-red-500 text-white" : "bg-white"}`}
           >
             No
@@ -418,14 +419,14 @@ function AddDepartment() {
         <div className="flex gap-2">
           <p
             onClick={() => setOxygenSupply(true)}
-            className={`px-4 py-1 rounded-md border text-sm
+            className={`px-4 py-1 rounded-md border text-sm cursor-pointer
             ${oxygenSupply ? "bg-green-500 text-white" : "bg-white"}`}
           >
             Yes
           </p>
           <p
             onClick={() => setOxygenSupply(false)}
-            className={`px-4 py-1 rounded-md border text-sm
+            className={`px-4 py-1 rounded-md border text-sm cursor-pointer
             ${!oxygenSupply ? "bg-red-500 text-white" : "bg-white"}`}
           >
             No
@@ -439,7 +440,10 @@ function AddDepartment() {
           
       <button 
         type="button"
-        className="px-3 py-2 bg-gray-500 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-gray-700"
+        className="px-3 py-2 bg-gray-500 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-gray-700
+        transition-all duration-300 ease-in-out
+        hover:scale-105
+        active:scale-95"
         onClick={handleCancel}
       >
         <FaTimesCircle /> Cancel
@@ -447,7 +451,8 @@ function AddDepartment() {
           
       <button 
         type = "submit"
-        className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800"
+        className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800
+        transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
       >
         <FaSave /> Save Department
       </button>

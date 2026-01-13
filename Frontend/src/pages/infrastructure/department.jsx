@@ -61,12 +61,17 @@ function Department() {
       <div className="flex gap-3 items-center">
       {
         dept?.status === "Active" ?
-        <button className="text-sm font-bold text-white bg-red-600 px-3 py-2 rounded-lg cursor-pointer">Deactivate Department</button> :
-        <button className="text-sm font-bold text-white bg-green-600 px-3 py-2 rounded-lg cursor-pointer">Activate Department</button>
+        <button className="text-sm font-bold text-white bg-red-600 px-3 py-2 rounded-lg cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95">
+          Deactivate Department
+        </button> :
+        <button className="text-sm font-bold text-white bg-green-600 px-3 py-2 rounded-lg cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95">
+          Activate Department
+        </button>
       }
 
       <div 
-        className="px-3 py-2 flex gap-2 rounded-lg bg-fuchsia-400 cursor-pointer"
+        className="px-3 py-2 flex gap-2 rounded-lg bg-fuchsia-400 cursor-pointer
+        transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         onClick={()=>navigate('/departments-list')}
       >
         <FaArrowLeft 

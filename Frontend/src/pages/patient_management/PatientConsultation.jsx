@@ -146,7 +146,7 @@ function PatientConsultation() {
     <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
 
     {/* Heading */}
-    <div className="flex flex-wrap justify-between gap-2">
+    <div className="flex flex-wrap justify-between items-center gap-2">
     <div className="flex flex-col gap-1">
       <div className="flex gap-3 items-center">
         <FaUserMd
@@ -158,7 +158,7 @@ function PatientConsultation() {
       <p className="text-gray-500 text-sm">Patient evaluation, diagnosis, and treatment</p>
     </div>
     <button
-      className="px-3 py-1 text-sm text-white font-semibold bg-fuchsia-800 rounded-lg cursor-pointer hover:bg-fuchsia-700"
+      className="px-3 py-2 text-sm text-white font-semibold bg-fuchsia-800 rounded-lg cursor-pointer hover:bg-fuchsia-900 transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
       onClick={()=>navigate('/consultations')}
     >View All Consultations</button>
     </div>
@@ -498,7 +498,13 @@ function PatientConsultation() {
                   <p className={`text-white px-2 py-1 rounded-lg text-sm font-medium ${item.status === "Pending" ? "bg-orange-500" : item.status === "Requested" ? "bg-blue-500" : "bg-green-500"}`}>{item.status}</p>
                   {
                     item.status === "Completed" &&
-                    <FaEye size={18}/>
+                    <FaEye 
+                    size={18}
+                    onClick = {()=>{
+                      navigate('/lab-reports-list');
+                      window.scroll(0,0);
+                    }}
+                    />
                   }
                 </div>
               ))

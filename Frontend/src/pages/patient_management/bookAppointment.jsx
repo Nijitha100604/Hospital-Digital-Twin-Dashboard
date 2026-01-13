@@ -64,7 +64,9 @@ function BookAppointment() {
     setRemarks("");
     setTimeSlot("");
     setSelectedDept("");
-    setSelectedDoctor(""); }
+    setSelectedDoctor(""); 
+    toast.info("All fields cleared !");
+  }
   }
 
   const handleSubmit = (e) =>{
@@ -94,7 +96,8 @@ function BookAppointment() {
       </div>
 
       <button 
-        className="flex items-center gap-2 text-white text-sm font-semibold  bg-fuchsia-900 px-3 py-3 cursor-pointer rounded-xl leading-none shadow-sm shadow-fuchsia-600"
+        className="flex items-center gap-2 text-white text-sm font-semibold  bg-fuchsia-800 px-3 py-3 cursor-pointer rounded-xl leading-none shadow-sm shadow-fuchsia-600
+        transition-all duration-300 ease-in-out hover:bg-fuchsia-900 hover:scale-105 active:scale-95"
         onClick={()=>navigate('/all-appointments')}
       >
         <FaEye size={18} /> View All appointments
@@ -341,7 +344,10 @@ function BookAppointment() {
       
         <button 
           type="button"
-          className="px-3 py-2 bg-gray-500 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-gray-700"
+          className="px-3 py-2 bg-gray-500 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-gray-700
+          transition-all duration-300 ease-in-out
+          hover:scale-105
+          active:scale-95"
           onClick={handleCancel}
         >
           <FaTimesCircle /> Cancel
@@ -349,7 +355,8 @@ function BookAppointment() {
       
         <button 
           type = "submit"
-          className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800"
+          className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800
+          transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         >
           <FaSave /> Book Appointment
         </button>

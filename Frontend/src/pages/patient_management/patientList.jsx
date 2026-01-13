@@ -1,9 +1,13 @@
 import React, { useState } from 'react'
-import { FaHospitalUser } from "react-icons/fa";
-import { FaPlus } from "react-icons/fa";
-import { FaSearch } from "react-icons/fa";
-import { FaFilter } from "react-icons/fa";
-import { FaEye } from "react-icons/fa";
+import { 
+  FaHospitalUser,
+  FaPlus,
+  FaSearch,
+  FaFilter,
+  FaEye,
+  FaTimes 
+} from "react-icons/fa";
+
 import { patient_records } from './../../data/patient';
 import { useNavigate } from 'react-router-dom';
 
@@ -82,11 +86,11 @@ function PatientList() {
   const navigate = useNavigate();
 
   return (
-    <>
+    <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
 
       {/* Top Section */}
       
-      <div className="w-full bg-white px-4 py-4 gap-3 flex flex-wrap justify-between items-center">
+      <div className="w-full px-4 py-4 gap-3 flex flex-wrap justify-between items-center">
         
         {/* Page description */}
         <div className="flex flex-col gap-1">
@@ -102,7 +106,8 @@ function PatientList() {
 
         {/* Add New Patient Button */}
         <button 
-          className="flex gap-2 items-center text-white bg-fuchsia-900 px-3 py-3 cursor-pointer rounded-xl leading-none shadow-sm shadow-fuchsia-600"
+          className="flex gap-2 items-center text-white bg-fuchsia-800 px-4 py-3 cursor-pointer rounded-xl 
+          leading-none transition-all duration-300 ease-in-out hover:bg-fuchsia-900 hover:scale-105 active:scale-95"
           onClick={()=>navigate("/add-new-patient")}
         >
           <FaPlus size={16} />Add New Patient
@@ -133,10 +138,30 @@ function PatientList() {
             <div className="relative flex flex-col">
 
               <button 
-                className="flex gap-2 items-center bg-gray-300 px-2 py-2 rounded-xl border border-gray-500 cursor-pointer text-gray-700 text-sm"
+                className={`flex items-center gap-2 px-2 py-2 rounded-xl border text-sm cursor-pointer
+                  transition-all duration-300 ease-in-out
+                  hover:scale-105
+                  hover:shadow-md hover:shadow-gray-400
+                  active:scale-95
+                  ${openFilter === "date"
+                  ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700"
+                  : "border-gray-500 bg-gray-300 text-gray-800 hover:bg-gray-200 hover:text-gray-900 hover:font-bold"
+                  }`}
                 onClick = {()=>setOpenFilter(openFilter === "date" ? null : "date")}
               >
-                <FaFilter size={15} className="text-gray-500"/> Date
+                <FaFilter size={15} /> 
+                Date
+                {openFilter === "date" && (
+                  <FaTimes
+                    size={12}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFilters(prev => ({ ...prev, date: null }));
+                      setOpenFilter(null);
+                    }}
+                  />
+                )}
               </button>
 
               {
@@ -165,22 +190,42 @@ function PatientList() {
             {/* Gender filter */}
             <div className="relative flex flex-col">
               <button 
-                className="flex gap-2 items-center bg-gray-300 px-2 py-2 rounded-xl border border-gray-500 cursor-pointer text-gray-700 text-sm"
+                className={`flex items-center gap-2 px-2 py-2 rounded-xl border text-sm cursor-pointer
+                  transition-all duration-300 ease-in-out
+                  hover:scale-105
+                  hover:shadow-md hover:shadow-gray-400
+                  active:scale-95
+                  ${openFilter === "gender"
+                  ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700"
+                  : "border-gray-500 bg-gray-300 text-gray-800 hover:bg-gray-200 hover:text-gray-900 hover:font-bold"
+                  }`}
                 onClick={() => setOpenFilter(openFilter === "gender" ? null : "gender")}
               >
-                <FaFilter size={15} className="text-gray-500"/> Gender
+                <FaFilter size={15} /> 
+                Gender
+                {openFilter === "gender" && (
+                  <FaTimes
+                    size={12}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFilters(prev => ({ ...prev, gender: null }));
+                      setOpenFilter(null);
+                    }}
+                  />
+                )}
               </button>
 
               {/* Gender Drop down */}
 
               {openFilter === "gender" && (
-                <ul className="mt-2 absolute top-full left-0 bg-white border rounded-lg shadow-sm w-22 z-10">
+                <ul className="mt-2 absolute top-full left-0 bg-white border rounded-md shadow-sm w-32 z-10">
                   {
                     ["Male", "Female"].map((item, index) => (
                       <li 
                         key={index}
                         onClick={()=>handleFilterSelect("Gender", item)}
-                        className="px-3 py-2 text-sm cursor-pointer hover:font-semibold hover:text-gray-900 text-gray-700"
+                        className="px-3 rounded-md py-2 text-sm cursor-pointer hover:bg-fuchsia-200 hover:text-fuchsia-900 hover:font-semibold"
                       >
                       {item}
                       </li>
@@ -194,21 +239,41 @@ function PatientList() {
             <div className="relative flex flex-col">
 
               <button 
-                className="flex gap-2 items-center bg-gray-300 px-2 py-2 rounded-xl border border-gray-500 cursor-pointer text-gray-700 text-sm"
+                className={`flex items-center gap-2 px-2 py-2 rounded-xl border text-sm cursor-pointer
+                  transition-all duration-300 ease-in-out
+                  hover:scale-105
+                  hover:shadow-md hover:shadow-gray-400
+                  active:scale-95
+                  ${openFilter === "age"
+                  ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700"
+                  : "border-gray-500 bg-gray-300 text-gray-800 hover:bg-gray-200 hover:text-gray-900 hover:font-bold"
+                  }`}
                 onClick = {()=>setOpenFilter(openFilter === "age" ? null : "age")}
               >
-                <FaFilter size={15} className="text-gray-500"/> Age Group
+                <FaFilter size={15} /> 
+                Age Group
+                {openFilter === "age" && (
+                  <FaTimes
+                    size={12}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFilters(prev => ({ ...prev, age: null }));
+                      setOpenFilter(null);
+                    }}
+                  />
+                )}
               </button>
 
               {
                 openFilter === "age" && (
-                  <ul className="mt-2 absolute top-full left-0 bg-white border rounded-lg shadow-sm w-27 z-10">
+                  <ul className="mt-2 absolute top-full left-0 bg-white border rounded-md shadow-sm w-32 z-10">
                     {
                       ["1-18", "19-30", "31-50", "51-80", "80+"].map((item, index) =>(
                         <li
                           key = {index}
                           onClick = {() => handleFilterSelect("Age", item)}
-                          className="px-3 py-2 text-sm cursor-pointer hover:font-semibold hover:text-gray-900 text-gray-700"
+                          className="px-3 rounded-md py-2 text-sm cursor-pointer hover:bg-fuchsia-200 hover:text-fuchsia-900 hover:font-semibold"
                         >
                           {item}
                         </li>
@@ -228,29 +293,29 @@ function PatientList() {
 
       {/* Bottom Section */}
 
-      <div className="mt-4 rounded-lg bg-white p-4">
+      <div className="mt-2 rounded-lg bg-white-50 p-4">
         <div className="w-full overflow-x-auto">
 
           {/* patient records table */}
 
           <table className="min-w-max w-full border border-gray-300">
 
-            <thead className="bg-gray-300 text-sm text-gray-800">
+            <thead className="bg-gray-300">
               <tr>
-                <th className="px-4 py-3 text-left font-medium">Patient ID</th>
-                <th className="px-4 py-3 text-left font-medium">Patient Name</th>
-                <th className="px-4 py-3 text-left font-medium">Gender</th>
-                <th className="px-4 py-3 text-left font-medium">Age</th>
-                <th className="px-4 py-3 text-left font-medium">Last Visit</th>
-                <th className="px-4 py-3 text-left font-medium">Phone Number</th>
-                <th className="px-4 py-3 text-left font-medium">View</th>
+                <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Patient ID</th>
+                <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Patient Name</th>
+                <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Gender</th>
+                <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Age</th>
+                <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Last Visit</th>
+                <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Phone Number</th>
+                <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">View</th>
               </tr>
             </thead>
 
-            <tbody className="text-sm text-gray-700">
+            <tbody className="text-sm text-gray-800">
               {
                 paginatedData.map((item)=>(
-                  <tr key={item.patientId} className="border-b hover:bg-gray-100">
+                  <tr key={item.patientId} className="border-b hover:bg-gray-200 hover:border-2 hover:font-semibold cursor-pointer">
                     <td className="px-4 py-3">{item.patientId}</td>
                     <td className="px-4 py-3">{item.patientName}</td>
                     <td className="px-4 py-3">{item.gender}</td>
@@ -301,7 +366,7 @@ function PatientList() {
       </div>
 
       
-    </>
+    </div>
   )
 }
 

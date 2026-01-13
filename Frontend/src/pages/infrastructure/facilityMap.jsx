@@ -90,13 +90,17 @@ export default function FacilityMap() {
             />
 
             {/* Lobby */}
-            <div className="h-24 rounded-lg border bg-gray-100 flex flex-col items-center justify-center text-gray-700">
+            <div className="h-24 rounded-lg border bg-gray-100 flex flex-col items-center justify-center text-gray-700
+              transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 cursor-pointer"
+            >
               <FaUsers size={20} />
               <p className="text-xs mt-1 font-medium">Lobby</p>
             </div>
 
             {/* Elevator */}
-            <div className="h-24 rounded-lg border bg-gray-100 flex flex-col items-center justify-center text-gray-700">
+            <div className="h-24 rounded-lg border bg-gray-100 flex flex-col items-center justify-center text-gray-700
+              transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 cursor-pointer"
+            >
               <FaArrowUp size={20} />
               <p className="text-xs mt-1 font-medium">Elevator</p>
             </div>
@@ -161,7 +165,8 @@ export default function FacilityMap() {
                   Active
                 </span>
                 <button
-                  className="mt-3 w-full bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-md text-sm font-medium transition"
+                  className="mt-3 w-full bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-md text-sm font-medium
+                  transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
                   onClick={() => navigate(`/department/${selectedDept.departmentId}`)}
                 >
                   View Department
@@ -183,7 +188,7 @@ const DepartmentTile = ({ dept, onSelect, getIcon, getDeptStyle }) => {
   return (
     <button
       onClick={() => onSelect(dept)}
-      className={`h-24 rounded-lg border flex flex-col items-center justify-center
+      className={`h-24 rounded-lg border flex flex-col items-center justify-center transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 cursor-pointer
       ${getDeptStyle(dept.departmentType)}
       hover:shadow-md transition`}
     >

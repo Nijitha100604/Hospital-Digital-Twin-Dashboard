@@ -97,13 +97,13 @@ function DischargeSummary() {
       <div className="flex gap-3">
         <button
           onClick = {handlePrint}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-pink-100 border border-pink-500 text-pink-700 rounded-lg hover:bg-pink-300 cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-pink-100 border border-pink-500 text-pink-700 rounded-lg hover:bg-pink-300 cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         >
           <FaPrint />Print
         </button>
         <button
           onClick={handleDownload}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-purple-700 text-white rounded-lg cursor-pointer hover:bg-purple-500"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-purple-700 text-white rounded-lg cursor-pointer hover:bg-purple-500 transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         >
           <FaDownload />Download
         </button>

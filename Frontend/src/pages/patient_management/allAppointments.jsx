@@ -1,5 +1,16 @@
 import React, { useState } from 'react'
-import { FaRegCalendarCheck, FaPlus, FaCheckCircle, FaRedo, FaCalendarTimes, FaSearch, FaFilter, FaPhone, FaEye } from "react-icons/fa";
+import { 
+  FaRegCalendarCheck, 
+  FaPlus, 
+  FaCheckCircle, 
+  FaRedo, 
+  FaCalendarTimes, 
+  FaSearch, 
+  FaFilter, 
+  FaPhone, 
+  FaEye,
+  FaTimes 
+} from "react-icons/fa";
 import { MdSchedule } from "react-icons/md";
 import { useNavigate } from 'react-router-dom';
 import { allAppointments } from './../../data/patient';
@@ -64,6 +75,9 @@ function AllAppointments() {
     date: null
   })
 
+  // eslint-disable-next-line no-unused-vars
+  const isActive = (name) => openFilter === name;
+
   const handleFilterSelect = (type, value) =>{
     setFilters((prev)=>(
       {
@@ -124,7 +138,7 @@ function AllAppointments() {
 
       {/* Book appointment Button */}
       <button 
-        className="flex gap-2 items-center text-white bg-fuchsia-900 px-3 py-2.5 cursor-pointer rounded-xl leading-none shadow-sm shadow-fuchsia-600"
+        className="flex gap-2 items-center text-white bg-fuchsia-800 px-3 py-2.5 cursor-pointer rounded-xl leading-none transition-all duration-300 ease-in-out hover:bg-fuchsia-900 hover:scale-105 active:scale-95"
         onClick={()=>navigate("/book-appointment")}
       >
         <FaPlus size={16} />Book Appointment
@@ -212,10 +226,30 @@ function AllAppointments() {
           {/* Date */}
           <div className="relative flex flex-col">
             <button 
-              className="flex gap-2 items-center bg-gray-300 px-2 py-2 rounded-xl border border-gray-500 cursor-pointer text-gray-700 text-sm"
-              onClick = {()=>setOpenFilter(openFilter === "date" ? null : "date")}
+              className={`flex items-center gap-2 px-2 py-2 rounded-xl border text-sm
+                  transition-all duration-300 ease-in-out
+                  hover:scale-105
+                  hover:shadow-md hover:shadow-gray-400
+                  active:scale-95
+                  ${openFilter === "date"
+                  ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700"
+                  : "border-gray-500 bg-gray-300 text-gray-800  hover:bg-gray-200 hover:text-gray-900 hover:font-bold"
+                  }`}
+                onClick = {()=>setOpenFilter(openFilter === "date" ? null : "date")}
             >
-              <FaFilter size={15} className="text-gray-500"/> Date
+              <FaFilter size={15}/> 
+              Date
+              {openFilter === "date" && (
+                <FaTimes
+                  size={12}
+                  className="cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFilters(prev => ({ ...prev, date: null }));
+                    setOpenFilter(null);
+                  }}
+                />
+              )}
             </button>
 
             {
@@ -243,21 +277,41 @@ function AllAppointments() {
           {/* Status filter */}
             <div className="relative flex flex-col">
               <button 
-                className="flex gap-2 items-center bg-gray-300 px-2 py-2 rounded-xl border border-gray-500 cursor-pointer text-gray-700 text-sm"
+                className={`flex items-center gap-2 px-2 py-2 rounded-xl border text-sm
+                  transition-all duration-300 ease-in-out
+                  hover:scale-105
+                  hover:shadow-md hover:shadow-gray-400
+                  active:scale-95
+                  ${openFilter === "status"
+                  ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700"
+                  : "border-gray-500 bg-gray-300 text-gray-800 hover:bg-gray-200 hover:text-gray-900 hover:font-bold"
+                  }`}
                 onClick={() => setOpenFilter(openFilter === "status" ? null : "status")}
               >
-                <FaFilter size={15} className="text-gray-500"/> Status
+                <FaFilter size={15} /> 
+                Status
+                {openFilter === "status" && (
+                  <FaTimes
+                    size={12}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFilters(prev => ({ ...prev, status: null }));
+                      setOpenFilter(null);
+                    }}
+                  />
+                )}
               </button>
 
               {/* Status drop down */}
               {openFilter === "status" && (
-                <ul className="mt-2 absolute top-full left-0 bg-white border rounded-lg shadow-sm w-26 z-10">
+                <ul className="mt-2 absolute top-full left-0 bg-white border rounded-md shadow-sm w-32 z-10">
                   {
                     ["All","Completed", "Rescheduled", "Scheduled", "Cancelled"].map((item, index) => (
                       <li 
                         key={index}
                         onClick={()=>handleFilterSelect("status", item === "All" ? null : item)}
-                        className="px-3 py-2 text-sm cursor-pointer hover:font-semibold hover:text-gray-900 text-gray-700"
+                        className="px-3 rounded-md py-2 text-sm cursor-pointer hover:bg-fuchsia-200 hover:text-fuchsia-900 hover:font-semibold"
                       >
                       {item}
                       </li>
@@ -271,21 +325,41 @@ function AllAppointments() {
           <div className="relative flex flex-col">
       
             <button 
-              className="flex gap-2 items-center bg-gray-300 px-2 py-2 rounded-xl border border-gray-500 cursor-pointer text-gray-700 text-sm"
+              className={`flex items-center gap-2 px-2 py-2 rounded-xl border text-sm
+                  transition-all duration-300 ease-in-out
+                  hover:scale-105
+                  hover:shadow-md hover:shadow-gray-400
+                  active:scale-95
+                  ${openFilter === "consultation"
+                  ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700"
+                  : "border-gray-500 bg-gray-300 text-gray-800  hover:bg-gray-200 hover:text-gray-900 hover:font-bold"
+                  }`}
               onClick={() => setOpenFilter(openFilter === "consultation" ? null : "consultation")}
             >
-              <FaFilter size={15} className="text-gray-500"/> Consultation
+              <FaFilter size={15}/> 
+              Consultation
+              {openFilter === "consultation" && (
+                <FaTimes
+                  size={12}
+                  className="cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFilters(prev => ({ ...prev, consultation: null }));
+                    setOpenFilter(null);
+                  }}
+                />
+              )}
             </button>
 
             {/* Consultation drop down */}
             {openFilter === "consultation" && (
-                <ul className="mt-2 absolute top-full left-0 bg-white border rounded-lg shadow-sm w-26 z-10">
+                <ul className="mt-2 absolute top-full left-0 bg-white border rounded-md shadow-sm w-32 z-10">
                   {
                     ["All", "In-Person", "Online"].map((item, index) => (
                       <li 
                         key={index}
                         onClick={()=>handleFilterSelect("consultation", item === "All" ? null : item)}
-                        className="px-3 py-2 text-sm cursor-pointer hover:font-semibold hover:text-gray-900 text-gray-700"
+                        className="px-3 rounded-md py-2 text-sm cursor-pointer hover:bg-fuchsia-200 hover:text-fuchsia-900 hover:font-semibold"
                       >
                       {item}
                       </li>
@@ -305,7 +379,7 @@ function AllAppointments() {
           paginatedData.map((item, index)=>(
             <div 
               key={index}
-              className="flex items-center flex-wrap gap-4 justify-between px-3 py-3 bg-white border border-gray-400 rounded-lg hover:bg-gray-300 cursor-pointer"
+              className="flex items-center flex-wrap gap-4 justify-between px-3 py-3 bg-white border border-gray-400 rounded-lg hover:bg-gray-200 hover:border-2 cursor-pointer"
             >
               <p className="inline-flex text-sm bg-gray-300 font-medium text-gray-800 px-3 py-2 items-center rounded-lg">{item.appointmentNumber}</p>
               <div className="flex flex-col gap-2 items-center">

@@ -1,6 +1,15 @@
 import React from 'react'
-import { FaHistory, FaInfoCircle, FaPhone, FaUser, FaEye, FaMicroscope, FaBookMedical } from "react-icons/fa";
-import { FaUserCircle } from "react-icons/fa";
+import { 
+  FaHistory, 
+  FaInfoCircle, 
+  FaPhone, 
+  FaUser, 
+  FaEye, 
+  FaMicroscope, 
+  FaBookMedical,
+  FaUserCircle,
+  FaArrowLeft
+} from "react-icons/fa";
 import { assets } from './../../assets/assets';
 import { patient_data } from '../../data/patient';
 import { useNavigate } from 'react-router-dom';
@@ -44,7 +53,7 @@ function PatientProfile() {
   }
 
   return (
-    <>
+    <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
 
     {/* Top Section */}
     <div className="w-full items-center flex flex-wrap gap-3 justify-between">
@@ -60,7 +69,18 @@ function PatientProfile() {
         <p className="text-gray-500 text-sm">Complete Patient Information</p>
       </div>
 
-
+      <div 
+        className="px-3 py-2 flex gap-2 rounded-lg bg-fuchsia-800 text-white cursor-pointer
+        transition-all duration-300 ease-in-out hover:bg-fuchsia-900 hover:scale-105 active:scale-95"
+        onClick={()=>navigate('/')}
+      >
+        <FaArrowLeft
+          size={18}
+          className="text-white" 
+        />
+        <p className="text-sm font-medium">Back</p>
+      </div>
+      
     </div>
 
     {/* Personal Information */}
@@ -178,7 +198,7 @@ function PatientProfile() {
 
     {/* Vital Parameters */}
 
-    <div className="w-full border border-gray-500 bg-white rounded-lg px-4 py-2 mt-3">
+    <div className="w-full border border-gray-500 bg-white rounded-lg px-4 py-2 mt-5">
       
       <div className="flex gap-2 items-center">
         <img 
@@ -189,7 +209,7 @@ function PatientProfile() {
         <p className="font-medium text-gray-900 text-lg">Vital Parameters</p>
       </div>
 
-      <div className = "flex flex-wrap justify-between gap-3 mt-4">
+      <div className = "flex flex-wrap justify-between gap-3 mt-4 mb-3">
         {
           patient_data.vitalParameters.map((item,index)=>(
             <div 
@@ -228,18 +248,18 @@ function PatientProfile() {
         <table className="min-w-max w-full border border-gray-300">
           <thead className="bg-gray-300 text-sm text-gray-800">
             <tr>
-              <th className="px-4 py-3 text-left font-medium">Date</th>
-              <th className="px-4 py-3 text-left font-medium">Doctor</th>
-              <th className="px-4 py-3 text-left font-medium">Diagnosis</th>
-              <th className="px-4 py-3 text-left font-medium">Remarks</th>
-              <th className="px-4 py-3 text-left font-medium">View</th>
+              <th className="px-4 py-3 text-left font-semibold">Date</th>
+              <th className="px-4 py-3 text-left font-semibold">Doctor</th>
+              <th className="px-4 py-3 text-left font-semibold">Diagnosis</th>
+              <th className="px-4 py-3 text-left font-semibold">Remarks</th>
+              <th className="px-4 py-3 text-left font-semibold">View</th>
             </tr>
           </thead>
 
           <tbody className="text-sm text-gray-700">
             {
               patient_data.visitHistory.map((item, index)=>(
-                <tr key={index} className="border-b hover:bg-gray-100">
+                <tr key={index} className="border-b hover:bg-gray-100 hover:border-2 cursor-pointer">
                   <td className="px-4 py-3">{item.date}</td>
                   <td className="px-4 py-3">{item.doctor}</td>
                   <td className="px-4 py-3">{item.diagnosis}</td>
@@ -301,10 +321,27 @@ function PatientProfile() {
               <div className="flex gap-3 items-center">
                 {
                   item.completed ?
-                  <div className="inline-flex items-center text-sm font-medium bg-green-600 text-white px-3 py-1 rounded-lg">Completed</div> :
-                  <div className="inline-flex items-center text-sm font-medium bg-green-600 text-white px-3 py-1 rounded-lg">Pending</div>
+                  <div 
+                    className="inline-flex items-center text-sm font-medium bg-green-600 text-white px-3 py-1 rounded-lg
+                    transition-all duration-300 ease-in-out
+                   hover:bg-green-700 hover:scale-105 active:scale-95 cursor-pointer"
+                  >
+                    Completed
+                  </div> :
+                  <div 
+                    className="inline-flex items-center text-sm font-medium bg-orange-600 text-white px-3 py-1 rounded-lg
+                    transition-all duration-300 ease-in-out
+                    hover:bg-orange-700 hover:scale-105 active:scale-95 cursor-pointer"
+                  >
+                    Pending
+                  </div>
                 }
-                <button className="inline-flex items-center text-sm font-medium bg-blue-300 px-3 py-1 rounded-lg cursor-pointer">View</button>
+                <button 
+                  className="inline-flex items-center text-sm font-medium bg-blue-300 px-3 py-1 rounded-lg cursor-pointer transition-all duration-300 ease-in-out
+                          hover:bg-blue-400 hover:scale-105
+                          active:scale-95"
+                  onClick={()=>{navigate('/lab-reports-list'); window.scroll(0,0)}}
+                >View</button>
               </div>
 
             </div>
@@ -359,9 +396,9 @@ function PatientProfile() {
               </div>
 
               <button 
-                className="text-sm font-medium bg-violet-500 px-2 py-1 text-white rounded-lg cursor-pointer"
+                className="text-sm font-medium bg-violet-500 px-2 py-1 text-white rounded-lg cursor-pointer transition-all duration-300 ease-in-out hover:bg-violet-600 hover:scale-105 active:scale-95"
                 onClick={()=>navigate(`/discharge-summary/${patient_data.patientId}`)}
-              >Discharge Summary</button>
+              >Summary</button>
 
             </div>
           ))
@@ -369,7 +406,7 @@ function PatientProfile() {
       </div>
     </div>
 
-    </>
+    </div>
   )
 }
 

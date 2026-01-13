@@ -111,12 +111,12 @@ function OccupiedBedModal({bed, onClose}) {
               setInstructions("");
             }
           }}
-          className="bg-blue-600 text-white px-3 py-2 rounded-lg cursor-pointer"
+          className="bg-blue-600 text-white px-3 py-2 rounded-lg cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         >
           Add
         </button>
         <button 
-            className="bg-green-600 text-white rounded-lg px-3 py-2 cursor-pointer"
+            className="bg-green-600 text-white rounded-lg px-3 py-2 cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
             onClick={handleSaveInstructions}
         >
             Save Instructions
@@ -132,7 +132,7 @@ function OccupiedBedModal({bed, onClose}) {
     
 
     <button 
-        className="w-full bg-red-600 text-white py-2 rounded-lg mt-6 cursor-pointer"
+        className="px-3 bg-red-600 text-white py-2 rounded-lg mt-6 cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         onClick={handleDischarge}
     >
         Discharge Patient

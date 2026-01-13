@@ -94,6 +94,15 @@ const VitalModal = ({ open, type, item, onClose }) =>{
         setNewVitals(prev => prev.filter((_, i) => i !== index));
     };
 
+    const handleClose = () => {
+        setVitals([]);
+        setNewVitals([]);
+        setVitalName("");
+        setValue("");
+        onClose();
+    };
+
+
     useEffect(() => {
     if (type === "view" && item?.vitals) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -111,7 +120,7 @@ const VitalModal = ({ open, type, item, onClose }) =>{
                     <h2 className="text-lg font-semibold">
                     {type === "edit" ? "Enter Vitals" : "Vitals Details"}
                     </h2> 
-                    <button onClick={onClose}>
+                    <button onClick={handleClose}>
                     <FaTimes className="text-xl cursor-pointer" />
                     </button>
                 </div>
@@ -177,7 +186,7 @@ const VitalModal = ({ open, type, item, onClose }) =>{
                         <div className="text-center">
                             <button 
                                 onClick={handleVital}
-                                className=" px-3 py-2 bg-fuchsia-700 rounded-lg text-white text-sm font-medium cursor-pointer hover:bg-fuchsia-600"
+                                className=" px-3 py-2 bg-fuchsia-700 rounded-lg text-white text-sm font-medium cursor-pointer hover:bg-fuchsia-600 transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
                             >
                             Add Vital
                             </button>
@@ -218,7 +227,7 @@ const VitalModal = ({ open, type, item, onClose }) =>{
                                         setVitals([]);
                                         toast.success("Vitals Created")
                                         }}
-                                        className="mt-5 bg-green-600 text-white px-4 py-2 rounded"
+                                        className="mt-5 bg-green-600 text-white cursor-pointer px-4 py-2 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
                                     >Save Vitals</button>
 
                                 </div> :
@@ -310,7 +319,7 @@ const VitalModal = ({ open, type, item, onClose }) =>{
                         <div className="text-center">
                             <button 
                                 onClick={handleUpdateVital}
-                                className=" px-3 py-2 bg-fuchsia-700 rounded-lg text-white text-sm font-medium cursor-pointer hover:bg-fuchsia-600"
+                                className=" px-3 py-2 bg-fuchsia-700 rounded-lg text-white text-sm font-medium cursor-pointer hover:bg-fuchsia-600 transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
                             >
                             Add Vital
                             </button>
@@ -351,7 +360,7 @@ const VitalModal = ({ open, type, item, onClose }) =>{
                                         setNewVitals([]);
                                         toast.success("Vitals Updated")
                                         }}
-                                        className="mt-5 bg-green-600 text-white px-4 py-2 rounded"
+                                        className="mt-5 bg-green-600 cursor-pointer text-white px-4 py-2 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
                                     >Update Vitals</button>
 
                                 </div> :

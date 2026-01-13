@@ -14,7 +14,6 @@ import ViewAppointment from "./pages/patient_management/ViewAppointment";
 import EquipmentList from './pages/equipment/EquipmentList';
 import AddEquipment from './pages/equipment/AddEquipment';
 import AddMaintenance from './pages/equipment/AddMaintenance';
-import CreateCalibrationSchedule from "./pages/equipment/createCalibrationSchedule";
 import CalibrationScheduleList from './pages/equipment/CalibrationScheduleList';
 import MaintenanceLog from './pages/equipment/MaintenanceLog';
 import ViewEquipment from './pages/equipment/ViewEquipment';
@@ -52,8 +51,6 @@ import VitalsEntry from "./pages/patient_management/VitalsEntry";
 import Consultations from "./pages/patient_management/Consultations";
 import PatientConsultation from "./pages/patient_management/PatientConsultation";
 import AdminDashboard from "./pages/AdminDashboard";
-
-
 
 function App() {
 
@@ -121,15 +118,12 @@ function App() {
         <Route path="/medicine-details/:id" element={<ViewMedicineDetails />}/>
         <Route path="/edit-medicine/:id" element={<EditMedicineDetails />}/>
 
-
-
         {/* Laboratory */}
         <Route path='/lab-reports-list' element={<LabReportsList />}/>
         <Route path='/lab-results-entry' element={<LabResultsEntry />}/>
         <Route path='/patient-wise-reports' element={<PatientWiseReports />}/>
         <Route path='/upload-report' element={<UploadReport />}/>
         
-
         {/* Staff Management */}
         <Route path='/add-staff' element={<AddStaff />}/>
         <Route path='/assign-shift' element={<AssignShift />}/>

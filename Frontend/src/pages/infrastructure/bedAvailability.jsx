@@ -162,7 +162,7 @@ function BedAvailability() {
                       setShowModal(true);
                     }}
 
-                    className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border
+                    className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95
                     ${ bed.status === "Available"
                     ? "bg-green-50 border-green-400 text-green-600"
                     : "bg-red-50 border-red-400 text-red-600"
@@ -224,9 +224,9 @@ function BedAvailability() {
           <div className="bg-white w-full max-w-4xl rounded-xl shadow-lg max-h-[90vh] flex flex-col relative">
             <button 
               onClick={() => setShowModal(false)}
-              className="absolute top-3 right-3 text-gray-500"
+              className="absolute top-3 right-3 text-gray-500 cursor-pointer"
             >
-              X
+              x
             </button>
             <div className="flex-1 overflow-y-auto p-6 hide-scrollbar">
             {modalType === "AVAILABLE" && (

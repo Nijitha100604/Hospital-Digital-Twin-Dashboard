@@ -79,7 +79,6 @@ function ViewAppointment() {
         (item) => item.patientId === id
       );
       setPatientData(foundAppointment ?? null);
-      console.log(patientData);
     }
     fetchAppointment();
 
@@ -108,7 +107,8 @@ function ViewAppointment() {
     
       {/* view all appointment Button */}
       <button 
-        className="flex gap-2 items-center text-white bg-fuchsia-900 px-3 py-2.5 cursor-pointer rounded-xl leading-none shadow-sm shadow-fuchsia-600"
+        className="flex gap-2 items-center text-white bg-fuchsia-800 px-3 py-2.5 cursor-pointer rounded-xl leading-none shadow-sm shadow-fuchsia-600
+          transition-all duration-300 ease-in-out hover:bg-fuchsia-900 hover:scale-105 active:scale-95"
         onClick={()=>navigate("/all-appointments")}
       >
         <FaEye size={16} />View All Appointments
@@ -138,10 +138,12 @@ function ViewAppointment() {
               patientData.patient.gender === "Male" ?
               <img 
               src={assets.patient_profile_male} 
+              alt="male_profile"
               className="w-22 h-22 rounded-full border border-gray-600"
               /> :
               <img 
               src={assets.patient_profile_female} 
+              alt="female_profile"
               className="w-22 h-22 rounded-full border border-gray-600"
               />
             }
@@ -439,11 +441,11 @@ function ViewAppointment() {
             </div>
 
             <div className="flex items-center gap-3 justify-between">
-              <p className={`text-sm font-medium text-white px-3 py-2 rounded-lg ${patientData.admitted.dischargeStatus === "Under Treatment" ? "bg-orange-500" : "bg-cyan-900"}`}>{patientData.admitted.dischargeStatus}</p>
+              <p className={`text-sm font-medium text-white px-3 py-2 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 ${patientData.admitted.dischargeStatus === "Under Treatment" ? "bg-orange-500" : "bg-cyan-900"}`}>{patientData.admitted.dischargeStatus}</p>
               {
                 patientData.admitted.dischargeStatus === "Discharged" &&
                 <button 
-                  className="px-3 py-2 bg-fuchsia-900 text-white text-sm font-medium rounded-lg cursor-pointer"
+                  className="px-3 py-2 bg-fuchsia-900 text-white text-sm font-medium rounded-lg cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
                   onClick={()=>navigate(`/discharge-summary/${patientData.patientId}`)}
                 >View Discharge Summary</button>
               }

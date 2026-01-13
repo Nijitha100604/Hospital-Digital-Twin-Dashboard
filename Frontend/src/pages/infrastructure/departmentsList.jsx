@@ -37,9 +37,6 @@ function DepartmentsList() {
     floor: null
   })
 
-  // eslint-disable-next-line no-unused-vars
-  const isActive = (name) => openFilter === name;
-
   const handleFilterSelect = (type, value) =>{
     setFilters((prev)=>(
       {
@@ -94,7 +91,8 @@ function DepartmentsList() {
       </div>
 
       <button 
-        className="flex gap-2 items-center text-white bg-fuchsia-900 px-3 py-3 cursor-pointer rounded-xl leading-none shadow-sm shadow-fuchsia-600"
+        className="flex gap-2 items-center text-white bg-fuchsia-800 px-3 py-3 cursor-pointer rounded-xl leading-none shadow-sm shadow-fuchsia-600 
+        transition-all duration-300 ease-in-out hover:bg-fuchsia-900 hover:scale-105 active:scale-95"
         onClick={()=>navigate("/add-department")}
       >
         <FaPlus size={16} />Add Department
@@ -177,9 +175,14 @@ function DepartmentsList() {
         <div className="relative">
           <button
             className={`flex items-center gap-2 px-2 py-2 rounded-xl border text-sm
+              transition-all duration-300 ease-in-out
+              hover:scale-105
+              hover:shadow-md hover:shadow-gray-400
+              active:scale-95
+              cursor-pointer
             ${openFilter === "floor"
               ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700"
-              : "border-gray-500 bg-gray-300 text-gray-700"
+              : "border-gray-500 bg-gray-300 text-gray-800 hover:bg-gray-200 hover:text-gray-900 hover:font-bold"
             }`}
             onClick={() =>
               setOpenFilter(openFilter === "floor" ? null : "floor")
@@ -221,9 +224,14 @@ function DepartmentsList() {
         <div className="relative">
           <button 
             className={`flex items-center gap-2 px-2 py-2 rounded-xl border text-sm
+              transition-all duration-300 ease-in-out
+              hover:scale-105
+              hover:shadow-md hover:shadow-gray-400
+              active:scale-95
+              cursor-pointer
             ${openFilter === "status"
               ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700"
-              : "border-gray-500 bg-gray-300 text-gray-700"
+              : "border-gray-500 bg-gray-300 text-gray-800  hover:bg-gray-200 hover:text-gray-900 hover:font-bold"
             }`}
             onClick={() => setOpenFilter(openFilter === "status" ? null : "status")}
           >
@@ -269,22 +277,22 @@ function DepartmentsList() {
 
     <table className="min-w-max w-full border border-gray-300">
     
-      <thead className="bg-gray-300 text-sm text-gray-800">
+      <thead className="bg-gray-300">
         <tr>
-          <th className="px-4 py-3 text-left font-medium">Department ID</th>
-          <th className="px-4 py-3 text-left font-medium">Department Name</th>
-          <th className="px-4 py-3 text-left font-medium">Head of Department</th>
-          <th className="px-4 py-3 text-left font-medium">Floor</th>
-          <th className="px-4 py-3 text-left font-medium">Staff Count</th>
-          <th className="px-4 py-3 text-left font-medium">Status</th>
-          <th className="px-4 py-3 text-left font-medium">View</th>
+          <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Department ID</th>
+          <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Department Name</th>
+          <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Head of Department</th>
+          <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Floor</th>
+          <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Staff Count</th>
+          <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Status</th>
+          <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">View</th>
         </tr>
       </thead>
     
       <tbody className="text-sm text-gray-700">
       {
         paginatedData.map((item)=>(
-          <tr key={item.departmentId} className="border-b hover:bg-gray-100">
+          <tr key={item.departmentId} className="border-b hover:bg-gray-200 hover:border-2 hover:font-semibold cursor-pointer">
             <td className="px-4 py-3">{item.departmentId}</td>
             <td className="px-4 py-3">{item.departmentName}</td>
             <td className="px-4 py-3">{item.departmentHead}</td>

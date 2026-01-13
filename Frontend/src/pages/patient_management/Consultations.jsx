@@ -193,9 +193,13 @@ function Consultations() {
       <div className="relative">
         <button
           className={`flex items-center gap-2 px-2 py-2 rounded-xl border text-sm
+            transition-all duration-300 ease-in-out
+            hover:scale-105
+            hover:shadow-md hover:shadow-gray-400
+            active:scale-95
             ${openFilter === "date"
               ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700"
-              : "border-gray-500 bg-gray-300 text-gray-700"
+              : "border-gray-500 bg-gray-300 text-gray-800 hover:bg-gray-200 hover:text-gray-900 hover:font-bold"
             }`}
           onClick={() => setOpenFilter(openFilter === "date" ? null : "date")}
         >
@@ -232,9 +236,13 @@ function Consultations() {
       <div className="relative">
           <button 
             className={`flex items-center gap-2 px-2 py-2 rounded-xl border text-sm
+            transition-all duration-300 ease-in-out
+            hover:scale-105
+            hover:shadow-md hover:shadow-gray-400
+            active:scale-95
             ${openFilter === "status"
               ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700"
-              : "border-gray-500 bg-gray-300 text-gray-700"
+              : "border-gray-500 bg-gray-300 text-gray-800 hover:bg-gray-200 hover:text-gray-900 hover:font-bold"
             }`}
           onClick={() => setOpenFilter(openFilter === "status" ? null : "status")}
           >
@@ -274,9 +282,13 @@ function Consultations() {
       <div className="relative">
         <button
           className={`flex items-center gap-2 px-2 py-2 rounded-xl border text-sm
+            transition-all duration-300 ease-in-out
+            hover:scale-105
+            hover:shadow-md hover:shadow-gray-400
+            active:scale-95
           ${openFilter === "consultation"
             ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700"
-            : "border-gray-500 bg-gray-300 text-gray-700"
+            : "border-gray-500 bg-gray-300 text-gray-800 hover:bg-gray-200 hover:text-gray-900 hover:font-bold"
           }`}
           onClick={() =>
             setOpenFilter(openFilter === "consultation" ? null : "consultation")

@@ -142,7 +142,8 @@ function IssuesList() {
       </div>
     
       <button 
-        className="flex gap-2 items-center text-white bg-fuchsia-900 px-3 py-3 cursor-pointer rounded-xl leading-none shadow-sm shadow-fuchsia-600"
+        className="flex gap-2 items-center text-white bg-fuchsia-900 px-3 py-3 cursor-pointer rounded-xl leading-none shadow-sm shadow-fuchsia-600
+        transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         onClick={()=>navigate("/issue-report")}
       >
         <FaPlus size={16} />Report Issue
@@ -235,9 +236,14 @@ function IssuesList() {
       <div className="relative">
         <button
           className={`flex items-center gap-2 px-2 py-2 rounded-xl border text-sm
+            transition-all duration-300 ease-in-out
+            hover:scale-105
+            hover:shadow-md hover:shadow-gray-400
+            active:scale-95
+            cursor-pointer
             ${openFilter === "status"
               ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700"
-              : "border-gray-500 bg-gray-300 text-gray-700"
+              : "border-gray-500 bg-gray-300 text-gray-800 hover:bg-gray-200 hover:text-gray-900 hover:font-bold"
               }`}
               onClick={() =>
                 setOpenFilter(openFilter === "status" ? null : "status")
@@ -279,9 +285,14 @@ function IssuesList() {
       <div className="relative">
         <button 
           className={`flex items-center gap-2 px-2 py-2 rounded-xl border text-sm
+            transition-all duration-300 ease-in-out
+            hover:scale-105
+            hover:shadow-md hover:shadow-gray-400
+            active:scale-95
+            cursor-pointer
             ${openFilter === "priority"
             ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700"
-            : "border-gray-500 bg-gray-300 text-gray-700"
+            : "border-gray-500 bg-gray-300 text-gray-800 hover:bg-gray-200 hover:text-gray-900 hover:font-bold"
           }`}
           onClick={() => setOpenFilter(openFilter === "priority" ? null : "priority")}
         >
@@ -327,7 +338,7 @@ function IssuesList() {
         paginatedData.map((item,index)=>(
           <div 
             key={index}
-            className="flex items-center flex-wrap gap-4 justify-between px-3 py-3 bg-white border border-gray-400 rounded-lg hover:bg-gray-200 cursor-pointer"
+            className="flex items-center flex-wrap gap-4 justify-between px-3 py-3 bg-white border border-gray-400 rounded-lg hover:bg-gray-50 hover:border-2 cursor-pointer"
           >
             <div className="w-full flex flex-col gap-2">
 
@@ -379,7 +390,8 @@ function IssuesList() {
                           activeStatusIssue === item.issueId ? null : item.issueId
                         )
                       }
-                    className="px-3 py-2 bg-fuchsia-800 text-sm text-white font-medium rounded-lg cursor-pointer"
+                    className="px-3 py-2 bg-fuchsia-800 text-sm text-white font-medium rounded-lg cursor-pointer
+                    transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
                     >
                       Update Status
                     </button>

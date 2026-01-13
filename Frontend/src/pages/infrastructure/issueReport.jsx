@@ -69,7 +69,8 @@ function IssueReport() {
       </div>
 
       <div 
-        className="px-3 py-2 flex gap-2 rounded-lg bg-fuchsia-400 cursor-pointer"
+        className="px-3 py-2 flex gap-2 rounded-lg bg-fuchsia-400 cursor-pointer
+        transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         onClick={()=>navigate('/issues-list')}
       >
         <FaArrowLeft 
@@ -173,7 +174,8 @@ function IssueReport() {
               
       <button 
         type="button"
-        className="px-3 py-2 bg-gray-500 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-gray-700"
+        className="px-3 py-2 bg-gray-500 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-gray-700
+        transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         onClick={handleCancel}
       >
         <FaTimesCircle /> Cancel
@@ -181,7 +183,8 @@ function IssueReport() {
               
       <button 
         type = "submit"
-        className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800"
+        className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800
+        transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
       >
         <FaSave /> Create Issue
       </button>

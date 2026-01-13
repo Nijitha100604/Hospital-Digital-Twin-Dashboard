@@ -8,7 +8,8 @@ import {
     FaSearch,
     FaPhone,
     FaEdit,
-    FaEye
+    FaEye,
+    FaTimes
  } from "react-icons/fa";
 import { nursePatientVitalsList } from '../../data/patient';
 import VitalModal from './../../components/modals/VitalModal';
@@ -174,10 +175,26 @@ function VitalsEntry() {
             {/* Date */}
             <div className="relative flex flex-col">
                 <button 
-                  className="flex gap-2 items-center bg-gray-300 px-2 py-2 rounded-xl border border-gray-500 cursor-pointer text-gray-700 text-sm"
+                  className={`flex items-center gap-2 px-2 py-2 rounded-xl border text-sm
+                  ${openFilter === "date"
+                  ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700"
+                  : "border-gray-500 bg-gray-300 text-gray-700"
+                  }`}
                   onClick = {()=>setOpenFilter(openFilter === "date" ? null : "date")}
                 >
-                  <FaFilter size={15} className="text-gray-500"/> Date
+                  <FaFilter size={15} /> 
+                  Date
+                  {openFilter === "date" && (
+                    <FaTimes
+                      size={12}
+                      className="cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFilters(prev => ({ ...prev, date: null }));
+                        setOpenFilter(null);
+                      }}
+                    />
+                  )}
                 </button>
     
                 {
@@ -205,21 +222,37 @@ function VitalsEntry() {
             {/* Status filter */}
             <div className="relative flex flex-col">
                 <button 
-                    className="flex gap-2 items-center bg-gray-300 px-2 py-2 rounded-xl border border-gray-500 cursor-pointer text-gray-700 text-sm"
+                  className={`flex items-center gap-2 px-2 py-2 rounded-xl border text-sm
+                  ${openFilter === "status"
+                  ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700"
+                  : "border-gray-500 bg-gray-300 text-gray-700"
+                  }`}
                     onClick={() => setOpenFilter(openFilter === "status" ? null : "status")}
                 >
-                    <FaFilter size={15} className="text-gray-500"/> Status
+                    <FaFilter size={15}/> 
+                    Status
+                    {openFilter === "status" && (
+                      <FaTimes
+                        size={12}
+                        className="cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFilters(prev => ({ ...prev, status: null }));
+                            setOpenFilter(null);
+                          }}
+                      />
+                    )}
                 </button>
     
                 {/* Status drop down */}
                 {openFilter === "status" && (
-                    <ul className="mt-2 absolute top-full left-0 bg-white border rounded-lg shadow-sm w-26 z-10">
+                    <ul className="mt-2 absolute top-full left-0 bg-white border rounded-md shadow-sm w-28 z-10">
                       {
                         ["All","Completed", "Pending"].map((item, index) => (
                           <li 
                             key={index}
                             onClick={()=>handleFilterSelect("status", item === "All" ? null : item)}
-                            className="px-3 py-2 text-sm cursor-pointer hover:font-semibold hover:text-gray-900 text-gray-700"
+                            className="px-3 rounded-md py-2 text-sm cursor-pointer hover:bg-fuchsia-200 hover:text-fuchsia-900 hover:font-semibold"
                           >
                           {item}
                           </li>
@@ -239,7 +272,7 @@ function VitalsEntry() {
             paginatedData.map((item, index)=>(
             <div 
             key={index}
-            className="flex items-center flex-wrap gap-4 justify-between px-3 py-3 bg-white border border-gray-400 rounded-lg hover:bg-gray-200 cursor-pointer"
+            className="flex items-center flex-wrap gap-4 justify-between px-3 py-3 bg-white border border-gray-400 rounded-lg hover:bg-gray-200 hover:border-2 cursor-pointer"
             >
                 <p className="inline-flex text-sm bg-gray-300 font-medium text-gray-800 px-3 py-2 items-center rounded-lg">{item.appointmentId}</p>
                 <div className="flex flex-col gap-2 items-center">
