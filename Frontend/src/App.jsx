@@ -51,7 +51,7 @@ import VitalsEntry from "./pages/patient_management/VitalsEntry";
 import Consultations from "./pages/patient_management/Consultations";
 import PatientConsultation from "./pages/patient_management/PatientConsultation";
 import AdminDashboard from "./pages/AdminDashboard";
-import HomePage from "./components/HomePage";
+import HomePage from "./pages/HomePage";
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
