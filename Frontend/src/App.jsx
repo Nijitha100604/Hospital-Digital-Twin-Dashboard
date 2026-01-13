@@ -17,8 +17,6 @@ import BookAppointment from "./pages/patient_management/BookAppointment";
 import AllAppointments from "./pages/patient_management/AllAppointments";
 import DischargeSummary from "./pages/patient_management/DischargeSummary";
 import ViewAppointment from "./pages/patient_management/ViewAppointment";
-<<<<<<< HEAD
-=======
 import EquipmentList from './pages/equipment/EquipmentList';
 import AddEquipment from './pages/equipment/AddEquipment';
 import AddMaintenance from './pages/equipment/AddMaintenance';
@@ -41,7 +39,7 @@ import MedicineStocks from './pages/inventory/medicineStocks';
 import EditMedicineDetails from './pages/inventory/editMedicineDetails'
 import PurchaseOrder from './pages/inventory/PurchaseOrder';
 import StockAlerts from './pages/inventory/StockAlerts';
-import SuppliersList from './pages/inventory/SuppliersList';
+import SuppliersList from './pages/inventory/suppliersList';
 import EditSupplierDetails from "./pages/inventory/editSupplierDetails";
 import ViewMedicineDetails from './pages/inventory/viewMedicineDetails';
 import LabReportsList from './pages/laboratory/labReportsList';
@@ -56,7 +54,6 @@ import ShiftPlanner from './pages/staff_management/ShiftPlanner';
 import StaffList from './pages/staff_management/staffList';
 import StaffPerformance from './pages/staff_management/StaffPerformance';
 import StaffProfile from './pages/staff_management/staffProfile';
->>>>>>> 08cd23a6a27f6a84a60ec4bad6287bb41fbfd3dc
 import VitalsEntry from "./pages/patient_management/VitalsEntry";
 import Consultations from "./pages/patient_management/Consultations";
 import PatientConsultation from "./pages/patient_management/PatientConsultation";
@@ -96,8 +93,8 @@ import ViewMedicineDetails from "./pages/inventory/viewMedicineDetails";
 // Laboratory
 import LabReportsList from "./pages/laboratory/labReportsList";
 import LabResultsEntry from "./pages/laboratory/LabResultsEntry";
-import PatientWiseReports from "./pages/laboratory/PatientWiseReports";
-import UploadReport from "./pages/laboratory/UploadReport";
+import PatientWiseReports from "./pages/laboratory/patientWiseReports";
+import UploadReport from "./pages/laboratory/uploadReport";
 
 // Staff Management
 import AddStaff from "./pages/staff_management/AddStaff";
@@ -121,27 +118,8 @@ const Layout = ({ isSidebarOpen, setIsSidebarOpen, activeCategory }) => {
         activeCategory={activeCategory}
       />
 
-<<<<<<< HEAD
-      {/* Main content area (fixed top navbar + sidebar offset) */}
-      <div className="md:ml-52 mt-16 p-4 min-h-screen">
-        <Outlet />
-      </div>
-    </>
-  );
-};
-
-function App() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [uToken, setUToken] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("MAIN");
-
-  return (
-    <div className="bg-slate-50 min-h-screen">
-      <ToastContainer />
-=======
       
       <div className = "flex-1 ml-0 mt-16 p-4">
->>>>>>> 08cd23a6a27f6a84a60ec4bad6287bb41fbfd3dc
 
       <Routes>
         <Route
@@ -155,10 +133,6 @@ function App() {
           }
         />
 
-<<<<<<< HEAD
-        {/* Login Route */}
-        <Route path="/login" element={<Login setUToken={setUToken} />} />
-=======
         {/* Admin Dashboard */}
         <Route path='/admin-dashboard' element={<AdminDashboard />}/>
 
@@ -173,7 +147,6 @@ function App() {
         <Route path='/vitals-entry' element={<VitalsEntry />}/>
         <Route path='/consultations' element={<Consultations />}/>
         <Route path='/patient-consultation/:id' element={<PatientConsultation />} />
->>>>>>> 08cd23a6a27f6a84a60ec4bad6287bb41fbfd3dc
 
         {/* Protected Routes */}
         {uToken ? (
@@ -244,41 +217,12 @@ function App() {
             <Route path="/issue-report" element={<IssueReport />} />
             <Route path="/issues-list" element={<IssuesList />} />
 
-<<<<<<< HEAD
-            {/* Inventory */}
-            <Route path="/add-new-medicine" element={<AddNewMedicine />} />
-            <Route
-              path="/create-new-supplier"
-              element={<CreateNewSupplier />}
-            />
-            <Route
-              path="/create-purchase-order"
-              element={<CreatePurchaseOrder />}
-            />
-            <Route path="/medicine-stocks" element={<MedicineStocks />} />
-            <Route path="/purchase-order" element={<PurchaseOrder />} />
-            <Route path="/stock-alerts" element={<StockAlerts />} />
-            <Route path="/suppliers-list" element={<SuppliersList />} />
-            <Route
-              path="/edit-supplier/:id"
-              element={<EditSupplierDetails />}
-            />
-            <Route
-              path="/medicine-details/:id"
-              element={<ViewMedicineDetails />}
-            />
-            <Route
-              path="/edit-medicine/:id"
-              element={<EditMedicineDetails />}
-            />
-=======
         {/* Laboratory */}
         <Route path='/lab-reports-list' element={<LabReportsList />}/>
         <Route path='/lab-results-entry' element={<LabResultsEntry />}/>
         <Route path='/patient-wise-reports' element={<PatientWiseReports />}/>
         <Route path='/upload-report' element={<UploadReport />}/>
         
->>>>>>> 08cd23a6a27f6a84a60ec4bad6287bb41fbfd3dc
 
             {/* Laboratory */}
             <Route path="/lab-reports-list" element={<LabReportsList />} />

@@ -1,509 +1,236 @@
-import React from "react";
-import { FaUsers } from "react-icons/fa";
-import { FaHospital } from "react-icons/fa";
-import { FaBoxes } from "react-icons/fa";
-import { FaMicroscope } from "react-icons/fa";
-import { FaCogs } from "react-icons/fa";
-import { FaUserNurse } from "react-icons/fa";
-import { FaTimes } from "react-icons/fa";
-<<<<<<< HEAD
-import { FaHome } from "react-icons/fa";
-=======
-import { FaUserShield } from "react-icons/fa";
->>>>>>> 08cd23a6a27f6a84a60ec4bad6287bb41fbfd3dc
-import { NavLink } from "react-router-dom";
+import { useState } from "react";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
+// Components
+import TopNavbar from "./components/TopNavbar";
+import SideNavbar from "./components/SideNavbar";
+import Login from "./pages/login";
+import HomePage from "./components/HomePage";
+
+// Patient Management
+import PatientList from "./pages/patient_management/patientList";
+import PatientProfile from "./pages/patient_management/patientProfile";
+import AddNewPatient from "./pages/patient_management/addNewPatient";
+import BookAppointment from "./pages/patient_management/bookAppointment";
+import AllAppointments from "./pages/patient_management/allAppointments";
+import DischargeSummary from "./pages/patient_management/dischargeSummary";
+import ViewAppointment from "./pages/patient_management/viewAppointment";
+import VitalsEntry from "./pages/patient_management/vitalsEntry";
+import Consultations from "./pages/patient_management/Consultations";
+import PatientConsultation from "./pages/patient_management/PatientConsultation";
+
+// Equipment
+import EquipmentList from "./pages/equipment/equipmentList";
+import AddEquipment from "./pages/equipment/addEquipment";
+import AddMaintenance from "./pages/equipment/addMaintenance";
+import CreateCalibrationSchedule from "./pages/equipment/createCalibrationSchedule";
+import CalibrationScheduleList from "./pages/equipment/calibrationScheduleList";
+import MaintenanceLog from "./pages/equipment/maintenanceLog";
+import ViewEquipment from "./pages/equipment/viewEquipment";
+import EditEquipment from "./pages/equipment/editEquipment";
+
+// Infrastructure
+import AddDepartment from "./pages/infrastructure/addDepartment";
+import BedAvailability from "./pages/infrastructure/bedAvailability";
+import Department from "./pages/infrastructure/department";
+import DepartmentsList from "./pages/infrastructure/departmentsList";
+import FacilityMap from "./pages/infrastructure/facilityMap";
+import IssueReport from "./pages/infrastructure/issueReport";
+import IssuesList from "./pages/infrastructure/issuesList";
+
+// Inventory
+import AddNewMedicine from "./pages/inventory/addNewMedicine";
+import CreateNewSupplier from "./pages/inventory/createNewSupplier";
+import CreatePurchaseOrder from "./pages/inventory/createPurchaseOrder";
+import MedicineStocks from "./pages/inventory/medicineStocks";
+import EditMedicineDetails from "./pages/inventory/editMedicineDetails";
+import PurchaseOrder from "./pages/inventory/purchaseOrder";
+import StockAlerts from "./pages/inventory/stockAlerts";
+import SuppliersList from "./pages/inventory/suppliersList";
+import EditSupplierDetails from "./pages/inventory/editSupplierDetails";
+import ViewMedicineDetails from "./pages/inventory/viewMedicineDetails";
+
+// Laboratory
+import LabReportsList from "./pages/laboratory/labReportsList";
+import LabResultsEntry from "./pages/laboratory/labResultsEntry";
+import PatientWiseReports from "./pages/laboratory/patientWiseReports";
+import UploadReport from "./pages/laboratory/uploadReport";
+
+// Staff Management
+import AddStaff from "./pages/staff_management/AddStaff";
+import AssignShift from "./pages/staff_management/assignShift";
+import Attendance from "./pages/staff_management/attendance";
+import LeaveManagement from "./pages/staff_management/leaveManagement";
+import ShiftPlanner from "./pages/staff_management/shiftPlanner";
+import StaffList from "./pages/staff_management/staffList";
+import StaffPerformance from "./pages/staff_management/staffPerformance";
+import StaffProfile from "./pages/staff_management/staffProfile";
+import StaffProfileById from "./pages/staff_management/staffProfile";
+
+// Admin Dashboard
+import AdminDashboard from "./pages/AdminDashboard";
+
+
+// ---------------------- LAYOUT WRAPPER ----------------------
+const Layout = ({ isSidebarOpen, setIsSidebarOpen }) => {
   return (
-    <div
-      className={`
-    fixed top-16 left-0
-    w-52
-    h-[calc(100vh-4rem)]
-    bg-white border-r border-gray-300
-    py-4 z-40
-    overflow-y-auto hide-scrollbar
-    transition-transform duration-300
-    ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-  `}
-    >
-      <div className="flex justify-end px-4 mb-2 md:hidden">
-        <FaTimes
-          size={15}
-          className="cursor-pointer text-gray-500"
-          onClick={() => setIsSidebarOpen(false)}
+    <>
+      <TopNavbar setIsSidebarOpen={setIsSidebarOpen} />
+      <SideNavbar
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+      />
+
+      {/* Main Content */}
+      <div className="md:ml-52 mt-16 p-4 min-h-screen">
+        <Outlet />
+      </div>
+    </>
+  );
+};
+
+
+// ---------------------- MAIN APP ----------------------
+function App() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [uToken, setUToken] = useState(false);
+
+  return (
+    <div className="bg-slate-50 min-h-screen">
+      <ToastContainer />
+
+      <Routes>
+        {/* Default Route */}
+        <Route
+          path="/"
+          element={
+            uToken ? (
+              <Navigate to="/home" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
         />
-      </div>
 
-<<<<<<< HEAD
-      {/* MAIN */}
-      <div className="mb-4">
-        <div className="flex gap-2 px-4">
-          <FaHome size={22} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">HOME</p>
-        </div>
+        {/* Login */}
+        <Route path="/login" element={<Login setUToken={setUToken} />} />
 
-        <ul>
-          <NavLink
-            to="/home"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `
-              block px-4 py-1 text-sm cursor-pointer
-              ${
-                isActive
-                  ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-                  : "text-gray-800 hover:font-semibold"
+        {/* Protected Routes */}
+        {uToken ? (
+          <Route
+            element={
+              <Layout
+                isSidebarOpen={isSidebarOpen}
+                setIsSidebarOpen={setIsSidebarOpen}
+              />
+            }
+          >
+            {/* HOME */}
+            <Route
+              path="/home"
+              element={
+                <HomePage
+                  user={{
+                    name: "Dr. John Smith",
+                    role: "Admin",
+                    initials: "JS",
+                  }}
+                />
               }
-            `}
-          >
-            Main
-          </NavLink>
-        </ul>
-=======
-      {/* Admin */}
-      <div className="mb-4">
+            />
 
-        <div className="flex gap-2 px-4">
-          <FaUserShield size={20} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">
-            ADMIN
-          </p>
-        </div>
+            {/* ADMIN DASHBOARD */}
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
 
-        <ul className="items-center">
-          <NavLink
-            to="/admin-dashboard"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Dashboard
-          </NavLink>
-        </ul>
+            {/* PATIENT MANAGEMENT */}
+            <Route path="/patient-list" element={<PatientList />} />
+            <Route path="/patient-profile/:id" element={<PatientProfile />} />
+            <Route path="/add-new-patient" element={<AddNewPatient />} />
+            <Route path="/book-appointment" element={<BookAppointment />} />
+            <Route path="/all-appointments" element={<AllAppointments />} />
+            <Route path="/discharge-summary/:id" element={<DischargeSummary />} />
+            <Route path="/view-appointment/:id" element={<ViewAppointment />} />
+            <Route path="/vitals-entry" element={<VitalsEntry />} />
+            <Route path="/consultations" element={<Consultations />} />
+            <Route
+              path="/patient-consultation/:id"
+              element={<PatientConsultation />}
+            />
 
->>>>>>> 08cd23a6a27f6a84a60ec4bad6287bb41fbfd3dc
-      </div>
+            {/* EQUIPMENT */}
+            <Route path="/equipment-list" element={<EquipmentList />} />
+            <Route path="/add-equipment" element={<AddEquipment />} />
+            <Route path="/add-maintenance" element={<AddMaintenance />} />
+            <Route
+              path="/create-calibration-schedule"
+              element={<CreateCalibrationSchedule />}
+            />
+            <Route
+              path="/calibration-schedule-list"
+              element={<CalibrationScheduleList />}
+            />
+            <Route path="/maintenance-log" element={<MaintenanceLog />} />
+            <Route path="/view-equipment/:id" element={<ViewEquipment />} />
+            <Route path="/edit-equipment/:id" element={<EditEquipment />} />
 
-      {/* Patient Management */}
-      <div className="mb-4">
-        <div className="flex gap-2 px-4">
-          <FaUsers size={22} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">
-            PATIENT SERVICE
-          </p>
-        </div>
+            {/* INFRASTRUCTURE */}
+            <Route path="/add-department" element={<AddDepartment />} />
+            <Route path="/bed-availability" element={<BedAvailability />} />
+            <Route path="/department/:id" element={<Department />} />
+            <Route path="/departments-list" element={<DepartmentsList />} />
+            <Route path="/facility-map" element={<FacilityMap />} />
+            <Route path="/issue-report" element={<IssueReport />} />
+            <Route path="/issues-list" element={<IssuesList />} />
 
-        <ul className="items-center">
-          <NavLink
-            to="/patient-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Patient List
-          </NavLink>
+            {/* INVENTORY */}
+            <Route path="/add-new-medicine" element={<AddNewMedicine />} />
+            <Route
+              path="/create-new-supplier"
+              element={<CreateNewSupplier />}
+            />
+            <Route
+              path="/create-purchase-order"
+              element={<CreatePurchaseOrder />}
+            />
+            <Route path="/medicine-stocks" element={<MedicineStocks />} />
+            <Route path="/purchase-order" element={<PurchaseOrder />} />
+            <Route path="/stock-alerts" element={<StockAlerts />} />
+            <Route path="/suppliers-list" element={<SuppliersList />} />
+            <Route path="/edit-supplier/:id" element={<EditSupplierDetails />} />
+            <Route
+              path="/medicine-details/:id"
+              element={<ViewMedicineDetails />}
+            />
+            <Route path="/edit-medicine/:id" element={<EditMedicineDetails />} />
 
-          <NavLink
-            to="/add-new-patient"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Add New Patient
-          </NavLink>
+            {/* LABORATORY */}
+            <Route path="/lab-reports-list" element={<LabReportsList />} />
+            <Route path="/lab-results-entry" element={<LabResultsEntry />} />
+            <Route
+              path="/patient-wise-reports"
+              element={<PatientWiseReports />}
+            />
+            <Route path="/upload-report" element={<UploadReport />} />
 
-          <NavLink
-            to="/all-appointments"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Appointment Booking
-          </NavLink>
-
-          <NavLink
-            to="/vitals-entry"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Vitals Entry
-          </NavLink>
-
-          <NavLink
-            to="/consultations"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Consultations
-          </NavLink>
-        </ul>
-      </div>
-
-      {/* Hospital Infrastructure */}
-      <div className="mb-4">
-        <div className="flex gap-2 px-4">
-          <FaHospital size={20} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">
-            INFRASTRUCTURE
-          </p>
-        </div>
-
-        <ul className="items-center">
-          <NavLink
-            to="/departments-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Department List
-          </NavLink>
-
-          <NavLink
-            to="/bed-availability"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Bed Availability
-          </NavLink>
-
-          <NavLink
-            to="/facility-map"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Facility Map
-          </NavLink>
-
-          <NavLink
-            to="/issues-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Report issues
-          </NavLink>
-        </ul>
-      </div>
-
-      {/* Inventory */}
-      <div className="mb-4">
-        <div className="flex gap-2 px-4">
-          <FaBoxes size={20} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">INVENTORY</p>
-        </div>
-
-        <ul className="items-center">
-          <NavLink
-            to="/medicine-stocks"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Medicine Stock
-          </NavLink>
-
-          <NavLink
-            to="/add-new-medicine"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Add Medicine
-          </NavLink>
-
-          <NavLink
-            to="/stock-alerts"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Stock Alerts
-          </NavLink>
-
-          <NavLink
-            to="/suppliers-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Suppliers
-          </NavLink>
-
-          <NavLink
-            to="/purchase-order"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Purchase Order
-          </NavLink>
-        </ul>
-      </div>
-
-      {/* Equipment */}
-      <div className="mb-4">
-        <div className="flex gap-2 px-4">
-          <FaCogs size={20} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">EQUIPMENT</p>
-        </div>
-
-        <ul className="items-center">
-          <NavLink
-            to="/equipment-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Equipment List
-          </NavLink>
-
-          <NavLink
-            to="/add-equipment"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Add New Equipment
-          </NavLink>
-
-          <NavLink
-            to="/calibration-schedule-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Calibration Schedule
-          </NavLink>
-
-          <NavLink
-            to="/maintenance-log"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Maintenance Log
-          </NavLink>
-        </ul>
-      </div>
-
-      {/* Laboratory */}
-      <div className="mb-4">
-        <div className="flex gap-2 px-4">
-          <FaMicroscope size={20} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">LABORATORY</p>
-        </div>
-
-        <ul className="items-center">
-          <NavLink
-            to="/lab-reports-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Lab Reports
-          </NavLink>
-
-          <NavLink
-            to="/lab-results-entry"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Results Entry
-          </NavLink>
-
-          <NavLink
-            to="/patient-wise-reports"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Patient-Wise Reports
-          </NavLink>
-
-          <NavLink
-            to="/upload-report"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Upload Report
-          </NavLink>
-        </ul>
-      </div>
-
-      {/* Staff Management */}
-      <div className="mb-4">
-        <div className="flex gap-2 px-4">
-          <FaUserNurse size={20} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">WORKFORCE</p>
-        </div>
-
-        <ul className="items-center">
-          <NavLink
-            to="/staff-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Staff List
-          </NavLink>
-
-          <NavLink
-            to="/add-staff"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Add Staff
-          </NavLink>
-
-          <NavLink
-            to="/staff-profile"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Staff Profile
-          </NavLink>
-
-          <NavLink
-            to="/shift-planner"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Shift Planner
-          </NavLink>
-
-          <NavLink
-            to="/leave-management"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Attendance and Leave
-          </NavLink>
-        </ul>
-      </div>
+            {/* STAFF */}
+            <Route path="/add-staff" element={<AddStaff />} />
+            <Route path="/assign-shift" element={<AssignShift />} />
+            <Route path="/attendance" element={<Attendance />} />
+            <Route path="/leave-management" element={<LeaveManagement />} />
+            <Route path="/shift-planner" element={<ShiftPlanner />} />
+            <Route path="/staff-list" element={<StaffList />} />
+            <Route path="/staff-performance" element={<StaffPerformance />} />
+            <Route path="/staff-profile" element={<StaffProfile />} />
+            <Route path="/staff-profile/:id" element={<StaffProfileById />} />
+          </Route>
+        ) : (
+          <Route path="*" element={<Navigate to="/" replace />} />
+        )}
+      </Routes>
     </div>
   );
 }
 
-export default SideNavbar;
+export default App;
