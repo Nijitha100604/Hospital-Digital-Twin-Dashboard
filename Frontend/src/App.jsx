@@ -17,9 +17,50 @@ import BookAppointment from "./pages/patient_management/BookAppointment";
 import AllAppointments from "./pages/patient_management/AllAppointments";
 import DischargeSummary from "./pages/patient_management/DischargeSummary";
 import ViewAppointment from "./pages/patient_management/ViewAppointment";
+<<<<<<< HEAD
+=======
+import EquipmentList from './pages/equipment/EquipmentList';
+import AddEquipment from './pages/equipment/AddEquipment';
+import AddMaintenance from './pages/equipment/AddMaintenance';
+import CreateCalibrationSchedule from "./pages/equipment/createCalibrationSchedule";
+import CalibrationScheduleList from './pages/equipment/CalibrationScheduleList';
+import MaintenanceLog from './pages/equipment/MaintenanceLog';
+import ViewEquipment from './pages/equipment/ViewEquipment';
+import EditEquipment from './pages/equipment/editEquipment'
+import AddDepartment from './pages/infrastructure/AddDepartment';
+import BedAvailability from './pages/infrastructure/BedAvailability';
+import Department from './pages/infrastructure/Department';
+import DepartmentsList from './pages/infrastructure/DepartmentsList';
+import FacilityMap from './pages/infrastructure/FacilityMap';
+import IssueReport from './pages/infrastructure/IssueReport';
+import IssuesList from './pages/infrastructure/IssuesList';
+import AddNewMedicine from './pages/inventory/AddNewMedicine';
+import CreateNewSupplier from './pages/inventory/CreateNewSupplier';
+import CreatePurchaseOrder from './pages/inventory/CreatePurchaseOrder';
+import MedicineStocks from './pages/inventory/medicineStocks';
+import EditMedicineDetails from './pages/inventory/editMedicineDetails'
+import PurchaseOrder from './pages/inventory/PurchaseOrder';
+import StockAlerts from './pages/inventory/StockAlerts';
+import SuppliersList from './pages/inventory/SuppliersList';
+import EditSupplierDetails from "./pages/inventory/editSupplierDetails";
+import ViewMedicineDetails from './pages/inventory/viewMedicineDetails';
+import LabReportsList from './pages/laboratory/labReportsList';
+import LabResultsEntry from './pages/laboratory/LabResultsEntry';
+import PatientWiseReports from './pages/laboratory/patientWiseReports';
+import UploadReport from './pages/laboratory/uploadReport';
+import AddStaff from './pages/staff_management/AddStaff';
+import AssignShift from './pages/staff_management/AssignShift';
+import Attendance from './pages/staff_management/attendance';
+import LeaveManagement from './pages/staff_management/leaveManagement';
+import ShiftPlanner from './pages/staff_management/ShiftPlanner';
+import StaffList from './pages/staff_management/staffList';
+import StaffPerformance from './pages/staff_management/StaffPerformance';
+import StaffProfile from './pages/staff_management/staffProfile';
+>>>>>>> 08cd23a6a27f6a84a60ec4bad6287bb41fbfd3dc
 import VitalsEntry from "./pages/patient_management/VitalsEntry";
 import Consultations from "./pages/patient_management/Consultations";
 import PatientConsultation from "./pages/patient_management/PatientConsultation";
+import AdminDashboard from "./pages/AdminDashboard";
 
 // Equipment
 import EquipmentList from "./pages/equipment/EquipmentList";
@@ -80,6 +121,7 @@ const Layout = ({ isSidebarOpen, setIsSidebarOpen, activeCategory }) => {
         activeCategory={activeCategory}
       />
 
+<<<<<<< HEAD
       {/* Main content area (fixed top navbar + sidebar offset) */}
       <div className="md:ml-52 mt-16 p-4 min-h-screen">
         <Outlet />
@@ -96,6 +138,10 @@ function App() {
   return (
     <div className="bg-slate-50 min-h-screen">
       <ToastContainer />
+=======
+      
+      <div className = "flex-1 ml-0 mt-16 p-4">
+>>>>>>> 08cd23a6a27f6a84a60ec4bad6287bb41fbfd3dc
 
       <Routes>
         <Route
@@ -109,8 +155,25 @@ function App() {
           }
         />
 
+<<<<<<< HEAD
         {/* Login Route */}
         <Route path="/login" element={<Login setUToken={setUToken} />} />
+=======
+        {/* Admin Dashboard */}
+        <Route path='/admin-dashboard' element={<AdminDashboard />}/>
+
+        {/* patient management routes */}
+        <Route path="/" element={uToken ? <PatientList /> : <Navigate to="/login" />}/>
+        <Route path='/patient-profile/:id' element={<PatientProfile />}/>
+        <Route path='/add-new-patient' element={<AddNewPatient />}/>
+        <Route path='/book-appointment' element={<BookAppointment />}/>
+        <Route path='/all-appointments' element={<AllAppointments />}/>
+        <Route path='/discharge-summary/:id' element={<DischargeSummary />}/>
+        <Route path='/view-appointment/:id' element={<ViewAppointment />}/>
+        <Route path='/vitals-entry' element={<VitalsEntry />}/>
+        <Route path='/consultations' element={<Consultations />}/>
+        <Route path='/patient-consultation/:id' element={<PatientConsultation />} />
+>>>>>>> 08cd23a6a27f6a84a60ec4bad6287bb41fbfd3dc
 
         {/* Protected Routes */}
         {uToken ? (
@@ -181,6 +244,7 @@ function App() {
             <Route path="/issue-report" element={<IssueReport />} />
             <Route path="/issues-list" element={<IssuesList />} />
 
+<<<<<<< HEAD
             {/* Inventory */}
             <Route path="/add-new-medicine" element={<AddNewMedicine />} />
             <Route
@@ -207,6 +271,14 @@ function App() {
               path="/edit-medicine/:id"
               element={<EditMedicineDetails />}
             />
+=======
+        {/* Laboratory */}
+        <Route path='/lab-reports-list' element={<LabReportsList />}/>
+        <Route path='/lab-results-entry' element={<LabResultsEntry />}/>
+        <Route path='/patient-wise-reports' element={<PatientWiseReports />}/>
+        <Route path='/upload-report' element={<UploadReport />}/>
+        
+>>>>>>> 08cd23a6a27f6a84a60ec4bad6287bb41fbfd3dc
 
             {/* Laboratory */}
             <Route path="/lab-reports-list" element={<LabReportsList />} />

@@ -6,7 +6,11 @@ import { FaMicroscope } from "react-icons/fa";
 import { FaCogs } from "react-icons/fa";
 import { FaUserNurse } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
+<<<<<<< HEAD
 import { FaHome } from "react-icons/fa";
+=======
+import { FaUserShield } from "react-icons/fa";
+>>>>>>> 08cd23a6a27f6a84a60ec4bad6287bb41fbfd3dc
 import { NavLink } from "react-router-dom";
 
 function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
@@ -31,6 +35,7 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
         />
       </div>
 
+<<<<<<< HEAD
       {/* MAIN */}
       <div className="mb-4">
         <div className="flex gap-2 px-4">
@@ -54,6 +59,33 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
             Main
           </NavLink>
         </ul>
+=======
+      {/* Admin */}
+      <div className="mb-4">
+
+        <div className="flex gap-2 px-4">
+          <FaUserShield size={20} className="text-gray-500" />
+          <p className="font-semibold text-md text-gray-500 mb-2">
+            ADMIN
+          </p>
+        </div>
+
+        <ul className="items-center">
+          <NavLink
+            to="/admin-dashboard"
+            onClick={() => window.scrollTo(0, 0)}
+            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${
+            isActive
+              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
+              : "text-gray-800 hover:font-semibold"
+          }`}
+          >
+            Dashboard
+          </NavLink>
+        </ul>
+
+>>>>>>> 08cd23a6a27f6a84a60ec4bad6287bb41fbfd3dc
       </div>
 
       {/* Patient Management */}
