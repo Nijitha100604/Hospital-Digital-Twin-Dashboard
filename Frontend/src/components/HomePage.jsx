@@ -93,7 +93,7 @@ const HomePage = ({ user, setActiveCategory }) => {
       desc: "Manage patient records, appointments, and medical history.",
       icon: <FaUserInjured className="text-white text-xl" />,
       bg: "bg-purple-600",
-      route: "/", // Patient List
+      route: "/patient-list",
       category: "PATIENT SERVICE",
       roles: ["Admin", "Doctor", "Nurse", "Reception Incharge"]
     },
@@ -103,7 +103,7 @@ const HomePage = ({ user, setActiveCategory }) => {
       desc: "View real-time analytics, statistics, and performance metrics.",
       icon: <FaChartLine className="text-white text-xl" />,
       bg: "bg-blue-600",
-      route: "/analytics", // Placeholder route
+      route: "/home", // Placeholder route
       category: "MAIN",
       roles: ["Admin"]
     },
@@ -188,7 +188,7 @@ const HomePage = ({ user, setActiveCategory }) => {
           <p className="text-fuchsia-200 text-sm mb-1 font-medium tracking-wide">Welcome back,</p>
           <h1 className="text-2xl md:text-3xl font-bold">{currentUser.name}</h1>
           <div className="mt-2 inline-block px-3 py-1 bg-fuchsia-800 rounded-full text-xs font-semibold border border-fuchsia-600">
-            {currentUser.role === 'Admin' ? 'Super Admin' : currentUser.role} Dashboard
+            {currentUser.role === 'Admin' ? 'Super Admin' : currentUser.role} Home
           </div>
         </div>
         
@@ -286,8 +286,8 @@ const HomePage = ({ user, setActiveCategory }) => {
         <p className="text-xs text-fuchsia-600 font-medium flex items-center justify-center gap-1">
            ♥ Hospital Digital Twin v4.1.3 (River Surfer)
         </p>
-        <p className="text-[10px] text-gray-400 mt-1">
-          © 2026 Hospital Management System - Ramani Amman Institute of Technology
+        <p className="text-[10px] text-gray-400 mt-1 flex items-center justify-center">
+          © 2026 Hospital Management System 
         </p>
       </div>
 
