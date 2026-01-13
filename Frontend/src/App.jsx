@@ -72,8 +72,7 @@ function App() {
             {/* Admin Dashboard */}
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             {/*Home Page*/}
-            <Route path="/" element={<Navigate to="/home" replace />} />
-            <Route path="/home" element={<HomePage />} />
+            <Route path="/" element={<HomePage />} />
 
             {/* patient management routes */}
             <Route path="/patient-list" element={uToken ? <PatientList /> : <Navigate to="/login" />}/>

@@ -49,7 +49,7 @@ const HomePage = ({ user, setActiveCategory }) => {
       desc: "View real-time analytics, statistics, and performance metrics.",
       icon: <FaChartLine className="text-white text-xl" />,
       bg: "bg-blue-600",
-      route: "/home", // Placeholder route
+      route: "/admin-dashboard", 
       category: "MAIN",
       roles: ["Admin"]
     },

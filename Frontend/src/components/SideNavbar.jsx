@@ -36,29 +36,6 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
         />
       </div>
 
-      {/* Home Pages */}
-      <div className="mb-4">
-        <div className="flex gap-2 px-4">
-          <FaHome size={22} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">HOME</p>
-        </div>
-
-        <ul>
-          <NavLink
-            to="/home"
-            className={({ isActive }) =>
-              `block px-4 py-1 text-sm cursor-pointer ${
-                isActive
-                  ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-                  : "text-gray-800 hover:font-semibold"
-              }`
-            }
-          >
-            Main
-          </NavLink>
-        </ul>
-      </div>
-
       {/* Admin */}
       <div className="mb-4">
         <div className="flex gap-2 px-4">
