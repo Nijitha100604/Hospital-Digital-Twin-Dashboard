@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FaUserInjured, 
@@ -17,10 +17,6 @@ import {
 } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 
-// --- Data Imports ---
-import { allAppointments, patient_records } from '../data/patient';
-import { staffList } from '../data/staffList';
-import { departmentBedData } from '../data/infrastructure';
 
 const HomePage = ({ user, setActiveCategory }) => {
   const navigate = useNavigate();
@@ -34,56 +30,6 @@ const HomePage = ({ user, setActiveCategory }) => {
     initials: "MW"
   };
 
-  // --- 2. Calculate Summary Metrics ---
-  const metrics = useMemo(() => {
-    // A. Appointments (Total count for demo)
-    const appointmentsCount = allAppointments.length;
-
-    // B. Active Patients
-    const patientsCount = patient_records.length;
-
-    // C. Available Beds
-    let availableBeds = 0;
-    departmentBedData.forEach(dept => {
-      if (dept.beds) {
-        availableBeds += dept.beds.filter(bed => bed.status === "Available").length;
-      }
-    });
-
-    // D. On Duty Staff (Active status)
-    const activeStaff = staffList.filter(s => s.status === "Active").length;
-
-    return [
-      { 
-        title: "Today's Appointments", 
-        value: appointmentsCount, 
-        icon: <FaCalendarCheck />, 
-        bg: "bg-purple-100", 
-        color: "text-purple-600" 
-      },
-      { 
-        title: "Active Patients", 
-        value: patientsCount, 
-        icon: <FaUserInjured />, 
-        bg: "bg-blue-100", 
-        color: "text-blue-600" 
-      },
-      { 
-        title: "Available Beds", 
-        value: availableBeds, 
-        icon: <FaProcedures />, 
-        bg: "bg-green-100", 
-        color: "text-green-600" 
-      },
-      { 
-        title: "On Duty Staff", 
-        value: activeStaff, 
-        icon: <FaUserMd />, 
-        bg: "bg-orange-100", 
-        color: "text-orange-600" 
-      },
-    ];
-  }, []);
 
   // --- 3. Quick Access Modules Configuration ---
   const quickLinks = [
@@ -195,21 +141,6 @@ const HomePage = ({ user, setActiveCategory }) => {
         <div className="w-16 h-16 rounded-full border-4 border-fuchsia-800 flex items-center justify-center bg-white text-fuchsia-900 text-xl font-bold shadow-md">
           {currentUser.initials}
         </div>
-      </div>
-
-      {/* --- SUMMARY CARDS --- */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
-        {metrics.map((item, index) => (
-          <div key={index} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow cursor-default">
-            <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl ${item.bg} ${item.color}`}>
-              {item.icon}
-            </div>
-            <div>
-              <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">{item.title}</p>
-              <p className="text-2xl font-bold text-gray-800 mt-1">{item.value}</p>
-            </div>
-          </div>
-        ))}
       </div>
 
       {/* --- QUICK ACCESS SECTION --- */}
