@@ -6,23 +6,22 @@ import { FaMicroscope } from "react-icons/fa";
 import { FaCogs } from "react-icons/fa";
 import { FaUserNurse } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
+import { FaHome } from "react-icons/fa";
 import { NavLink } from "react-router-dom";
 
 function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
   return (
     <div
       className={`
-        md:sticky
-        fixed md:top-16 left-0
-        mt-16
-        w-52
-        h-[calc(100vh-4rem)]
-       bg-white border border-gray-300
-        py-4 z-40
-        overflow-y-auto hide-scrollbar
-        transition-transform duration-300
-        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-      `}
+    fixed top-16 left-0
+    w-52
+    h-[calc(100vh-4rem)]
+    bg-white border-r border-gray-300
+    py-4 z-40
+    overflow-y-auto hide-scrollbar
+    transition-transform duration-300
+    ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+  `}
     >
       <div className="flex justify-end px-4 mb-2 md:hidden">
         <FaTimes
@@ -30,6 +29,31 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
           className="cursor-pointer text-gray-500"
           onClick={() => setIsSidebarOpen(false)}
         />
+      </div>
+
+      {/* MAIN */}
+      <div className="mb-4">
+        <div className="flex gap-2 px-4">
+          <FaHome size={22} className="text-gray-500" />
+          <p className="font-semibold text-md text-gray-500 mb-2">HOME</p>
+        </div>
+
+        <ul>
+          <NavLink
+            to="/home"
+            onClick={() => window.scrollTo(0, 0)}
+            className={({ isActive }) => `
+              block px-4 py-1 text-sm cursor-pointer
+              ${
+                isActive
+                  ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
+                  : "text-gray-800 hover:font-semibold"
+              }
+            `}
+          >
+            Main
+          </NavLink>
+        </ul>
       </div>
 
       {/* Patient Management */}
@@ -43,7 +67,7 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
 
         <ul className="items-center">
           <NavLink
-            to="/"
+            to="/patient-list"
             onClick={() => window.scrollTo(0, 0)}
             className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
           ${
