@@ -5,10 +5,24 @@ import { FaArrowRightFromBracket } from "react-icons/fa6";
 import { MdOutlineHome } from "react-icons/md";
 import { FaBars } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
+import { AppContext } from '../context/AppContext';
+import { useContext } from 'react';
 
 function TopNavbar({ setIsSidebarOpen }) {
 
   const navigate = useNavigate();
+  const { setToken } = useContext(AppContext);
+
+  const handleLogout = () => {
+    const confirmLogout = window.confirm(
+      "Are you sure you want to logout?"
+    );
+
+    if (confirmLogout) {
+      localStorage.removeItem('token'); 
+      setToken('');              
+    }                 
+  };
 
   return (
 
@@ -47,7 +61,11 @@ function TopNavbar({ setIsSidebarOpen }) {
         </div>
 
         {/* Logout */}
-        <FaArrowRightFromBracket size={22} className="cursor-pointer text-gray-600"/>
+        <FaArrowRightFromBracket 
+          size={22} 
+          className="cursor-pointer text-gray-600"
+          onClick={handleLogout}
+        />
       </div>
     </div>
   )

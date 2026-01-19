@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import TopNavbar from "./components/TopNavbar";
 import SideNavbar from "./components/SideNavbar";
-import Login from "./pages/login";
+import Login from "./pages/Login";
 import { ToastContainer } from "react-toastify";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import PatientList from "./pages/patient_management/PatientList";
 import PatientProfile from "./pages/patient_management/PatientProfile";
 import AddNewPatient from "./pages/patient_management/AddNewPatient";
@@ -52,12 +52,13 @@ import Consultations from "./pages/patient_management/Consultations";
 import PatientConsultation from "./pages/patient_management/PatientConsultation";
 import AdminDashboard from "./pages/AdminDashboard";
 import HomePage from "./pages/HomePage";
+import { AppContext } from "./context/AppContext";
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [uToken, setUToken] = useState(true);
+  const { token } = useContext(AppContext);
 
-  return uToken ? (
+  return token ? (
     <div>
       <ToastContainer />
       <TopNavbar setIsSidebarOpen={setIsSidebarOpen} />
@@ -69,13 +70,15 @@ function App() {
 
         <div className="flex-1 ml-0 mt-16 p-4">
           <Routes>
+
             {/* Admin Dashboard */}
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
+
             {/*Home Page*/}
             <Route path="/" element={<HomePage />} />
 
             {/* patient management routes */}
-            <Route path="/patient-list" element={uToken ? <PatientList /> : <Navigate to="/login" />}/>
+            <Route path="/patient-list" element={<PatientList />}/>
             <Route path="/patient-profile/:id" element={<PatientProfile />} />
             <Route path="/add-new-patient" element={<AddNewPatient />} />
             <Route path="/book-appointment" element={<BookAppointment />} />
@@ -84,22 +87,19 @@ function App() {
             <Route path="/view-appointment/:id" element={<ViewAppointment />} />
             <Route path="/vitals-entry" element={<VitalsEntry />} />
             <Route path="/consultations" element={<Consultations />} />
-            <Route path="/patient-consultation/:id" element={<PatientConsultation />}
-            />
+            <Route path="/patient-consultation/:id" element={<PatientConsultation />}/>
+
+
             {/* Equipment */}
             <Route path="/equipment-list" element={<EquipmentList />} />
             <Route path="/add-equipment" element={<AddEquipment />} />
             <Route path="/add-maintenance" element={<AddMaintenance />} />
-            <Route
-              path="/calibration-schedule-list"
-              element={<CalibrationScheduleList />}
-            />
+            <Route path="/calibration-schedule-list" element={<CalibrationScheduleList />}/>
             <Route path="/maintenance-log" element={<MaintenanceLog />} />
             <Route path="/view-equipment/:id" element={<ViewEquipment />} />
-            <Route
-              path="edit-equipment/:id"
-              element={<EditEquipment />}
-            ></Route>
+            <Route path="edit-equipment/:id" element={<EditEquipment />}/>
+
+
             {/* Infrastructure */}
             <Route path="/add-department" element={<AddDepartment />} />
             <Route path="/bed-availability" element={<BedAvailability />} />
@@ -108,40 +108,28 @@ function App() {
             <Route path="/facility-map" element={<FacilityMap />} />
             <Route path="/issue-report" element={<IssueReport />} />
             <Route path="/issues-list" element={<IssuesList />} />
+
+
             {/* Inventory */}
             <Route path="/add-new-medicine" element={<AddNewMedicine />} />
-            <Route
-              path="/create-new-supplier"
-              element={<CreateNewSupplier />}
-            />
-            <Route
-              path="/create-purchase-order"
-              element={<CreatePurchaseOrder />}
-            />
+            <Route path="/create-new-supplier" element={<CreateNewSupplier />}/>
+            <Route path="/create-purchase-order" element={<CreatePurchaseOrder />}/>
             <Route path="/medicine-stocks" element={<MedicineStocks />} />
             <Route path="/purchase-order" element={<PurchaseOrder />} />
             <Route path="/stock-alerts" element={<StockAlerts />} />
             <Route path="/suppliers-list" element={<SuppliersList />} />
-            <Route
-              path="/edit-supplier/:id"
-              element={<EditSupplierDetails />}
-            />
-            <Route
-              path="/medicine-details/:id"
-              element={<ViewMedicineDetails />}
-            />
-            <Route
-              path="/edit-medicine/:id"
-              element={<EditMedicineDetails />}
-            />
+            <Route path="/edit-supplier/:id" element={<EditSupplierDetails />}/>
+            <Route path="/medicine-details/:id" element={<ViewMedicineDetails />}/>
+            <Route path="/edit-medicine/:id" element={<EditMedicineDetails />}/>
+
+
             {/* Laboratory */}
             <Route path="/lab-reports-list" element={<LabReportsList />} />
             <Route path="/lab-results-entry" element={<LabResultsEntry />} />
-            <Route
-              path="/patient-wise-reports"
-              element={<PatientWiseReports />}
-            />
+            <Route path="/patient-wise-reports" element={<PatientWiseReports />}/>
             <Route path="/upload-report" element={<UploadReport />} />
+
+
             {/* Staff Management */}
             <Route path="/add-staff" element={<AddStaff />} />
             <Route path="/assign-shift" element={<AssignShift />} />
@@ -152,16 +140,16 @@ function App() {
             <Route path="/staff-performance" element={<StaffPerformance />} />
             <Route path="/staff-profile" element={<StaffProfile />} />
             <Route path="/staff-profile/:id" element={<StaffProfile />} />{" "}
-            {/* For List Click (View Mode) */}
+            
           </Routes>
         </div>
       </div>
     </div>
   ) : (
-    <>
-      <Login setUToken={setUToken} />
+    <div> 
       <ToastContainer />
-    </>
+      <Login />
+    </div>
   );
 }
 
