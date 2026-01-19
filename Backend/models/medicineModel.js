@@ -3,11 +3,11 @@ import mongoose from "mongoose";
 // Auto–Generate Increment ID  (M001, M002…)
 async function generateMedicineId() {
   const lastRecord = await medicineModel.findOne().sort({ _id: -1 });
-  if (!lastRecord) return "M001";
+  if (!lastRecord) return "MED0001";
 
   const lastId = lastRecord.medicineId;
-  const numeric = parseInt(lastId.substring(1)) + 1;
-  return "M" + numeric.toString().padStart(3, "0");
+  const numeric = parseInt(lastId.substring(3)) + 1;
+  return "MED" + numeric.toString().padStart(4, "0");
 }
 
 const medicineSchema = new mongoose.Schema({
