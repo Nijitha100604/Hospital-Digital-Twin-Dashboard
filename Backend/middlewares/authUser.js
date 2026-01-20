@@ -15,7 +15,11 @@ const authUser = async(req, res, next)=>{
             return res.json({success: false, message: "Not Authorized Login again"})
         }
 
-        next()
+        if (typeof next === 'function') {
+            return next();
+        } else {
+            throw new Error("Next is not a function inside the middleware");
+        }
 
     } catch (error) {
         console.log(error);

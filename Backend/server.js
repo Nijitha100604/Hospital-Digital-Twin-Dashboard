@@ -5,6 +5,8 @@ import connectDB from './config/mongodb.js';
 import connectCloudinary from './config/cloudinary.js';
 import staffRouter from './routes/staffRoute.js';
 import adminRouter from './routes/adminRoute.js';
+import patientRouter from './routes/patientRoute.js';
+import appointmentRouter from './routes/appointmentRoute.js';
 
 // app config
 const app = express();
@@ -19,8 +21,10 @@ app.use(cors());
 //  api endpoints
 
 // staff routes
-app.use('/api/staff', staffRouter);
 app.use('/api', adminRouter);
+app.use('/api/staff', staffRouter);
+app.use('/api/patient', patientRouter);
+app.use('/api/appointment', appointmentRouter);
 
 app.get('/',(req,res)=>{
     res.send('API WORKING');

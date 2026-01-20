@@ -1,0 +1,73 @@
+import validator from 'validator';
+import patientModel from '../models/patientModel.js';
+import { v2 as cloudinary } from "cloudinary";
+
+// API for add new patient
+
+const addPatient = async(req, res) =>{
+
+    try{
+
+        const {name, gender, age, bloodGroup, contact, email, address, guardianName, guardianContact} = req.body;
+        const allergies = req.body.allergies ? JSON.parse(req.body.allergies): [];
+        const medicalHistory = req.body.medicalHistory ? JSON.parse(req.body.medicalHistory): [];
+        const proofImage = req.file;
+        let proofUrl = "";
+
+        if(!name || !gender || !age || !bloodGroup || !contact || !address || !email){
+            return res.json({success: false, message: "Please enter all mandatory fields"})
+        }
+
+        // validating email
+        if(!validator.isEmail(email)){
+            return res.json({success: false, message: "Please enter a valid email"});
+        }
+
+        // check existing patient
+        const existingPatient = await patientModel.findOne({"personal.email": email});
+        if(existingPatient){
+            return res.json({success: false, message: "Email already exists"})
+        }
+        
+
+        if(proofImage){
+            const imageUpload = await cloudinary.uploader.upload(proofImage.path, {resource_type: "auto"});
+            proofUrl = imageUpload.secure_url;
+        }
+
+        const patientData = {
+            personal: {
+                name,
+                gender,
+                age,
+                bloodGroup,
+                email,
+                contact,
+                address
+            },
+            guardian: {
+                name: guardianName,
+                contact: guardianContact
+            },
+            medical: {
+                allergies,
+                history: medicalHistory
+            },
+            proof: proofUrl
+        }
+
+        const newPatient = new patientModel(patientData);
+        await newPatient.save();
+
+        res.json({success: true, message: "Patient Added Successfully!"});
+
+    } catch(error){
+        console.log(error);
+        res.json({success: false, message:error.message});
+    }
+
+}
+
+export {
+    addPatient
+}

@@ -103,7 +103,6 @@ medicineSchema.pre("save", async function (next) {
   next();
 });
 
-const medicineModel =
-  mongoose.models.medicine || mongoose.model("medicine", medicineSchema);
+const medicineModel = mongoose.models.medicine || mongoose.model("medicine", medicineSchema);
 
 export default medicineModel;
