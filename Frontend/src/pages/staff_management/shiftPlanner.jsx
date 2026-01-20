@@ -40,13 +40,11 @@ function ShiftPlanner() {
   
   // Modal & Data States
   const [selectedCell, setSelectedCell] = useState(null); 
-  
   const [editData, setEditData] = useState({ 
     type: "", 
     startVal: "", startAmpm: "AM",
     endVal: "", endAmpm: "AM"
   });
-
   const [manualOverrides, setManualOverrides] = useState({});
 
   /* -------------------- CONFIG DATA -------------------- */
@@ -177,261 +175,265 @@ function ShiftPlanner() {
 
   /* -------------------- RENDER -------------------- */
   return (
-    <div className="flex flex-col h-screen w-full bg-gray-50 overflow-hidden font-sans">
+    // h-dvh uses Dynamic Viewport Height to fix mobile browser scroll issues
+    <div className="flex flex-col h-dvh w-full bg-gray-50 overflow-hidden font-sans text-slate-900">
 
-      {/* --- HEADER (FIXED) --- */}
-      {/* This section will NOT scroll. It stays pinned to the top. */}
-      <div className="shrink-0 p-4 bg-gray-50 z-20">
-        <div className="mb-4">
-            <h2 className="text-2xl font-bold flex items-center gap-2 text-gray-800">
-                <Calendar className="text-purple-700" size={24}/> Shift Planner
+      {/* --- FIXED HEADER SECTION --- */}
+      <div className="flex-none bg-gray-50 z-30">
+        
+        {/* Title Area */}
+        <div className="px-4 py-4 md:px-6">
+            <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2 text-slate-800">
+                <Calendar className="text-purple-600" size={24}/> Shift Planner
             </h2>
         </div>
         
-        {/* Controls Container: Fixed width constraint to prevent jumping in Monthly view */}
-        <div className="flex items-center justify-between gap-4 bg-white p-3 rounded-xl shadow-sm border border-gray-100 max-w-full">
-            {/* LEFT: View Mode Toggle */}
-            <div className="bg-gray-100 p-1 rounded-lg flex shrink-0">
-                <button 
-                  onClick={() => setViewMode("Weekly")} 
-                  className={`cursor-pointer px-4 py-1.5 text-xs font-bold rounded-md transition-all ${viewMode === "Weekly" ? "bg-white shadow text-purple-700" : "text-gray-500 hover:text-gray-700"}`}
-                >
-                  Weekly
-                </button>
-                <button 
-                  onClick={() => setViewMode("Monthly")} 
-                  className={`cursor-pointer px-4 py-1.5 text-xs font-bold rounded-md transition-all ${viewMode === "Monthly" ? "bg-white shadow text-purple-700" : "text-gray-500 hover:text-gray-700"}`}
-                >
-                  Monthly
-                </button>
-            </div>
-            
-            {/* CENTER: Date Navigation */}
-            <div className="flex items-center gap-2 px-3 shrink-0">
-                <button 
-                  onClick={() => { 
-                    const d = new Date(currentDate); 
-                    viewMode === "Weekly" ? d.setDate(d.getDate() - 7) : d.setMonth(d.getMonth() - 1); 
-                    setCurrentDate(d); 
-                  }} 
-                  className="cursor-pointer p-2 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
-                >
-                  <ChevronLeft size={16}/>
-                </button>
-                <span className="text-sm font-semibold min-w-[140px] text-center select-none truncate">
-                    {daysToDisplay.length > 0 ? viewMode === "Monthly" ? daysToDisplay[0].toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : `${daysToDisplay[0].toLocaleDateString(undefined, {month:'short', day:'numeric'})} - ${daysToDisplay[daysToDisplay.length-1].toLocaleDateString(undefined, {month:'short', day:'numeric'})}` : 'Loading...'}
-                </span>
-                <button 
-                  onClick={() => { 
-                    const d = new Date(currentDate); 
-                    viewMode === "Weekly" ? d.setDate(d.getDate() + 7) : d.setMonth(d.getMonth() + 1); 
-                    setCurrentDate(d); 
-                  }} 
-                  className="cursor-pointer p-2 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
-                >
-                  <ChevronRight size={16}/>
-                </button>
-            </div>
-            
-            {/* RIGHT: Assign Button */}
-            <button 
-              onClick={() => alert('Navigate to assign shift page')} 
-              className="cursor-pointer bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-xs font-bold transition-colors shadow-sm shrink-0"
-            >
-              <Plus size={14}/> Assign Shift
-            </button>
+        {/* Controls Toolbar Container */}
+        <div className="px-4 pb-4 md:px-6">
+          <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-200 flex flex-wrap items-center justify-between gap-3">
+              
+              {/* Left Side: Toggles & Date Nav */}
+              <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
+                  
+                  {/* View Toggles */}
+                  <div className="flex bg-gray-100 rounded-lg p-1 shrink-0">
+                      <button 
+                        onClick={() => setViewMode("Weekly")} 
+                        className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${viewMode === "Weekly" ? "bg-white shadow text-purple-700" : "text-gray-500 hover:text-gray-700"}`}
+                      >
+                        Weekly
+                      </button>
+                      <button 
+                        onClick={() => setViewMode("Monthly")} 
+                        className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${viewMode === "Monthly" ? "bg-white shadow text-purple-700" : "text-gray-500 hover:text-gray-700"}`}
+                      >
+                        Monthly
+                      </button>
+                  </div>
+
+                  {/* Date Navigation */}
+                  <div className="flex items-center gap-1 md:gap-2 bg-gray-50 rounded-lg px-1 py-0.5 border border-gray-100 shrink-0">
+                      <button 
+                        onClick={() => { 
+                          const d = new Date(currentDate); 
+                          viewMode === "Weekly" ? d.setDate(d.getDate() - 7) : d.setMonth(d.getMonth() - 1); 
+                          setCurrentDate(d); 
+                        }} 
+                        className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-600"
+                      >
+                        <ChevronLeft size={16}/>
+                      </button>
+                      
+                      <span className="text-sm font-bold text-gray-800 min-w-[120px] text-center select-none truncate px-2">
+                          {daysToDisplay.length > 0 ? 
+                             viewMode === "Monthly" 
+                               ? daysToDisplay[0].toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) 
+                               : `${daysToDisplay[0].toLocaleDateString(undefined, {month:'short', day:'numeric'})} - ${daysToDisplay[daysToDisplay.length-1].toLocaleDateString(undefined, {month:'short', day:'numeric'})}` 
+                             : 'Loading...'}
+                      </span>
+
+                      <button 
+                        onClick={() => { 
+                          const d = new Date(currentDate); 
+                          viewMode === "Weekly" ? d.setDate(d.getDate() + 7) : d.setMonth(d.getMonth() + 1); 
+                          setCurrentDate(d); 
+                        }} 
+                        className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-600"
+                      >
+                        <ChevronRight size={16}/>
+                      </button>
+                  </div>
+              </div>
+              
+              {/* Right Side: Assign Button */}
+              <div className="flex-none ml-auto">
+                  <button 
+                    onClick={() => alert('Navigate to assign shift page')} 
+                    className="bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-xs font-bold shadow-md transition-all active:scale-95 whitespace-nowrap"
+                  >
+                    <Plus size={14} strokeWidth={3}/> 
+                    <span className="hidden sm:inline">Assign Shift</span>
+                    <span className="sm:hidden">Assign</span>
+                  </button>
+              </div>
+          </div>
         </div>
       </div>
 
       {/* --- TABLE AREA (SCROLLABLE) --- */}
-      {/* overflow-auto here ensures only the table scrolls, independently of the header */}
-      <div className="flex-1 px-4 pb-4 overflow-auto">
-        <div className="inline-block min-w-full align-middle relative">
-            <div className="bg-white rounded-xl shadow border border-gray-200">
-                <table className="border-separate border-spacing-0 w-full">
-                {/* HEADERS */}
-                <thead className="bg-gray-50">
-                    <tr>
-                        {/* 1. SEARCH BOX (Fixed Corner) */}
-                        {/* z-50 ensures it stays on top of everything when scrolling down AND right */}
-                        <th className="sticky left-0 top-0 z-50 bg-white min-w-[200px] w-[250px] border-b border-r border-gray-100 p-3 shadow-[4px_0_8px_-2px_rgba(0,0,0,0.05)]">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14}/>
-                                <input 
-                                  value={searchTerm} 
-                                  onChange={(e) => setSearchTerm(e.target.value)} 
-                                  placeholder="Search Staff..." 
-                                  className="pl-9 w-full py-2 border border-gray-200 rounded-lg bg-gray-50 text-xs focus:outline-none focus:border-purple-500"
-                                />
-                            </div>
-                        </th>
-                        
-                        {/* 2. DATE HEADERS (Sticky Top) */}
-                        {/* z-40 ensures they stay on top of body cells when scrolling down */}
-                        {daysToDisplay.map((d, i) => {
-                            const { day, date } = formatDateDisplay(d);
-                            const isToday = new Date().toDateString() === d.toDateString();
-                            return (
-                            <th key={i} className={`sticky top-0 z-40 min-w-[120px] border-b border-gray-100 py-3 text-center ${isToday ? 'bg-purple-50' : 'bg-white'}`}>
-                                <div className={`text-[10px] font-bold uppercase ${isToday ? 'text-purple-600' : 'text-gray-400'}`}>{day}</div>
-                                <div className={`text-lg font-bold ${isToday ? 'text-purple-800' : 'text-gray-700'}`}>{date}</div>
-                            </th>
-                            );
-                        })}
-                    </tr>
-                </thead>
-                
-                {/* BODY */}
-                <tbody>
-                    {filteredStaff.map((staff) => (
-                    <tr key={staff.id} className="group hover:bg-gray-50">
-                        {/* 3. STAFF NAME (Sticky Left) */}
-                        {/* z-30 ensures it stays on top of shift cells when scrolling right */}
-                        <td className="sticky left-0 z-30 bg-white group-hover:bg-gray-50 border-b border-r border-gray-100 p-3 transition-colors shadow-[4px_0_8px_-2px_rgba(0,0,0,0.05)]">
-                            <div className="font-bold text-sm text-gray-800">{staff.name}</div>
-                            <div className="text-xs text-gray-500">{staff.role}</div>
-                        </td>
-                        
-                        {/* 4. SHIFT CELLS (Scrollable) */}
-                        {daysToDisplay.map((d, i) => {
-                        const details = getShiftDetails(staff.id, d);
+      <div className="flex-1 overflow-hidden px-4 pb-4">
+        <div className="bg-white h-full w-full rounded-xl shadow-sm border border-gray-200 overflow-auto relative">
+            <table className="border-separate border-spacing-0 min-w-full">
+            {/* HEADERS */}
+            <thead className="bg-gray-50 sticky top-0 z-20 shadow-sm">
+                <tr>
+                    {/* Search Box (Sticky Top-Left) */}
+                    <th className="sticky left-0 top-0 z-30 bg-white min-w-[160px] w-[200px] border-b border-r border-gray-200 p-3 shadow-[4px_0_8px_-2px_rgba(0,0,0,0.05)]">
+                        <div className="relative group">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-500 transition-colors" size={14}/>
+                            <input 
+                              value={searchTerm} 
+                              onChange={(e) => setSearchTerm(e.target.value)} 
+                              placeholder="Search Staff..." 
+                              className="pl-9 w-full py-2 border border-gray-200 rounded-lg bg-gray-50 text-xs font-medium focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all placeholder:text-gray-400"
+                            />
+                        </div>
+                    </th>
+                    
+                    {/* Date Headers */}
+                    {daysToDisplay.map((d, i) => {
+                        const { day, date } = formatDateDisplay(d);
+                        const isToday = new Date().toDateString() === d.toDateString();
                         return (
-                            <td key={i} className="p-1 border-b border-gray-100 h-[70px] min-w-[120px]">
-                            <div 
-                              className={`cursor-pointer h-full w-full rounded-lg flex flex-col items-center justify-center border transition-all hover:shadow-md ${details.style}`} 
-                              onClick={() => handleCellClick(staff, d)}
-                            >
-                                {details.key === 'Available' ? (
-                                    <div className="flex items-center gap-1"><CheckCircle size={12}/> <span className="text-xs font-bold">Available</span></div>
-                                ) : (
-                                    <>
-                                        <div className="text-[11px] font-bold">{details.label}</div>
-                                        {details.time && <div className="text-[9px] opacity-80">{details.time}</div>}
-                                    </>
-                                )}
-                            </div>
-                            </td>
+                        <th key={i} className={`min-w-[100px] border-b border-gray-200 py-3 text-center ${isToday ? 'bg-purple-50/50' : 'bg-white'}`}>
+                            <div className={`text-[10px] font-bold uppercase tracking-wider ${isToday ? 'text-purple-600' : 'text-gray-400'}`}>{day}</div>
+                            <div className={`text-lg font-bold ${isToday ? 'text-purple-800' : 'text-slate-700'}`}>{date}</div>
+                        </th>
                         );
-                        })}
-                    </tr>
-                    ))}
-                </tbody>
-                </table>
-            </div>
+                    })}
+                </tr>
+            </thead>
+            
+            {/* BODY */}
+            <tbody>
+                {filteredStaff.map((staff) => (
+                <tr key={staff.id} className="group hover:bg-gray-50">
+                    {/* Staff Name (Sticky Left) */}
+                    <td className="sticky left-0 z-10 bg-white group-hover:bg-gray-50 border-b border-r border-gray-200 p-4 transition-colors shadow-[4px_0_8px_-2px_rgba(0,0,0,0.05)]">
+                        <div className="font-bold text-sm text-slate-800 truncate max-w-[180px]">{staff.name}</div>
+                        <div className="text-xs text-slate-500 font-medium">{staff.role}</div>
+                    </td>
+                    
+                    {/* Shift Cells */}
+                    {daysToDisplay.map((d, i) => {
+                    const details = getShiftDetails(staff.id, d);
+                    return (
+                        <td key={i} className="p-1 border-b border-gray-100 h-[70px] min-w-[100px]">
+                        <div 
+                          className={`cursor-pointer h-full w-full rounded-lg flex flex-col items-center justify-center border transition-all hover:shadow-md hover:scale-[0.98] ${details.style}`} 
+                          onClick={() => handleCellClick(staff, d)}
+                        >
+                            {details.key === 'Available' ? (
+                                <div className="flex items-center gap-1 opacity-70"><CheckCircle size={12}/> <span className="text-[10px] font-bold">Available</span></div>
+                            ) : (
+                                <>
+                                    <div className="text-[10px] font-bold">{details.label}</div>
+                                    {details.time && <div className="text-[9px] opacity-80 font-mono mt-0.5">{details.time}</div>}
+                                </>
+                            )}
+                        </div>
+                        </td>
+                    );
+                    })}
+                </tr>
+                ))}
+            </tbody>
+            </table>
         </div>
       </div>
 
       {/* --- EDIT MODAL --- */}
       {selectedCell && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100">
             
             {/* Modal Header */}
-            <div className={`p-6 pb-8 relative ${editData.type === 'Available' ? 'bg-green-600' : editData.type === 'Leave' ? 'bg-gray-500' : 'bg-purple-700'}`}>
+            <div className={`p-5 pb-8 relative ${editData.type === 'Available' ? 'bg-emerald-600' : editData.type === 'Leave' ? 'bg-slate-500' : 'bg-purple-700'}`}>
                 <button 
                   onClick={() => setSelectedCell(null)} 
-                  className="cursor-pointer absolute top-4 right-4 text-white/70 hover:text-white transition-colors bg-white/20 hover:bg-white/30 rounded-full p-2"
+                  className="cursor-pointer absolute top-4 right-4 text-white/70 hover:text-white transition-colors bg-white/20 hover:bg-white/30 rounded-full p-1.5"
                 >
-                  <X size={16}/>
+                  <X size={18}/>
                 </button>
                 <div className="flex flex-col gap-1 text-white">
-                    <span className="text-xs font-bold uppercase opacity-80 tracking-widest">Edit Schedule</span>
-                    <h3 className="text-2xl font-bold">{selectedCell.staff.name}</h3>
-                    <p className="text-sm font-medium opacity-90 flex items-center gap-2 mt-1">
-                        <Calendar size={16} className="opacity-70"/> 
-                        {selectedCell.dateObj.toLocaleDateString(undefined, {weekday:'long', month:'long', day:'numeric'})}
+                    <span className="text-[10px] font-bold uppercase opacity-80 tracking-widest">Edit Schedule</span>
+                    <h3 className="text-xl font-bold truncate">{selectedCell.staff.name}</h3>
+                    <p className="text-sm font-medium opacity-90 flex items-center gap-2 mt-0.5">
+                        <Calendar size={14} className="opacity-70"/> 
+                        {selectedCell.dateObj.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'})}
                     </p>
                 </div>
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 -mt-4 bg-white rounded-t-2xl relative">
+            <div className="p-5 -mt-4 bg-white rounded-t-2xl relative">
                 
                 {/* 1. Shift Type Dropdown */}
-                <div className="mb-6">
-                    <label className="text-xs font-bold text-gray-400 uppercase mb-2 block tracking-wide">Select Shift Type</label>
+                <div className="mb-5">
+                    <label className="text-xs font-bold text-slate-400 uppercase mb-1.5 block tracking-wide">Select Shift Type</label>
                     <div className="relative">
                       <select 
-                        className="cursor-pointer w-full p-4 border border-gray-200 rounded-xl bg-gray-50 text-base font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all appearance-none" 
+                        className="cursor-pointer w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all appearance-none" 
                         value={editData.type} 
                         onChange={(e) => handleTypeChange(e.target.value)}
                       >
                           {shiftKeys.map(k => <option key={k} value={k}>{shiftTypes[k].label}</option>)}
                       </select>
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
-                      </div>
                     </div>
                 </div>
 
                 {/* 2. Shift Timing */}
                 {editData.type !== 'Available' && editData.type !== 'Leave' && (
-                  <div className="mb-8">
-                    <label className="text-xs font-bold text-gray-400 uppercase mb-2 flex items-center gap-2 tracking-wide">
-                      <Clock size={14} /> Shift Timing
+                  <div className="mb-6">
+                    <label className="text-xs font-bold text-slate-400 uppercase mb-1.5 flex items-center gap-2 tracking-wide">
+                      <Clock size={12} /> Shift Timing
                     </label>
                     
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
                         {/* Start Time */}
-                        <div className="flex-1">
-                            <div className="flex border border-gray-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-purple-500 transition-all">
-                                <input 
-                                  type="text" 
-                                  value={editData.startVal} 
-                                  onChange={(e) => setEditData({...editData, startVal: e.target.value})} 
-                                  placeholder="09:00" 
-                                  className="w-full p-3 text-center font-bold text-gray-700 outline-none"
-                                />
-                                <select 
-                                  value={editData.startAmpm} 
-                                  onChange={(e) => setEditData({...editData, startAmpm: e.target.value})}
-                                  className="cursor-pointer bg-gray-100 border-l border-gray-300 px-2 text-sm font-semibold text-gray-600 outline-none hover:bg-gray-200"
-                                >
-                                  <option value="AM">AM</option>
-                                  <option value="PM">PM</option>
-                                </select>
-                            </div>
+                        <div className="flex border border-gray-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-purple-500 transition-all flex-1">
+                            <input 
+                              type="text" 
+                              value={editData.startVal} 
+                              onChange={(e) => setEditData({...editData, startVal: e.target.value})} 
+                              className="w-full p-2.5 text-center font-bold text-slate-700 outline-none text-sm"
+                            />
+                            <select 
+                              value={editData.startAmpm} 
+                              onChange={(e) => setEditData({...editData, startAmpm: e.target.value})}
+                              className="cursor-pointer bg-gray-50 border-l border-gray-200 px-2 text-xs font-bold text-slate-500 outline-none hover:bg-gray-100"
+                            >
+                              <option value="AM">AM</option>
+                              <option value="PM">PM</option>
+                            </select>
                         </div>
 
-                        <span className="text-gray-400 font-bold">-</span>
+                        <span className="text-slate-300 font-bold">-</span>
 
                         {/* End Time */}
-                        <div className="flex-1">
-                             <div className="flex border border-gray-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-purple-500 transition-all">
-                                <input 
-                                  type="text" 
-                                  value={editData.endVal} 
-                                  onChange={(e) => setEditData({...editData, endVal: e.target.value})} 
-                                  placeholder="05:00" 
-                                  className="w-full p-3 text-center font-bold text-gray-700 outline-none"
-                                />
-                                <select 
-                                  value={editData.endAmpm} 
-                                  onChange={(e) => setEditData({...editData, endAmpm: e.target.value})}
-                                  className="cursor-pointer bg-gray-100 border-l border-gray-300 px-2 text-sm font-semibold text-gray-600 outline-none hover:bg-gray-200"
-                                >
-                                  <option value="AM">AM</option>
-                                  <option value="PM">PM</option>
-                                </select>
-                            </div>
+                        <div className="flex border border-gray-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-purple-500 transition-all flex-1">
+                            <input 
+                              type="text" 
+                              value={editData.endVal} 
+                              onChange={(e) => setEditData({...editData, endVal: e.target.value})} 
+                              className="w-full p-2.5 text-center font-bold text-slate-700 outline-none text-sm"
+                            />
+                            <select 
+                              value={editData.endAmpm} 
+                              onChange={(e) => setEditData({...editData, endAmpm: e.target.value})}
+                              className="cursor-pointer bg-gray-50 border-l border-gray-200 px-2 text-xs font-bold text-slate-500 outline-none hover:bg-gray-100"
+                            >
+                              <option value="AM">AM</option>
+                              <option value="PM">PM</option>
+                            </select>
                         </div>
                     </div>
                   </div>
                 )}
 
                 {/* 3. Action Buttons */}
-                <div className="flex gap-4">
+                <div className="flex gap-3 pt-2">
                     <button 
                       onClick={handleRemoveShift} 
-                      className="cursor-pointer flex-1 py-3.5 border border-red-100 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                      className="cursor-pointer flex-1 py-3 border border-red-100 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
                     >
-                      <Trash2 size={16}/> Clear
+                      <Trash2 size={14}/> Clear
                     </button>
                     <button 
                       onClick={handleSaveShift} 
-                      className="cursor-pointer flex-[2] py-3.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-sm font-bold shadow-lg shadow-purple-200 transition-all flex items-center justify-center gap-2"
+                      className="cursor-pointer flex-[2] py-3 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-100 transition-all flex items-center justify-center gap-2"
                     >
-                      <Save size={16}/> Save Changes
+                      <Save size={14}/> Save Changes
                     </button>
                 </div>
 
