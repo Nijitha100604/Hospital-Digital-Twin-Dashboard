@@ -1,99 +1,57 @@
 import mongoose from "mongoose";
 
-// Auto–Generate Increment ID  (M001, M002…)
+// Auto-generate Medicine ID (MED0001, MED0002…)
 async function generateMedicineId() {
-  const lastRecord = await medicineModel.findOne().sort({ _id: -1 });
-  if (!lastRecord) return "MED0001";
+  const lastMedicine = await mongoose
+    .model("medicine")
+    .findOne({}, {}, { sort: { createdAt: -1 } });
 
-  const lastId = lastRecord.medicineId;
-  const numeric = parseInt(lastId.substring(3)) + 1;
-  return "MED" + numeric.toString().padStart(4, "0");
+  let newSerial = 1;
+
+  if (lastMedicine && lastMedicine.medicineId) {
+    const lastNum = parseInt(lastMedicine.medicineId.replace("MED", ""));
+    newSerial = lastNum + 1;
+  }
+
+  return `MED${newSerial.toString().padStart(4, "0")}`;
 }
 
-const medicineSchema = new mongoose.Schema({
-    medicineId: {
-        type: String,
-        unique: true,
-    },
-    medicineName: {
-        type: String,
-        required: true,
-    },
-    genericName: {
-        type: String,
-        required: true,
-    },
-    category: {
-        type: String,
-        required: true,
-    },
-    manufacturer: {
-        type: String,
-        required: true,
-    },
-    dosageForm: {
-        type: String,
-        required: true,
-    },
-    strength: {
-        type: String,
-        required: true,
-    },
-    packSize: {
-        type: String,
-        default: "",
-    },
-    prescriptionRequired: {
-        type: String,
-        default: "No",
-    },
-    batchNumber: {
-        type: String,
-        required: true,
-    },
-    quantity: {
-        type: Number,
-        required: true,
-    },
-    minimumThreshold: {
-        type: Number,
-        default: 0,
-    },
-    expiryDate: {
-        type: String,
-        required: true,
-    },
-    storageLocation: {
-        type: String,
-        default: "",
-    },
-    storageConditions: {
-        type: String,
-        default: "",
-    },
-    supplierName: {
-        type: String,
-        required: true,
-    },
-    costPerUnit: {
-        type: String,
-        required: true,
-    },
-    sellingPrice: {
-        type: String,
-        default: "",
-    },
-    description: {
-        type: String,
-        default: "",
-    },
+const medicineSchema = new mongoose.Schema(
+  {
+    medicineId: { type: String, unique: true },
 
-    // Store medicine image as BASE64
-    medicineImage: {
-        type: String,
-        default: "",
-    },
-});
+    // BASIC INFORMATION
+    medicineName: { type: String, required: true },
+    genericName: { type: String, required: true },
+    category: { type: String, required: true }, // Analgesic, Antibiotic...
+    manufacturer: { type: String, required: true },
+    dosageForm: { type: String, required: true }, // Tablet, Capsule...
+    strength: { type: String, required: true },
+    packSize: { type: String, default: "" },
+    prescriptionRequired: { type: String, default: "No" },
+
+    // STOCK INFORMATION
+    batchNumber: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    minimumThreshold: { type: Number, default: 0 },
+    expiryDate: { type: String, required: true },
+
+    storageLocation: { type: String, default: "" },
+    storageConditions: { type: String, default: "" },
+
+    // SUPPLIER & PRICING
+    supplierName: { type: String, required: true },
+    costPerUnit: { type: String, required: true },
+    sellingPrice: { type: String, default: "0" },
+
+    // DESCRIPTION
+    description: { type: String, default: "" },
+
+    // IMAGE FILE NAME OR URL
+    medicineImage: { type: String, default: "" },
+  },
+  { timestamps: true }
+);
 
 // Auto-generate ID before saving
 medicineSchema.pre("save", async function (next) {
@@ -103,6 +61,7 @@ medicineSchema.pre("save", async function (next) {
   next();
 });
 
-const medicineModel = mongoose.models.medicine || mongoose.model("medicine", medicineSchema);
+const medicineModel =
+  mongoose.models.medicine || mongoose.model("medicine", medicineSchema);
 
 export default medicineModel;
