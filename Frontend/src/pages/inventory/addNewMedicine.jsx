@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useContext } from "react";
 import {
   FaPlusCircle,
   FaUpload,
@@ -15,10 +15,17 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import axios from "axios";
+import { AppContext } from "../../context/AppContext";
+import Loading from "../Loading"; 
 
 const AddNewMedicine = () => {
   const navigate = useNavigate();
   const fileRef = useRef(null);
+  const { backendUrl, token } = useContext(AppContext);
+
+  /* ---------- Loading State ---------- */
+  const [isLoading, setIsLoading] = useState(false);
 
   /* ---------- Required Fields ---------- */
   const [medicineName, setMedicineName] = useState("");
@@ -44,10 +51,12 @@ const AddNewMedicine = () => {
 
   /* ---------- Image ---------- */
   const [imageName, setImageName] = useState("");
+  const [imageFile, setImageFile] = useState(null);
 
   const handleImageChange = (e) => {
     if (e.target.files[0]) {
       setImageName(e.target.files[0].name);
+      setImageFile(e.target.files[0]);
     }
   };
 
@@ -55,61 +64,114 @@ const AddNewMedicine = () => {
     e.stopPropagation();
     setImageName("");
     fileRef.current.value = null;
+    setImageFile(null);
   };
 
-  const handleSubmit = (e) => {
+  /* ---------- SUBMIT TO BACKEND ---------- */
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    toast.success("New medicine data created successfully");
-    navigate("/medicine-stocks");
+    setIsLoading(true); // Start Loading
+
+    try {
+      const formData = new FormData();
+      formData.append("medicineName", medicineName);
+      formData.append("genericName", genericName);
+      formData.append("category", category);
+      formData.append("manufacturer", manufacturer);
+      formData.append("dosageForm", dosageForm);
+      formData.append("strength", strength);
+      formData.append("packSize", packSize);
+      formData.append("prescriptionRequired", prescriptionRequired);
+      formData.append("batchNumber", batchNumber);
+      formData.append("quantity", quantity);
+      formData.append("minimumThreshold", minimumThreshold);
+      formData.append("expiryDate", expiryDate);
+      formData.append("storageLocation", storageLocation);
+      formData.append("storageConditions", storageConditions);
+      formData.append("supplierName", supplierName);
+      formData.append("costPerUnit", costPerUnit);
+      formData.append("sellingPrice", sellingPrice);
+      formData.append("description", description);
+
+      if (imageFile) {
+        formData.append("medicineImage", imageFile);
+      }
+
+      const { data } = await axios.post(
+        `${backendUrl}/api/medicine/add-medicine`,
+        formData,
+        {
+          headers: {
+            token: token,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (data.success) {
+        toast.success("Medicine added successfully!");
+        navigate("/medicine-stocks");
+      } else {
+        toast.error(data.message);
+        setIsLoading(false); 
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Error adding medicine");
+      setIsLoading(false); 
+    }
   };
+
+  // Show Loading 
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen">
       {/* Header */}
       <div className="bg-white p-6 rounded-xl mb-6 flex flex-col md:flex-row justify-between items-center border border-gray-200 shadow-sm">
-              <div className="mb-4 md:mb-0 w-full md:w-auto">
-                <div className="flex gap-3 items-center">
-                  <FaPlusCircle size={24} className="text-gray-500 text-xl" />
-                  <p className="text-gray-800 font-bold text-lg">
-                    Add New Medicine
-                  </p>
-                </div>
-                <p className="text-gray-500 text-sm mt-1">
-                  Add a new medicine or supply into inventory
-                </p>
-              </div>
-      
-              <div className="w-full md:w-auto">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto cursor-pointer"
-                >
-                  <FaArrowLeft />
-                  Back
-                </button>
-              </div>
-            </div>
+        <div className="mb-4 md:mb-0 w-full md:w-auto">
+          <div className="flex gap-3 items-center">
+            <FaPlusCircle size={24} className="text-gray-500 text-xl" />
+            <p className="text-gray-800 font-bold text-lg">Add New Medicine</p>
+          </div>
+          <p className="text-gray-500 text-sm mt-1">
+            Add a new medicine or supply into inventory
+          </p>
+        </div>
 
+        <div className="w-full md:w-auto">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm"
+          >
+            <FaArrowLeft />
+            Back
+          </button>
+        </div>
+      </div>
+
+      {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* LEFT COLUMN: Main Info */}
+          {/* LEFT COLUMN */}
           <div className="lg:col-span-2 space-y-6">
             {/* Basic Information */}
             <Section title="Basic Information" icon={<FaInfoCircle />}>
               <Input
                 label="Medicine Name"
                 required
-                placeholder="e.g. Paracetamol"
                 value={medicineName}
                 onChange={setMedicineName}
               />
               <Input
                 label="Generic Name"
                 required
-                placeholder="e.g. Acetaminophen"
                 value={genericName}
                 onChange={setGenericName}
               />
+
               <Select
                 label="Category"
                 required
@@ -121,15 +183,17 @@ const AddNewMedicine = () => {
                   "Antidiabetic",
                   "Antacid",
                   "Supplement",
+                  "Antihistamine",
                 ]}
               />
+
               <Input
                 label="Manufacturer"
                 required
-                placeholder="e.g. PharmaCorp Ltd"
                 value={manufacturer}
                 onChange={setManufacturer}
               />
+
               <Select
                 label="Dosage Form"
                 required
@@ -143,17 +207,16 @@ const AddNewMedicine = () => {
                   "Inhaler",
                 ]}
               />
+
               <div className="grid grid-cols-2 gap-4">
                 <Input
                   label="Strength"
                   required
-                  placeholder="e.g. 500 mg"
                   value={strength}
                   onChange={setStrength}
                 />
                 <Input
                   label="Pack Size"
-                  placeholder="e.g. 10s"
                   value={packSize}
                   onChange={setPackSize}
                 />
@@ -165,57 +228,46 @@ const AddNewMedicine = () => {
               <Input
                 label="Batch Number"
                 required
-                placeholder="e.g. PC-2024-001"
                 value={batchNumber}
                 onChange={setBatchNumber}
               />
               <Input
                 label="Quantity"
-                type="number"
                 required
-                placeholder="e.g. 150"
+                type="number"
                 value={quantity}
                 onChange={setQuantity}
               />
               <Input
                 label="Minimum Threshold"
                 type="number"
-                placeholder="e.g. 20"
                 value={minimumThreshold}
                 onChange={setMinimumThreshold}
               />
               <Input
                 label="Expiry Date"
-                type="date"
                 required
+                type="date"
                 value={expiryDate}
                 onChange={setExpiryDate}
               />
               <Input
                 label="Storage Location"
-                placeholder="e.g. Rack A - Shelf 3"
                 value={storageLocation}
                 onChange={setStorageLocation}
               />
+
               <div className="grid grid-cols-2 gap-4">
                 <Input
                   label="Storage Conditions"
-                  placeholder="e.g. < 25°C"
                   value={storageConditions}
                   onChange={setStorageConditions}
-                />
-                <Select
-                  label="Rx Required"
-                  required
-                  value={prescriptionRequired}
-                  onChange={setPrescriptionRequired}
-                  options={["Yes", "No"]}
                 />
               </div>
             </Section>
           </div>
 
-          {/* RIGHT COLUMN: Extras */}
+          {/* RIGHT COLUMN */}
           <div className="space-y-6">
             {/* Upload Image */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -272,21 +324,17 @@ const AddNewMedicine = () => {
 
             {/* Supplier & Pricing */}
             <Section title="Supplier & Pricing" icon={<FaTruck />}>
-              <div className="col-span-1 md:col-span-2">
-                <Input
-                  label="Supplier Name"
-                  required
-                  placeholder="Select Supplier..."
-                  value={supplierName}
-                  onChange={setSupplierName}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4 col-span-1 md:col-span-2">
+              <Input
+                label="Supplier Name"
+                required
+                value={supplierName}
+                onChange={setSupplierName}
+              />
+              <div className="grid grid-cols-2 gap-4">
                 <Input
                   label="Cost Price"
                   required
                   type="number"
-                  placeholder="0.00"
                   value={costPerUnit}
                   onChange={setCostPerUnit}
                   prefix="₹"
@@ -294,7 +342,6 @@ const AddNewMedicine = () => {
                 <Input
                   label="Selling Price"
                   type="number"
-                  placeholder="0.00"
                   value={sellingPrice}
                   onChange={setSellingPrice}
                   prefix="₹"
@@ -302,7 +349,7 @@ const AddNewMedicine = () => {
               </div>
             </Section>
 
-            {/* Additional Info */}
+            {/* Description */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
                 <FaStickyNote className="text-gray-400" />
@@ -321,7 +368,7 @@ const AddNewMedicine = () => {
           </div>
         </div>
 
-        {/* Actions (Bottom Right) */}
+        {/* Bottom Buttons */}
         <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
           <button
             type="button"

@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { medicine_records } from "../../data/medicine";
+import axios from "axios";
 import { assets } from "../../assets/assets";
-
+import { AppContext } from "../../context/AppContext";
 import {
   FaArrowLeft,
   FaEdit,
@@ -21,7 +21,39 @@ const ViewMedicineDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const medicine = medicine_records.find((m) => m.medicineId === id);
+  const [medicine, setMedicine] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const token = localStorage.getItem("token");
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+  useEffect(() => {
+    const fetchMedicine = async () => {
+      try {
+        const { data } = await axios.get(
+          `${backendUrl}/api/medicine/medicine/${id}`,
+          { headers: { token } }
+        );
+
+        if (data.success) {
+          setMedicine(data.data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+      setLoading(false);
+    };
+
+    fetchMedicine();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen flex items-center justify-center">
+        <p className="text-gray-600 font-medium">Loading...</p>
+      </div>
+    );
+  }
 
   if (!medicine) {
     return (
@@ -74,7 +106,7 @@ const ViewMedicineDetails = () => {
 
           <button
             onClick={() => navigate(`/edit-medicine/${medicine.medicineId}`)}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium  cursor-pointer transition-colors shadow-sm w-full md:w-auto"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium cursor-pointer transition-colors shadow-sm w-full md:w-auto"
           >
             <FaEdit />
             Edit Details
@@ -90,7 +122,7 @@ const ViewMedicineDetails = () => {
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
             <div className="bg-gray-50 rounded-lg p-6 mb-4 flex items-center justify-center border border-gray-100">
               <img
-                src={assets[medicine.medicineImage]}
+                src={medicine.medicineImage || assets.default_medicine}
                 alt={medicine.medicineName}
                 className="w-full h-64 object-contain mix-blend-multiply hover:scale-105 transition-transform duration-300"
               />
@@ -132,20 +164,24 @@ const ViewMedicineDetails = () => {
                 Stock Level
               </p>
               <span className="text-lg font-bold text-gray-800">
-                {medicine.quantity} <span className="text-xs font-normal text-gray-500">units</span>
+                {medicine.quantity}{" "}
+                <span className="text-xs font-normal text-gray-500">units</span>
               </span>
             </div>
-            
+
             <div className="p-5">
               <div className="w-full bg-gray-100 rounded-full h-2.5 mb-4 overflow-hidden">
                 <div
                   className={`h-2.5 rounded-full ${
-                    medicine.quantity < medicine.minimumThreshold 
-                      ? "bg-red-500" 
+                    medicine.quantity < medicine.minimumThreshold
+                      ? "bg-red-500"
                       : "bg-green-500"
                   }`}
                   style={{
-                    width: `${Math.min((medicine.quantity / 500) * 100, 100)}%`,
+                    width: `${Math.min(
+                      (medicine.quantity / 500) * 100,
+                      100
+                    )}%`,
                   }}
                 />
               </div>
@@ -165,7 +201,9 @@ const ViewMedicineDetails = () => {
             <div>
               <p className="font-bold text-red-800">Expiry Alert</p>
               <p className="text-sm text-red-600 mt-1">
-                This medicine expires on <span className="font-bold">{medicine.expiryDate}</span>. check batch details.
+                This medicine expires on{" "}
+                <span className="font-bold">{medicine.expiryDate}</span>. Check
+                batch details.
               </p>
             </div>
           </div>
@@ -269,9 +307,7 @@ const InfoRow = ({ label, value }) => (
     <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
       {label}
     </p>
-    <p className="text-sm font-semibold text-gray-700">
-      {value || "N/A"}
-    </p>
+    <p className="text-sm font-semibold text-gray-700">{value || "N/A"}</p>
   </div>
 );
 
