@@ -56,11 +56,10 @@ const supplierSchema = new mongoose.Schema(
 );
 
 // Auto-generate Supplier ID before saving
-supplierSchema.pre("save", async function (next) {
+supplierSchema.pre("save", async function () {
   if (!this.supplierId) {
     this.supplierId = await generateSupplierId();
-  }
-  next();
+  };
 });
 
 const supplierModel =

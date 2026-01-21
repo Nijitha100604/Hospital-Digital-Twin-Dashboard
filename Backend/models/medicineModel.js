@@ -28,7 +28,7 @@ const medicineSchema = new mongoose.Schema(
     dosageForm: { type: String, required: true }, // Tablet, Capsule...
     strength: { type: String, required: true },
     packSize: { type: String, default: "" },
-    prescriptionRequired: { type: String, default: "No" },
+    
 
     // STOCK INFORMATION
     batchNumber: { type: String, required: true },
@@ -48,17 +48,17 @@ const medicineSchema = new mongoose.Schema(
     description: { type: String, default: "" },
 
     // IMAGE FILE NAME OR URL
-    medicineImage: { type: String, default: "" },
+    medicineImageName: { type: String, default: "" }, 
+    medicineImage: { type: String, default: "..." }
   },
   { timestamps: true }
 );
 
 // Auto-generate ID before saving
-medicineSchema.pre("save", async function (next) {
+medicineSchema.pre("save", async function () {
   if (!this.medicineId) {
     this.medicineId = await generateMedicineId();
-  }
-  next();
+  };
 });
 
 const medicineModel =

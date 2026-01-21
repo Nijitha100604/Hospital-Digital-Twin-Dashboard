@@ -7,6 +7,7 @@ import staffRouter from './routes/staffRoute.js';
 import adminRouter from './routes/adminRoute.js';
 import patientRouter from './routes/patientRoute.js';
 import appointmentRouter from './routes/appointmentRoute.js';
+import medicineRouter from './routes/medicineRoute.js';
 
 // app config
 const app = express();
@@ -25,6 +26,9 @@ app.use('/api', adminRouter);
 app.use('/api/staff', staffRouter);
 app.use('/api/patient', patientRouter);
 app.use('/api/appointment', appointmentRouter);
+
+//medicine routes
+app.use('/api/medicine', medicineRouter);
 
 app.get('/',(req,res)=>{
     res.send('API WORKING');

@@ -65,11 +65,11 @@ const equipmentSchema = new mongoose.Schema(
 );
 
 // Pre-save ID generator
-equipmentSchema.pre("save", async function (next) {
+equipmentSchema.pre("save", async function () {
   if (!this.equipmentId) {
     this.equipmentId = await generateEquipmentId();
   }
-  next();
+  ;
 });
 
 const equipmentModel =
