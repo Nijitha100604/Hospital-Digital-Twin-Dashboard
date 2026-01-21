@@ -21,7 +21,7 @@ const consultationSchema = new mongoose.Schema({
     labReports: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "labreport"
+            ref: "labReport"
         }
     ],
     admission:[

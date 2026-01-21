@@ -21,6 +21,13 @@ const labReportSchema = new mongoose.Schema({
     unique: true,
   },
 
+  consultationId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "consultation",
+    required: true
+  },
+
+
   // --- 1. PATIENT & DOCTOR DETAILS (From your Image) ---
   patientId: {
     type: String,
