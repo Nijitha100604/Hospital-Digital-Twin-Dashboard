@@ -29,7 +29,6 @@ const addPatient = async(req, res) =>{
             return res.json({success: false, message: "Email already exists"})
         }
         
-
         if(proofImage){
             const imageUpload = await cloudinary.uploader.upload(proofImage.path, {resource_type: "auto"});
             proofUrl = imageUpload.secure_url;

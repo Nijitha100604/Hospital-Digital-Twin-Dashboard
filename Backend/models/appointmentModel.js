@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const appointmentSchema = new mongoose.Schema({
 
     patientId: { type: String, required: true },
+    staffId: { type: String, required: true },
     appointmentId: {type: String, unique: true},
     appointmentType: { type: String, required: true},
     department: { type: String, required: true},

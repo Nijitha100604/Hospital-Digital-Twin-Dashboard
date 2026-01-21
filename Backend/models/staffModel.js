@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-// Auto-Generate Staff ID (S001, S002...)
 async function generateStaffId() {
   const lastRecord = await staffModel.findOne().sort({ _id: -1 });
   if (!lastRecord) return "STF0001";
@@ -37,7 +36,7 @@ const staffSchema = new mongoose.Schema({
     ],
   },
   contactNumber: {
-    type: String, // String allows preserving leading zeros if any
+    type: String, 
     required: [true, "Contact Number is required"],
     trim: true,
   },
@@ -46,7 +45,7 @@ const staffSchema = new mongoose.Schema({
     required: [true, "Date of Birth is required"],
   },
   profilePhoto: {
-    type: String, // Store image as Base64 string or URL
+    type: String,
     default: "",
   },
   address: {
@@ -55,12 +54,12 @@ const staffSchema = new mongoose.Schema({
     trim: true,
   },
   
-  // Qualification Details
   designation: {
     type: String,
     required: [true, "Designation is required"],
     enum: ["Doctor", "Nurse", "Admin", "Support", "Technician", "Receptionist"], 
   },
+
   department: {
     type: String,
     required: [true, "Department is required"],
@@ -76,7 +75,7 @@ const staffSchema = new mongoose.Schema({
     trim: true,
   },
   experience: {
-    type: Number, // Years of experience
+    type: Number, 
     required: [true, "Years of Experience is required"],
     min: 0,
   },
@@ -97,24 +96,22 @@ const staffSchema = new mongoose.Schema({
     default: Date.now,
   },
   
-  // Uploaded Documents (e.g., ID Proof)
   idProofDoc: {
-    type: String, // Store document as Base64 or URL
+    type: String, 
     default: "",
   },
-  idProofName: { // To store original filename if needed
+  idProofName: { 
       type: String,
       default: ""
   },
 
-  // System Fields
   isActive: {
     type: Boolean,
     default: true,
   },
-}, { timestamps: true }); // Automatically adds createdAt and updatedAt
+}, { timestamps: true });
 
-// Auto-generate ID before saving
+
 staffSchema.pre("save", async function (next) {
   if (!this.staffId) {
     this.staffId = await generateStaffId();
