@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-// Auto-generate Equipment ID (EQ0001, EQ0002...)
 async function generateEquipmentId() {
   const lastEquipment = await mongoose
     .model("equipment")
@@ -15,7 +14,7 @@ async function generateEquipmentId() {
     newSerialNumber = lastIdNumber + 1;
   }
 
-  // Format: EQ0001
+  
   return `EQ${newSerialNumber.toString().padStart(4, "0")}`;
 }
 
@@ -72,7 +71,6 @@ equipmentSchema.pre("save", async function () {
   ;
 });
 
-const equipmentModel =
-  mongoose.models.equipment || mongoose.model("equipment", equipmentSchema);
+const equipmentModel = mongoose.models.equipment || mongoose.model("equipment", equipmentSchema);
 
 export default equipmentModel;

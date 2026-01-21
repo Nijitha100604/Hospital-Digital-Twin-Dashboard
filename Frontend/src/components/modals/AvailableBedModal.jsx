@@ -48,7 +48,7 @@ function AvailableBedModal({ bed, onClose }) {
     </div>
 
     <button 
-        className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg mt-8 cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
+        className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg mt-8 cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         onClick={handleOccupy}
     >
         Occupy Bed

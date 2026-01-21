@@ -6,7 +6,7 @@ const createAppointment = async(req, res) =>{
 
     try{
 
-        const {patientId, appointmentType, department, doctor, consultationType, date, timeSlot, remarks} = req.body;
+        const {patientId, staffId, appointmentType, department, doctor, consultationType, date, timeSlot, remarks} = req.body;
 
         if(!patientId){
             return res.json({success: false, message: "Patient ID required"});
