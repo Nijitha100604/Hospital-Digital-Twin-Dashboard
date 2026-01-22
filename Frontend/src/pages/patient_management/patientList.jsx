@@ -1,17 +1,24 @@
-import React, { useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { 
   FaHospitalUser,
   FaPlus,
   FaSearch,
   FaFilter,
   FaEye,
-  FaTimes 
+  FaTimes, 
+  FaSpinner,
+  FaAngleDoubleLeft,
+  FaAngleDoubleRight,
+  FaExclamationCircle
 } from "react-icons/fa";
 
-import { patient_records } from './../../data/patient';
 import { useNavigate } from 'react-router-dom';
+import { PatientContext } from '../../context/PatientContext';
+import { formatDate } from '../../utils/formatDate';
 
 function PatientList() {
+
+  const { patients, loading } = useContext(PatientContext);
 
   const [openFilter, setOpenFilter] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -21,30 +28,16 @@ function PatientList() {
     date: null
   })
 
-  // Format the Input date
-
-  const formatToInputDate = (dateStr) => {
-    const [day, monthStr, year] = dateStr.split(" ");
-
-  const months = {
-    Jan: "01", Feb: "02", Mar: "03", Apr: "04",
-    May: "05", Jun: "06", Jul: "07", Aug: "08",
-    Sep: "09", Oct: "10", Nov: "11", Dec: "12"
-  };
-
-  return `${year}-${months[monthStr]}-${day.padStart(2, "0")}`;
-  };
-
   // data filter 
 
-  const filteredData = patient_records.filter((item)=>{
-    const searchMatch = searchTerm.trim() === "" || item.patientName.toLowerCase().includes(searchTerm.toLowerCase()) || item.patientId.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredData = patients.filter((item)=>{
+    const searchMatch = searchTerm.trim() === "" || item.personal?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || item.patientId?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const genderMatch = !filters.gender || item.gender === filters.gender;
+    const genderMatch = !filters.gender || item.personal?.gender === filters.gender;
 
     const ageMatch = (() => {
     if (!filters.age) return true;
-    const age = item.age;
+    const age = item.personal?.age;
 
     if (filters.age === "1-18") return age >= 1 && age <= 18;
     if (filters.age === "19-30") return age >= 19 && age <= 30;
@@ -56,7 +49,7 @@ function PatientList() {
     })();
 
     const dateMatch =
-    !filters.date || formatToInputDate(item.lastVisit) === filters.date;
+    !filters.date || formatDate(item.createdAt) === formatDate(filters.date);
     return searchMatch && genderMatch && ageMatch && dateMatch;
   });
 
@@ -84,6 +77,10 @@ function PatientList() {
   }
 
   const navigate = useNavigate();
+
+  useEffect(()=>{
+    window.scroll(0,0);
+  })
 
   return (
     <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
@@ -298,7 +295,19 @@ function PatientList() {
 
           {/* patient records table */}
 
-          <table className="min-w-max w-full border border-gray-300">
+          {
+            loading ? (
+              <div className="flex items-center justify-center gap-2 py-10 text-gray-600 text-lg">
+                <FaSpinner className="animate-spin" />
+                Loading Patients...
+              </div>
+            ) : filteredData.length === 0 ? (
+              <div className="flex gap-3 items-center text-fuchsia-800 justify-center py-10 font-medium text-lg">
+                <FaExclamationCircle size={18}/>
+                No patient data found.
+              </div>
+            ) : (
+            <table className="min-w-max w-full border border-gray-300">
 
             <thead className="bg-gray-300">
               <tr>
@@ -306,8 +315,8 @@ function PatientList() {
                 <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Patient Name</th>
                 <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Gender</th>
                 <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Age</th>
-                <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Last Visit</th>
-                <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Phone Number</th>
+                <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Created At</th>
+                <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Contact</th>
                 <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">View</th>
               </tr>
             </thead>
@@ -315,17 +324,17 @@ function PatientList() {
             <tbody className="text-sm text-gray-800">
               {
                 paginatedData.map((item)=>(
-                  <tr key={item.patientId} className="border-b hover:bg-gray-200 hover:border-2 hover:font-semibold cursor-pointer">
+                  <tr key={item.patientId} className="border-b hover:bg-gray-100 hover:border hover:font-semibold cursor-pointer">
                     <td className="px-4 py-3">{item.patientId}</td>
-                    <td className="px-4 py-3">{item.patientName}</td>
-                    <td className="px-4 py-3">{item.gender}</td>
-                    <td className="px-4 py-3">{item.age}</td>
-                    <td className="px-4 py-3">{item.lastVisit}</td>
-                    <td className="px-4 py-3">{item.mobileNumber}</td>
+                    <td className="px-4 py-3">{item.personal?.name}</td>
+                    <td className="px-4 py-3">{item.personal?.gender}</td>
+                    <td className="px-4 py-3">{item.personal?.age}</td>
+                    <td className="px-4 py-3">{formatDate(item.createdAt)}</td>
+                    <td className="px-4 py-3">{item.personal?.contact}</td>
                     <td className="px-4 py-3">
                       <button 
                         className="text-gray-600 hover:text-gray-900 cursor-pointer"
-                        onClick={()=> {navigate(`/patient-profile/${item.patientId}`); window.scrollTo(0, 0) }}
+                        onClick={()=> {navigate(`/patient-profile/${item._id}`); window.scrollTo(0, 0) }}
                       >
                         <FaEye size={20} />
                       </button>
@@ -337,17 +346,28 @@ function PatientList() {
             </tbody>
 
           </table>
+          )
+          }
+
+          
+
         </div>
 
         {/* Bottom of the table */}
 
-        <div className="flex justify-end gap-2 mt-4">
+        <div className="flex justify-between items-center mt-4">
+
+          <div className="text-gray-600 text-sm">
+            Showing {paginatedData.length} of {filteredData.length} records
+          </div>
+
+          <div className="flex gap-2 items-center">
           <button 
             disabled={currentPage === 1}
-            className="px-3 py-1 text-sm border rounded disabled:opacity-50" 
+            className="px-2 py-2 text-sm text-fuchsia-800 border rounded-full disabled:opacity-50 cursor-pointer" 
             onClick={()=>setCurrentPage((p)=>p-1)}
           >
-            Prev
+            <FaAngleDoubleLeft size={18}/>
           </button>
 
           <span className = "text-sm px-2 py-1">
@@ -356,11 +376,12 @@ function PatientList() {
 
           <button 
             disabled={currentPage === totalPages}
-            className="px-3 py-1 text-sm border rounded disabled:opacity-50" 
+            className="px-2 py-2 text-sm text-fuchsia-800 border rounded-full disabled:opacity-50 cursor-pointer" 
             onClick={()=>setCurrentPage((p)=>p+1)}
           >
-            Next
+            <FaAngleDoubleRight size={18}/>
           </button>
+          </div>
 
         </div>
       </div>

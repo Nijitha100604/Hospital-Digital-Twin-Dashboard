@@ -1,15 +1,21 @@
-import React, { useRef, useState } from 'react'
+import React, { useContext, useRef, useState } from 'react'
 import { FaArrowLeft, FaUserPlus } from "react-icons/fa";
 import { FaUpload } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
 import { FaSave } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
+import axios from "axios";
+import { AppContext } from './../../context/AppContext';
+import { PatientContext } from '../../context/PatientContext';
 
 function AddNewPatient() {
 
   const fileRef = useRef(null);
   const [fileName, setFileName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { backendUrl, token } = useContext(AppContext);
+  const { fetchPatients } = useContext(PatientContext);
 
   // User Data
 
@@ -60,25 +66,56 @@ function AddNewPatient() {
     setMedicalHistory(historyArray);
   }
 
-  const formattedData = {
-    "Name" : name,
-    "Age": age,
-    "Gender": gender,
-    "Contact Number": contact,
-    "Blood Group": bloodGroup,
-    "Address": address,
-    "Guardian Name": guardianName,
-    "Guardian Contact": guardianContact,
-    "Allergies": allergies,
-    "Medical History": medicalHistory,
-    "ID proof" : idProof
-  }
-
-  const handleSubmit = (e) =>{
+  const handleSubmit = async(e) =>{
     e.preventDefault();
-    console.log(formattedData);
-    toast.success("Patient added successfully");
-    navigate("/");
+    setLoading(true);
+    
+    try{
+
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("age", age);
+      formData.append("gender", gender);
+      formData.append("bloodGroup", bloodGroup);
+      formData.append("contact", contact);
+      formData.append("email", email);
+      formData.append("address", address);
+
+      formData.append("guardianName", guardianName);
+      formData.append("guardianContact", guardianContact);
+
+      formData.append("allergies", JSON.stringify(allergies));
+      formData.append("medicalHistory", JSON.stringify(medicalHistory));
+
+      if (idProof) {
+        formData.append("idProof", idProof);
+      }
+
+      const {data} = await axios.post(`${backendUrl}/api/patient/add-patient`, 
+          formData, 
+          {
+            headers: {
+              token: token,
+              "Content-Type": "multipart/form-data",
+            },
+          });
+      if(data.success){
+        toast.success(data.message, { autoClose: 2000 });
+        await fetchPatients()
+        setTimeout(() => {
+          navigate("/patient-list");
+        }, 1000);
+      }
+      else{
+        toast.error(data.message);
+        setLoading(false);
+      }
+
+    } catch(error){
+      console.log(error);
+      toast.error("Internal Server Error");
+      setLoading(false);
+    }
   }
 
   const handleCancel = () => {
@@ -110,6 +147,18 @@ function AddNewPatient() {
 
   return (
     <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
+
+      {loading && (
+        <div className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-white/40 backdrop-blur-md">
+          <div className="flex flex-col items-center gap-4 bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
+            <div className="w-14 h-14 border-4 border-gray-200 border-t-fuchsia-700 rounded-full animate-spin"></div>
+            <div className="text-center">
+              <p className="text-lg font-semibold text-gray-900">Adding Patient...</p>
+              <p className="text-xs text-gray-500 mt-1">Uploading data and ID proof</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Top Section */}
       <div className="flex flex-wrap justify-between items-center gap-2">
@@ -159,7 +208,7 @@ function AddNewPatient() {
             onChange={(e)=>setName(e.target.value)}
             required
             placeholder='Enter the Full Name'
-            className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+            className = "w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
         </div>
 
@@ -170,7 +219,7 @@ function AddNewPatient() {
             required
             value={gender}
             onChange={(e)=>setGender(e.target.value)}
-            className = {`w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700`}
+            className = {`w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${gender === "" ? "text-gray-500" : "text-gray-900"} `}
           >
             <option value = "">Select Gender</option>
             <option value = "Male">Male</option>
@@ -188,7 +237,7 @@ function AddNewPatient() {
             onChange={(e)=>setAge(e.target.value)}
             required
             placeholder='Enter the Age'
-            className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+            className = "w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
         </div>
 
@@ -199,7 +248,7 @@ function AddNewPatient() {
             required
             value={bloodGroup}
             onChange={(e)=>setBloodGroup(e.target.value)}
-            className = {`w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700`}
+            className = {`w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${bloodGroup === "" ? "text-gray-500" : "text-gray-900"}`}
           >
             <option value = "">Select Blood Group</option>
             <option value = "A+ve">A+ve</option>
@@ -222,7 +271,7 @@ function AddNewPatient() {
             value={contact}
             onChange={(e)=>setContact(e.target.value)}
             placeholder='Enter the Contact Number'
-            className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+            className = "w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
         </div>
 
@@ -235,7 +284,7 @@ function AddNewPatient() {
             required
             onChange={(e)=>setEmail(e.target.value)}
             placeholder='Enter the Email Address'
-            className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+            className = "w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
         </div>
 
@@ -250,7 +299,7 @@ function AddNewPatient() {
           value={address}
           onChange={(e)=>setAddress(e.target.value)}
           placeholder='Enter the Full Address'
-          className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+          className = "w-full bg-gray-50 mt-1 border border-gray-500 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
         />
       </div>
 
@@ -268,7 +317,7 @@ function AddNewPatient() {
             value={guardianName}
             onChange={(e)=>setGuardianName(e.target.value)}
             placeholder='Enter the Guardian Name'
-            className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+            className = "w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
         </div>
 
@@ -280,7 +329,7 @@ function AddNewPatient() {
             value={guardianContact}
             onChange={(e)=>setGuardianContact(e.target.value)}
             placeholder='Enter the Guardian Contact Number'
-            className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+            className = "w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
         </div>
 
@@ -299,8 +348,8 @@ function AddNewPatient() {
             rows={2}
             value={allergyInput}
             onChange={handleAllergyChange}
-            placeholder='List any known allergies'
-            className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+            placeholder='e.g., Pollen, Dust,..'
+            className = "w-full bg-gray-50 mt-1 border border-gray-500 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
         </div>
 
@@ -311,8 +360,8 @@ function AddNewPatient() {
             rows={2}
             value={historyInput}
             onChange={handleHistoryChange}
-            placeholder='Enter relevant medical history'
-            className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+            placeholder='e.g., Thyroid, Diabetes,..'
+            className = "w-full bg-gray-50 mt-1 border border-gray-500 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
         </div>
 
@@ -325,7 +374,7 @@ function AddNewPatient() {
 
         <div
         onClick={() => fileRef.current.click()}
-        className="border-2 mt-2 mx-3 border-dashed bg-gray-300 border-gray-500 rounded-xl p-6 cursor-pointer
+        className="border-2 mt-2 mx-3 border-dashed bg-gray-50 border-gray-500 rounded-xl p-6 cursor-pointer
                    hover:border-fuchsia-700 transition flex flex-col items-center gap-2"
       >
         <FaUpload className="text-2xl text-gray-700" />
@@ -338,7 +387,7 @@ function AddNewPatient() {
         </p>
 
         <p className="text-xs text-gray-500">
-          Supported formats: PNG, JPG, JPEG, DOC, DOCX
+          Supported formats: PNG, JPG, JPEG
         </p>
 
         {fileName && (
@@ -362,6 +411,7 @@ function AddNewPatient() {
 
         <button 
           type="button"
+          disabled={loading}
           onClick={handleCancel}
           className="px-3 py-2 bg-gray-500 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-gray-700
           transition-all duration-300 ease-in-out
@@ -374,6 +424,7 @@ function AddNewPatient() {
 
         <button 
           type = "submit"
+          disabled={loading}
           className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800
           transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         >

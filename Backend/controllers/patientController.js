@@ -67,6 +67,68 @@ const addPatient = async(req, res) =>{
 
 }
 
+// API for all patients
+
+const allPatients = async(req, res)=>{
+
+    try{
+
+        const patients = await patientModel.find().sort({ createdAt: -1 });
+        res.json({success: true, data: patients});
+
+    } catch(error){
+        console.log(error);
+        res.json({success: false, message: error.message});
+    }
+
+}
+
+// patient details for appointment booking
+
+const patientAppDetails = async(req, res) =>{
+    try{
+
+        const {patientId} = req.body;
+        if(!patientId){
+            return res.json({success: false, message: "Patient ID required"});
+        }
+
+        const patient  = await patientModel.findOne({ patientId }).select('personal.name personal.age personal.contact personal.bloodGroup personal.gender')
+        if (!patient) {
+            return res.json({ success: false, message: "Patient not found" });
+        }
+        res.json({ success: true, patient });
+
+    } catch(error){
+        console.log(error);
+        res.json({success: false, message: error.message});
+    }
+}
+
+// Fetch Patient data
+
+const patientData = async(req, res) =>{
+    try{
+
+        const {id} = req.params;
+        if(!id){
+            return res.json({success: false, message: "ID is required"});
+        }
+        const patient = await patientModel.findById(id);
+        if(!patient){
+            return res.json({success: false, message: "Patient Not Found"});
+        }
+        res.json({success: true, patient});
+
+    } catch(error){
+        console.log(error);
+        res.json({success: false, message: error.message});
+    }
+}
+
 export {
-    addPatient
+    addPatient,
+    allPatients,
+    patientAppDetails,
+    patientData
 }

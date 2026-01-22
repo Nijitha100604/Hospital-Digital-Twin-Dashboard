@@ -3,7 +3,7 @@ import TopNavbar from "./components/TopNavbar";
 import SideNavbar from "./components/SideNavbar";
 import Login from "./pages/Login";
 import { ToastContainer } from "react-toastify";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import PatientList from "./pages/patient_management/PatientList";
 import PatientProfile from "./pages/patient_management/PatientProfile";
 import AddNewPatient from "./pages/patient_management/AddNewPatient";
@@ -56,9 +56,21 @@ import { AppContext } from "./context/AppContext";
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { token } = useContext(AppContext);
+  const { isAuthenticated } = useContext(AppContext);
 
-  return token ? (
+  if (!isAuthenticated) {
+    return (
+      <>
+        <ToastContainer />
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </>
+    );
+  }
+
+  return (
     <div>
       <ToastContainer />
       <TopNavbar setIsSidebarOpen={setIsSidebarOpen} />
@@ -97,7 +109,7 @@ function App() {
             <Route path="/calibration-schedule-list" element={<CalibrationScheduleList />}/>
             <Route path="/maintenance-log" element={<MaintenanceLog />} />
             <Route path="/view-equipment/:id" element={<ViewEquipment />} />
-            <Route path="edit-equipment/:id" element={<EditEquipment />}/>
+            <Route path="/edit-equipment/:id" element={<EditEquipment />}/>
 
 
             {/* Infrastructure */}
@@ -145,12 +157,7 @@ function App() {
         </div>
       </div>
     </div>
-  ) : (
-    <div> 
-      <ToastContainer />
-      <Login />
-    </div>
-  );
+  )
 }
 
 export default App;
