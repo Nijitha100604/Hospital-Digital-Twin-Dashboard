@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { assets } from "../../assets/assets";
-import { AppContext } from "../../context/AppContext";
+import { MedicineContext } from "../../context/MedicineContext"; 
+import Loading from "../Loading"; 
 import {
   FaArrowLeft,
   FaEdit,
@@ -21,40 +21,34 @@ const ViewMedicineDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  
+  const { getMedicineById } = useContext(MedicineContext);
+
   const [medicine, setMedicine] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const token = localStorage.getItem("token");
-  const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
+  
   useEffect(() => {
     const fetchMedicine = async () => {
-      try {
-        const { data } = await axios.get(
-          `${backendUrl}/api/medicine/medicine/${id}`,
-          { headers: { token } }
-        );
+      setLoading(true);
+      // Fetch data using the context function
+      const data = await getMedicineById(id);
 
-        if (data.success) {
-          setMedicine(data.data);
-        }
-      } catch (error) {
-        console.log(error);
+      if (data) {
+        setMedicine(data);
       }
       setLoading(false);
     };
 
     fetchMedicine();
-  }, [id]);
+  }, [id, getMedicineById]);
 
+  
   if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen flex items-center justify-center">
-        <p className="text-gray-600 font-medium">Loading...</p>
-      </div>
-    );
+    return <Loading />;
   }
 
+  //Not found
   if (!medicine) {
     return (
       <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen flex items-center justify-center">
@@ -74,8 +68,10 @@ const ViewMedicineDetails = () => {
     );
   }
 
+  
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen">
+      
       {/* Header */}
       <div className="bg-white p-6 rounded-xl mb-6 flex flex-col md:flex-row justify-between items-center border border-gray-200 shadow-sm">
         <div className="mb-4 md:mb-0 w-full md:w-auto">
@@ -116,12 +112,15 @@ const ViewMedicineDetails = () => {
 
       {/* Main Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* LEFT COLUMN */}
+        
+        {/* Left column */}
+
         <div className="space-y-6">
           {/* Image Card */}
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
             <div className="bg-gray-50 rounded-lg p-6 mb-4 flex items-center justify-center border border-gray-100">
               <img
+                // Use logic to handle default image
                 src={medicine.medicineImage || assets.default_medicine}
                 alt={medicine.medicineName}
                 className="w-full h-64 object-contain mix-blend-multiply hover:scale-105 transition-transform duration-300"
@@ -209,7 +208,8 @@ const ViewMedicineDetails = () => {
           </div>
         </div>
 
-        {/* RIGHT COLUMN */}
+        {/* Right column */}
+
         <div className="lg:col-span-2 space-y-6">
           {/* Basic Information */}
           <InfoCard title="Basic Information" icon={<FaInfoCircle />}>

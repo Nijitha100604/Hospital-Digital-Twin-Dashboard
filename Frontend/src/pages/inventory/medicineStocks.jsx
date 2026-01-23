@@ -1,9 +1,8 @@
 import React, { useState, useMemo, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { AppContext } from "../../context/AppContext";
+import { MedicineContext } from "../../context/MedicineContext"; 
 import { assets } from "../../assets/assets";
-import Loading from "../Loading"; 
+import Loading from "../Loading";
 
 import {
   FaSearch,
@@ -16,45 +15,19 @@ import {
   FaBell,
   FaPlus,
   FaFilter,
-  FaBoxOpen, 
+  FaBoxOpen,
 } from "react-icons/fa";
 
 const MedicineStocks = () => {
   const navigate = useNavigate();
   const today = new Date();
 
-  const { backendUrl, token } = useContext(AppContext);
+  const { medicines: medicineList, loading } = useContext(MedicineContext);
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [visibleCount, setVisibleCount] = useState(8);
-  const [medicineList, setMedicineList] = useState([]);
-  
-  // Loading State
-  const [loading, setLoading] = useState(true);
-
-  // Fetch all medicines
-  const fetchMedicines = async () => {
-    setLoading(true); // Start Loading
-    try {
-      const { data } = await axios.get(
-        `${backendUrl}/api/medicine/all-medicines`,
-        { headers: { token } },
-      );
-      if (data.success) {
-        setMedicineList(data.data);
-      }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false); 
-    }
-  };
-
-  useEffect(() => {
-    fetchMedicines();
-  }, []);
 
   // Logic Helpers
   const isExpiringSoon = (dateStr) => {
@@ -109,6 +82,7 @@ const MedicineStocks = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-fuchsia-50 min-h-screen">
+
       {/* Header */}
       <div className="bg-white p-6 rounded-xl mb-6 flex flex-col md:flex-row justify-between items-center border border-gray-200 shadow-sm">
         <div className="mb-4 md:mb-0 w-full md:w-auto">
@@ -290,7 +264,7 @@ const MedicineStocks = () => {
 
 export default MedicineStocks;
 
-
+/* ---------- Internal Components ---------- */
 
 const SummaryCard = ({ title, value, icon, bg, border }) => (
   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex justify-between items-center hover:shadow-md transition-shadow">

@@ -13,21 +13,18 @@ import {
   FaTrash,
   FaArrowLeft,
 } from "react-icons/fa";
-import axios from "axios";
-import { toast } from "react-toastify";
-import { AppContext } from "../../context/AppContext";
-import Loading from "../Loading"; // Corrected Import Path
+import { MedicineContext } from "../../context/MedicineContext"; 
+import Loading from "../Loading";
 
 const EditMedicineDetails = () => {
-  const { id } = useParams(); // Gets "MED0001" from the URL
+  const { id } = useParams(); 
   const navigate = useNavigate();
   const fileRef = useRef(null);
 
-  const { backendUrl, token } = useContext(AppContext);
+  const { getMedicineById, updateMedicine } = useContext(MedicineContext);
 
-  // ---------- MUST BE TOP-LEVEL HOOKS ---------------
-  // 'loading' handles both initial fetch AND update process
-  const [loading, setLoading] = useState(true); 
+ 
+  const [loading, setLoading] = useState(true);
   const [medicine, setMedicine] = useState(null);
 
   // Form state
@@ -55,63 +52,48 @@ const EditMedicineDetails = () => {
 
   const [imageName, setImageName] = useState("");
 
-  /* ----------------------------------------------------
-       FETCH MEDICINE BY medicineId
-  ---------------------------------------------------- */
   useEffect(() => {
     const fetchMedicine = async () => {
-      try {
-        const { data } = await axios.get(
-          `${backendUrl}/api/medicine/medicine/${id}`,
-          { headers: { token } },
-        );
 
-        if (data.success) {
-          setMedicine(data.data);
+      const data = await getMedicineById(id);
 
-          // Fill form states
-          const m = data.data;
-          setMedicineName(m.medicineName);
-          setGenericName(m.genericName);
-          setCategory(m.category);
-          setManufacturer(m.manufacturer);
-          setDosageForm(m.dosageForm);
-          setStrength(m.strength);
-          setPackSize(m.packSize);
-          setPrescriptionRequired(m.prescriptionRequired);
+      if (data) {
+        setMedicine(data);
 
-          setBatchNumber(m.batchNumber);
-          setQuantity(m.quantity);
-          setMinimumThreshold(m.minimumThreshold);
-          setExpiryDate(m.expiryDate);
+        // Fill form states
+        setMedicineName(data.medicineName);
+        setGenericName(data.genericName);
+        setCategory(data.category);
+        setManufacturer(data.manufacturer);
+        setDosageForm(data.dosageForm);
+        setStrength(data.strength);
+        setPackSize(data.packSize);
+        setPrescriptionRequired(data.prescriptionRequired);
 
-          setStorageLocation(m.storageLocation);
-          setStorageConditions(m.storageConditions);
+        setBatchNumber(data.batchNumber);
+        setQuantity(data.quantity);
+        setMinimumThreshold(data.minimumThreshold);
+        setExpiryDate(data.expiryDate);
 
-          setSupplierName(m.supplierName);
-          setCostPerUnit(m.costPerUnit);
-          setSellingPrice(m.sellingPrice);
-          setDescription(m.description);
+        setStorageLocation(data.storageLocation);
+        setStorageConditions(data.storageConditions);
 
-          // Use saved name or fallback to URL
-          setImageName(m.medicineImageName || m.medicineImage);
-        } else {
-          toast.error("Medicine not found");
-        }
-      } catch (error) {
-        console.log(error);
-        toast.error("Failed to load medicine details");
-      }
+        setSupplierName(data.supplierName);
+        setCostPerUnit(data.costPerUnit);
+        setSellingPrice(data.sellingPrice);
+        setDescription(data.description);
 
-      setLoading(false); // Stop loading after fetch
+        // Use saved name or fallback to URL
+        setImageName(data.medicineImageName || data.medicineImage);
+      } 
+      
+      setLoading(false);
     };
 
     fetchMedicine();
-  }, [id, backendUrl, token]);
+  }, [id, getMedicineById]);
 
-  /* ----------------------------------------------------
-       IMAGE HANDLING
-  ---------------------------------------------------- */
+  {/* Handling image */}
   const handleImageChange = (e) => {
     if (e.target.files[0]) {
       setImageName(e.target.files[0].name);
@@ -123,71 +105,51 @@ const EditMedicineDetails = () => {
     setImageName("");
   };
 
-  /* ----------------------------------------------------
-       SUBMIT (WITH LOADING)
-  ---------------------------------------------------- */
+  {/* Sumbit */}
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); // Show loading screen immediately on click
 
-    try {
-      const formData = new FormData();
+    const formData = new FormData();
 
-      formData.append("medicineName", medicineName);
-      formData.append("genericName", genericName);
-      formData.append("category", category);
-      formData.append("manufacturer", manufacturer);
-      formData.append("dosageForm", dosageForm);
-      formData.append("strength", strength);
-      formData.append("packSize", packSize);
-      formData.append("prescriptionRequired", prescriptionRequired);
+    formData.append("medicineName", medicineName);
+    formData.append("genericName", genericName);
+    formData.append("category", category);
+    formData.append("manufacturer", manufacturer);
+    formData.append("dosageForm", dosageForm);
+    formData.append("strength", strength);
+    formData.append("packSize", packSize);
+    formData.append("prescriptionRequired", prescriptionRequired);
 
-      formData.append("batchNumber", batchNumber);
-      formData.append("quantity", quantity);
-      formData.append("minimumThreshold", minimumThreshold);
-      formData.append("expiryDate", expiryDate);
+    formData.append("batchNumber", batchNumber);
+    formData.append("quantity", quantity);
+    formData.append("minimumThreshold", minimumThreshold);
+    formData.append("expiryDate", expiryDate);
 
-      formData.append("storageLocation", storageLocation);
-      formData.append("storageConditions", storageConditions);
+    formData.append("storageLocation", storageLocation);
+    formData.append("storageConditions", storageConditions);
 
-      formData.append("supplierName", supplierName);
-      formData.append("costPerUnit", costPerUnit);
-      formData.append("sellingPrice", sellingPrice);
-      formData.append("description", description);
+    formData.append("supplierName", supplierName);
+    formData.append("costPerUnit", costPerUnit);
+    formData.append("sellingPrice", sellingPrice);
+    formData.append("description", description);
 
-      if (fileRef.current?.files[0]) {
-        formData.append("medicineImage", fileRef.current.files[0]);
-      }
+    if (fileRef.current?.files[0]) {
+      formData.append("medicineImage", fileRef.current.files[0]);
+    }
 
-      const { data } = await axios.put(
-        `${backendUrl}/api/medicine/update/${id}`,
-        formData,
-        {
-          headers: {
-            token,
-            "Content-Type": "multipart/form-data",
-          },
-        },
-      );
+    // Call context function
+    const success = await updateMedicine(id, formData);
 
-      if (data.success) {
-        toast.success("Medicine updated successfully!");
-        navigate(`/medicine-details/${id}`);
-        // No need to setLoading(false) because we navigate away
-      } else {
-        toast.error(data.message);
-        setLoading(false); // Hide loading if error from backend
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("Update failed");
-      setLoading(false); // Hide loading if network error
+    if (success) {
+      navigate(`/medicine-details/${id}`);
+      
+    } else {
+      setLoading(false); // Stop loading if error occurred
     }
   };
 
-  /* ----------------------------------------------------
-       LOADING STATE RENDER
-  ---------------------------------------------------- */
+  
   if (loading) {
     return <Loading />;
   }
@@ -200,12 +162,10 @@ const EditMedicineDetails = () => {
     );
   }
 
-  /* ----------------------------------------------------
-       UI
-  ---------------------------------------------------- */
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen">
-      {/* HEADER */}
+      
+      {/* Header */}
       <div className="bg-white p-6 rounded-xl mb-6 flex flex-col md:flex-row justify-between items-center border border-gray-200 shadow-sm">
         <div className="mb-4 md:mb-0 w-full md:w-auto">
           <div className="flex gap-3 items-center">
@@ -225,10 +185,11 @@ const EditMedicineDetails = () => {
         </button>
       </div>
 
-      {/* FORM */}
+      {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* LEFT COLUMN */}
+          
+          {/* Left column */}
 
           <div className="lg:col-span-2 space-y-6">
             {/* Basic Information */}
@@ -484,7 +445,7 @@ const EditMedicineDetails = () => {
 
 export default EditMedicineDetails;
 
-/* ----------------- REUSABLE COMPONENTS (UNCHANGED) ----------------- */
+/* ----------------- REUSABLE COMPONENTS ----------------- */
 const Section = ({ title, icon, children }) => (
   <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
     <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">

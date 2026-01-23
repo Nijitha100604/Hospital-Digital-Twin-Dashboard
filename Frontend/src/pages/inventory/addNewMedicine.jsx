@@ -14,15 +14,15 @@ import {
   FaPills,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import axios from "axios";
-import { AppContext } from "../../context/AppContext";
-import Loading from "../Loading"; 
+import { MedicineContext } from "../../context/MedicineContext";
+import Loading from "../Loading";
 
 const AddNewMedicine = () => {
   const navigate = useNavigate();
   const fileRef = useRef(null);
-  const { backendUrl, token } = useContext(AppContext);
+  
+
+  const { addMedicine } = useContext(MedicineContext);
 
   /* ---------- Loading State ---------- */
   const [isLoading, setIsLoading] = useState(false);
@@ -67,58 +67,41 @@ const AddNewMedicine = () => {
     setImageFile(null);
   };
 
-  /* ---------- SUBMIT TO BACKEND ---------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // Start Loading
+    setIsLoading(true); 
 
-    try {
-      const formData = new FormData();
-      formData.append("medicineName", medicineName);
-      formData.append("genericName", genericName);
-      formData.append("category", category);
-      formData.append("manufacturer", manufacturer);
-      formData.append("dosageForm", dosageForm);
-      formData.append("strength", strength);
-      formData.append("packSize", packSize);
-      formData.append("prescriptionRequired", prescriptionRequired);
-      formData.append("batchNumber", batchNumber);
-      formData.append("quantity", quantity);
-      formData.append("minimumThreshold", minimumThreshold);
-      formData.append("expiryDate", expiryDate);
-      formData.append("storageLocation", storageLocation);
-      formData.append("storageConditions", storageConditions);
-      formData.append("supplierName", supplierName);
-      formData.append("costPerUnit", costPerUnit);
-      formData.append("sellingPrice", sellingPrice);
-      formData.append("description", description);
+    const formData = new FormData();
+    formData.append("medicineName", medicineName);
+    formData.append("genericName", genericName);
+    formData.append("category", category);
+    formData.append("manufacturer", manufacturer);
+    formData.append("dosageForm", dosageForm);
+    formData.append("strength", strength);
+    formData.append("packSize", packSize);
+    formData.append("prescriptionRequired", prescriptionRequired);
+    formData.append("batchNumber", batchNumber);
+    formData.append("quantity", quantity);
+    formData.append("minimumThreshold", minimumThreshold);
+    formData.append("expiryDate", expiryDate);
+    formData.append("storageLocation", storageLocation);
+    formData.append("storageConditions", storageConditions);
+    formData.append("supplierName", supplierName);
+    formData.append("costPerUnit", costPerUnit);
+    formData.append("sellingPrice", sellingPrice);
+    formData.append("description", description);
 
-      if (imageFile) {
-        formData.append("medicineImage", imageFile);
-      }
+    if (imageFile) {
+      formData.append("medicineImage", imageFile);
+    }
 
-      const { data } = await axios.post(
-        `${backendUrl}/api/medicine/add-medicine`,
-        formData,
-        {
-          headers: {
-            token: token,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
 
-      if (data.success) {
-        toast.success("Medicine added successfully!");
-        navigate("/medicine-stocks");
-      } else {
-        toast.error(data.message);
-        setIsLoading(false); 
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("Error adding medicine");
-      setIsLoading(false); 
+    const success = await addMedicine(formData);
+
+    if (success) {
+      navigate("/medicine-stocks");
+    } else {
+      setIsLoading(false); // Stop loading on error
     }
   };
 
