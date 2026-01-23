@@ -1,15 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { 
-  Upload, FileText, X, CheckCircle, Calendar, User, 
-  FlaskConical, Hash, Save, Activity, ChevronDown, 
-  AlertCircle, FileUp, Keyboard, Search
+  Save, Printer, CheckCircle, Activity, 
+  ChevronDown, FlaskConical, AlertCircle, FileUp 
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-// --- MOCK PATIENT DATA (Replace with API call in production) ---
-import { patient_records } from "../../data/patient"; 
+/* -------------------- CONFIGURATION DATA -------------------- */
 
-/* -------------------- TEST PARAMETERS CONFIG -------------------- */
+const technicians = [
+  { id: "T001", name: "Tech. Kumar R" },
+  { id: "T002", name: "Tech. Sarah J" },
+  { id: "T003", name: "Tech. Mike L" },
+  { id: "T004", name: "Dr. Emily W (Pathologist)" },
+];
+
+// EXPANDED TEST TEMPLATES
 const testTemplates = {
   "CBC (Hemogram)": [
     { id: "cbc1", param: "Hemoglobin", unit: "g/dL", min: 13.0, max: 17.0 },
@@ -17,17 +22,30 @@ const testTemplates = {
     { id: "cbc3", param: "WBC Count", unit: "cells/mcL", min: 4000, max: 11000 },
     { id: "cbc4", param: "Platelet Count", unit: "lakh/mm³", min: 1.5, max: 4.5 },
     { id: "cbc5", param: "PCV", unit: "%", min: 40, max: 50 },
+    { id: "cbc6", param: "MCV", unit: "fL", min: 80, max: 100 },
   ],
   "Lipid Profile": [
     { id: "lp1", param: "Total Cholesterol", unit: "mg/dL", min: 0, max: 200 },
     { id: "lp2", param: "HDL Cholesterol", unit: "mg/dL", min: 40, max: 60 },
     { id: "lp3", param: "LDL Cholesterol", unit: "mg/dL", min: 0, max: 100 },
     { id: "lp4", param: "Triglycerides", unit: "mg/dL", min: 0, max: 150 },
+    { id: "lp5", param: "VLDL Cholesterol", unit: "mg/dL", min: 2, max: 30 },
   ],
   "Liver Function Test (LFT)": [
     { id: "lft1", param: "Bilirubin Total", unit: "mg/dL", min: 0.1, max: 1.2 },
-    { id: "lft2", param: "SGOT (AST)", unit: "U/L", min: 5, max: 40 },
-    { id: "lft3", param: "SGPT (ALT)", unit: "U/L", min: 7, max: 56 },
+    { id: "lft2", param: "Bilirubin Direct", unit: "mg/dL", min: 0, max: 0.3 },
+    { id: "lft3", param: "SGOT (AST)", unit: "U/L", min: 5, max: 40 },
+    { id: "lft4", param: "SGPT (ALT)", unit: "U/L", min: 7, max: 56 },
+    { id: "lft5", param: "Alkaline Phosphatase", unit: "U/L", min: 44, max: 147 },
+    { id: "lft6", param: "Total Protein", unit: "g/dL", min: 6.0, max: 8.3 },
+    { id: "lft7", param: "Albumin", unit: "g/dL", min: 3.5, max: 5.5 },
+  ],
+  "Kidney Function Test (KFT)": [
+    { id: "kft1", param: "Blood Urea", unit: "mg/dL", min: 15, max: 40 },
+    { id: "kft2", param: "Serum Creatinine", unit: "mg/dL", min: 0.6, max: 1.2 },
+    { id: "kft3", param: "Uric Acid", unit: "mg/dL", min: 3.5, max: 7.2 },
+    { id: "kft4", param: "Calcium (Total)", unit: "mg/dL", min: 8.5, max: 10.2 },
+    { id: "kft5", param: "Phosphorus", unit: "mg/dL", min: 2.5, max: 4.5 },
   ],
   "Thyroid Profile": [
     { id: "th1", param: "T3", unit: "ng/dL", min: 80, max: 200 },
@@ -38,437 +56,329 @@ const testTemplates = {
     { id: "glu1", param: "Fasting Blood Sugar", unit: "mg/dL", min: 70, max: 100 },
     { id: "glu2", param: "Post Prandial (PP)", unit: "mg/dL", min: 70, max: 140 },
     { id: "glu3", param: "HbA1c", unit: "%", min: 4.0, max: 5.6 },
+    { id: "glu4", param: "Random Blood Sugar", unit: "mg/dL", min: 70, max: 140 },
   ],
-  "Kidney Function Test (KFT)": [
-    { id: "kft1", param: "Blood Urea", unit: "mg/dL", min: 15, max: 40 },
-    { id: "kft2", param: "Creatinine", unit: "mg/dL", min: 0.6, max: 1.2 },
+  "Electrolytes": [
+    { id: "ele1", param: "Sodium", unit: "mEq/L", min: 135, max: 145 },
+    { id: "ele2", param: "Potassium", unit: "mEq/L", min: 3.5, max: 5.1 },
+    { id: "ele3", param: "Chloride", unit: "mEq/L", min: 96, max: 106 },
   ],
-  "General Report": [], 
-  "MRI Scan": [],
-  "X-Ray": [],
-  "CT Scan": [],
-  "Ultrasound": []
+  "Iron Profile": [
+    { id: "irp1", param: "Serum Iron", unit: "mcg/dL", min: 60, max: 170 },
+    { id: "irp2", param: "TIBC", unit: "mcg/dL", min: 240, max: 450 },
+    { id: "irp3", param: "Transferrin Saturation", unit: "%", min: 20, max: 50 },
+    { id: "irp4", param: "Ferritin", unit: "ng/mL", min: 12, max: 150 },
+  ],
+  "Vitamin Profile": [
+    { id: "vit1", param: "Vitamin B12", unit: "pg/mL", min: 200, max: 900 },
+    { id: "vit2", param: "Vitamin D", unit: "ng/mL", min: 30, max: 100 },
+  ],
+  "Coagulation Profile": [
+    { id: "coag1", param: "Prothrombin Time", unit: "sec", min: 11, max: 13.5 },
+    { id: "coag2", param: "INR", unit: "ratio", min: 0.8, max: 1.2 },
+    { id: "coag3", param: "APTT", unit: "sec", min: 30, max: 40 },
+  ],
+  "Urine Routine": [
+    { id: "uri1", param: "pH", unit: "-", min: 4.5, max: 8.0 },
+    { id: "uri2", param: "Specific Gravity", unit: "-", min: 1.005, max: 1.030 },
+    { id: "uri3", param: "Pus Cells", unit: "/hpf", min: 0, max: 5 },
+    { id: "uri4", param: "Epithelial Cells", unit: "/hpf", min: 0, max: 5 },
+  ]
 };
 
-const TEST_TYPES = Object.keys(testTemplates);
-
-export default function AddLabReport() {
+export default function LabResultEntry() {
   const navigate = useNavigate();
 
-  // --- STATE ---
-  const [entryMode, setEntryMode] = useState("manual"); // 'manual' | 'upload'
-  
-  const [formData, setFormData] = useState({
+  /* -------------------- STATES -------------------- */
+  const [patientDetails, setPatientDetails] = useState({
     patientId: "",
     patientName: "",
-    ageGender: "", // Display field
-    testType: "Glucometry (Diabetes)",
+    age: "",
+    gender: "Male",
     referringDr: "",
     sampleDate: new Date().toISOString().split('T')[0],
-    techName: "",
-    techId: "",
-    dept: "Pathology",
-    phone: "" // Hidden but needed for payload
+    dept: "Pathology"
   });
 
+  const [selectedTestType, setSelectedTestType] = useState("Glucometry (Diabetes)");
   const [results, setResults] = useState({});
+  const [verifiedBy, setVerifiedBy] = useState("");
   const [comments, setComments] = useState("");
-  const [file, setFile] = useState(null);
-  const [dragActive, setDragActive] = useState(false);
 
-  // --- AUTO-FILL LOGIC ---
-  const handleIdBlur = () => {
-    if (!formData.patientId) return;
-    const found = patient_records.find(p => p.patientId.toLowerCase() === formData.patientId.toLowerCase());
-    if (found) {
-      setFormData(prev => ({
-        ...prev,
-        patientName: found.patientName,
-        ageGender: `${found.age} / ${found.gender}`,
-        phone: found.mobileNumber
-      }));
-    }
+  /* -------------------- HANDLERS -------------------- */
+  const handlePatientChange = (e) => {
+    const { name, value } = e.target;
+    setPatientDetails(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleNameBlur = () => {
-    if (!formData.patientName) return;
-    const found = patient_records.find(p => p.patientName.toLowerCase() === formData.patientName.toLowerCase());
-    if (found) {
-      setFormData(prev => ({
-        ...prev,
-        patientId: found.patientId,
-        ageGender: `${found.age} / ${found.gender}`,
-        phone: found.mobileNumber
-      }));
-    }
+  const handleResultChange = (paramId, value) => {
+    setResults(prev => ({ ...prev, [paramId]: value }));
   };
 
-  // --- HELPER: Status Flag ---
   const getFlag = (val, min, max) => {
     if (val === "" || isNaN(val)) return null;
     const num = parseFloat(val);
-    if (num < min) return { label: "Low", color: "bg-amber-50 text-amber-700 border-amber-200" };
-    if (num > max) return { label: "High", color: "bg-red-50 text-red-700 border-red-200" };
-    return { label: "Normal", color: "bg-emerald-50 text-emerald-700 border-emerald-200" };
+    if (num < min) return { label: "Low", color: "bg-yellow-100 text-yellow-700 border-yellow-200" };
+    if (num > max) return { label: "High", color: "bg-red-100 text-red-700 border-red-200" };
+    return { label: "Normal", color: "bg-green-100 text-green-700 border-green-200" };
   };
 
-  // --- HANDLERS ---
-  const handleDrag = (e) => {
-    e.preventDefault(); e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
-    else if (e.type === "dragleave") setDragActive(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault(); e.stopPropagation(); setDragActive(false);
-    if (e.dataTransfer.files?.[0]) setFile(e.dataTransfer.files[0]);
-  };
-
-  const handleSubmit = () => {
-    // 1. Validation
-    if (!formData.patientId || !formData.patientName) {
-      alert("Please enter Patient ID and Name.");
-      return;
-    }
-    if (entryMode === "upload" && !file) {
-      alert("Please upload a file.");
-      return;
-    }
-
-    // 2. Construct Payload for Backend (Matches labReportModel.js)
-    const payload = {
-      patientId: formData.patientId,
-      patientName: formData.patientName,
-      age: formData.ageGender.split('/')[0]?.trim() || "Unknown",
-      gender: formData.ageGender.split('/')[1]?.trim() || "Unknown",
-      phone: formData.phone,
-      referringDoctor: formData.referringDr,
-      sampleDate: formData.sampleDate,
-      testType: formData.testType,
-      department: formData.dept,
-      technicianName: formData.techName,
-      technicianId: formData.techId,
-      
-      // Mode Specific
-      entryType: entryMode === "upload" ? "Upload" : "Manual",
-      reportDocument: entryMode === "upload" ? file.name : null, // In real app use URL
-      
-      testResults: entryMode === "manual" ? Object.entries(results).map(([key, val]) => {
-         const config = testTemplates[formData.testType].find(p => p.id === key);
-         return {
-           parameter: config.param,
-           value: val,
-           unit: config.unit,
-           referenceRange: `${config.min} - ${config.max}`,
-           status: getFlag(val, config.min, config.max)?.label || "Normal"
-         };
-      }) : [],
-      
-      comments: comments,
-      status: "Completed"
-    };
-
-    console.log("PAYLOAD TO SAVE:", payload);
-    
-    // 3. Simulated Save
-    const existing = localStorage.getItem("labReportsDB");
-    let arr = existing ? JSON.parse(existing) : [];
-    arr.unshift({ ...payload, reportId: "LR" + Math.floor(10000 + Math.random() * 90000), date: payload.sampleDate });
-    localStorage.setItem("labReportsDB", JSON.stringify(arr));
-
-    alert("Report Saved Successfully!");
-    navigate('/lab-reports-list');
-  };
-
-  const currentParams = testTemplates[formData.testType] || [];
+  const currentParams = testTemplates[selectedTestType] || [];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-gray-50 p-3 md:p-6 font-sans">
       
-      {/* --- PAGE HEADER --- */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      {/* --- HEADER --- */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 md:mb-6">
         <div>
-           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-             <Activity className="text-purple-600"/> Lab Report Entry
-           </h1>
-           <p className="text-sm text-slate-500 mt-1">Create new patient reports via manual entry or file upload.</p>
-        </div>
-
-        {/* Entry Mode Toggle */}
-        <div className="bg-white p-1 rounded-lg border border-gray-200 shadow-sm flex">
-           <button 
-             onClick={() => setEntryMode("manual")}
-             className={`px-4 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-all ${entryMode === 'manual' ? 'bg-purple-100 text-purple-700' : 'text-gray-500 hover:bg-gray-50'}`}
-           >
-             <Keyboard size={16}/> Manual Entry
-           </button>
-           <button 
-             onClick={() => setEntryMode("upload")}
-             className={`px-4 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-all ${entryMode === 'upload' ? 'bg-purple-100 text-purple-700' : 'text-gray-500 hover:bg-gray-50'}`}
-           >
-             <FileUp size={16}/> Upload Report
-           </button>
-        </div>
-      </div>
-
-      {/* --- SECTION 1: PATIENT & TEST DETAILS (Matches your Image) --- */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-3">
-            <User size={20} className="text-purple-600"/>
-            <h2 className="text-lg font-bold text-slate-800">Patient & Test Details</h2>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <Activity className="text-purple-700 shrink-0" size={24} />
+            Lab Result Entry
+          </h1>
+          <p className="text-xs md:text-sm text-gray-500 mt-1">Manually enter patient details and test results.</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          {/* Row 1 */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Patient ID</label>
-            <div className="relative">
-                <input 
-                  type="text" 
-                  value={formData.patientId} 
-                  onChange={(e) => setFormData({...formData, patientId: e.target.value})} 
-                  onBlur={handleIdBlur}
-                  placeholder="e.g. P000123" 
-                  className="w-full p-2.5 pl-9 bg-white border border-gray-300 rounded-lg text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all" 
-                />
-                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14}/>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Age / Gender</label>
-            <input 
-              type="text" 
-              value={formData.ageGender} 
-              readOnly
-              placeholder="Auto-filled" 
-              className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-slate-500 focus:outline-none" 
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Test Type</label>
-            <div className="relative">
+        {/* Navigation Button to Upload Report */}
+        <div className="flex gap-3">
+            <button 
+                onClick={() => navigate('/upload-report')} 
+                className="flex items-center gap-2 bg-white text-purple-700 border border-purple-200 px-4 py-2 rounded-lg text-sm font-bold hover:bg-purple-50 transition-colors shadow-sm"
+            >
+                <FileUp size={16}/> Upload Report
+            </button>
+            
+            {/* Test Type Selector */}
+            <div className="bg-white p-2 rounded-lg border border-gray-300 shadow-sm flex items-center gap-2 w-full md:w-auto">
+                <FlaskConical size={18} className="text-purple-600 shrink-0"/>
+                <span className="text-xs font-bold text-gray-500 uppercase whitespace-nowrap hidden sm:inline">Test Type:</span>
+                <div className="relative flex-1 min-w-0">
                 <select 
-                  value={formData.testType} 
-                  onChange={(e) => { 
-                    setFormData({...formData, testType: e.target.value}); 
-                    setResults({}); 
-                  }} 
-                  className="w-full p-2.5 pl-9 bg-white border border-gray-300 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer"
+                    value={selectedTestType}
+                    onChange={(e) => { setSelectedTestType(e.target.value); setResults({}); }}
+                    className="font-bold text-gray-800 outline-none bg-transparent cursor-pointer text-sm w-full py-1 pr-4 truncate"
                 >
-                    {TEST_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                    {Object.keys(testTemplates).map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
-                <FlaskConical className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14}/>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14}/>
+                <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14}/>
+                </div>
             </div>
-          </div>
-
-          {/* Row 2 */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Patient Name</label>
-            <input 
-              type="text" 
-              value={formData.patientName} 
-              onChange={(e) => setFormData({...formData, patientName: e.target.value})} 
-              onBlur={handleNameBlur}
-              placeholder="Enter Full Name" 
-              className="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500" 
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Referring Dr.</label>
-            <input 
-              type="text" 
-              value={formData.referringDr} 
-              onChange={(e) => setFormData({...formData, referringDr: e.target.value})} 
-              placeholder="Dr. Name" 
-              className="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500" 
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Sample Date</label>
-            <div className="relative">
-                <input 
-                  type="date" 
-                  value={formData.sampleDate} 
-                  onChange={(e) => setFormData({...formData, sampleDate: e.target.value})} 
-                  className="w-full p-2.5 pl-9 bg-white border border-gray-300 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer" 
-                />
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
-            </div>
-          </div>
-          
-          {/* Row 3 */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Technician Name</label>
-            <input 
-              type="text" 
-              value={formData.techName} 
-              onChange={(e) => setFormData({...formData, techName: e.target.value})} 
-              placeholder="Tech Name" 
-              className="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500" 
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Technician ID</label>
-            <input 
-              type="text" 
-              value={formData.techId} 
-              onChange={(e) => setFormData({...formData, techId: e.target.value})} 
-              placeholder="Tech ID" 
-              className="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500" 
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Department</label>
-            <input 
-              type="text" 
-              value={formData.dept} 
-              onChange={(e) => setFormData({...formData, dept: e.target.value})} 
-              placeholder="Department" 
-              className="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500" 
-            />
-          </div>
-
         </div>
       </div>
 
-      {/* --- SECTION 2: ENTRY MODE CONTENT --- */}
-      
-      {/* MODE A: MANUAL ENTRY */}
-      {entryMode === "manual" && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 animate-in fade-in">
-           <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-              <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Results for <span className="text-purple-600">{formData.testType}</span></h2>
-              <span className="text-xs text-slate-400 italic hidden sm:inline">* Status flagged automatically</span>
-           </div>
+      {/* --- SECTION 1: MANUAL PATIENT ENTRY --- */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mb-4 md:mb-6">
+        <h2 className="text-xs md:text-sm font-bold text-gray-900 uppercase tracking-wide mb-4 border-b border-gray-100 pb-2">
+          Patient Details
+        </h2>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+          <div className="space-y-1">
+            <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Patient ID</label>
+            <input 
+              type="text" name="patientId" placeholder="e.g. P-1024"
+              value={patientDetails.patientId} onChange={handlePatientChange}
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm font-bold text-gray-700"
+            />
+          </div>
 
-           <div className="overflow-x-auto rounded-lg border border-gray-100">
-             <table className="w-full text-left">
-               <thead className="bg-gray-50 text-slate-500 text-xs uppercase font-semibold">
-                 <tr>
-                   <th className="p-3 w-[30%]">Parameter</th>
-                   <th className="p-3 w-[25%]">Result Value</th>
-                   <th className="p-3 w-[15%]">Unit</th>
-                   <th className="p-3 w-[15%]">Reference</th>
-                   <th className="p-3 w-[15%] text-center">Flag</th>
-                 </tr>
-               </thead>
-               <tbody className="divide-y divide-gray-100 text-sm">
-                 {currentParams.map((item) => {
-                   const val = results[item.id] || "";
-                   const flag = getFlag(val, item.min, item.max);
-                   return (
-                     <tr key={item.id} className="hover:bg-slate-50 transition-colors">
-                       <td className="p-3 font-medium text-slate-700">{item.param}</td>
-                       <td className="p-3">
-                         <input 
-                           type="number" 
-                           placeholder="0.00"
-                           className={`w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-purple-500 font-mono font-bold text-slate-700 transition-all
-                             ${flag?.label === 'High' ? 'bg-red-50 border-red-200 text-red-700' : flag?.label === 'Low' ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-white border-gray-300'}`}
-                           value={val}
-                           onChange={(e) => setResults({...results, [item.id]: e.target.value})}
-                         />
-                       </td>
-                       <td className="p-3 text-slate-500">{item.unit}</td>
-                       <td className="p-3 text-slate-500 whitespace-nowrap">{item.min} - {item.max}</td>
-                       <td className="p-3 text-center">
-                         {flag && (
-                           <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold border uppercase tracking-wider ${flag.color}`}>
-                             {flag.label === "High" && <AlertCircle size={10}/>}
-                             {flag.label}
-                           </span>
-                         )}
-                       </td>
-                     </tr>
-                   );
-                 })}
-               </tbody>
-             </table>
-             {currentParams.length === 0 && (
-                <div className="p-8 text-center text-slate-400 text-sm italic bg-slate-50">
-                   No parameters defined for this test type. Please use the comments section or switch to File Upload mode.
-                </div>
-             )}
-           </div>
+          <div className="space-y-1">
+            <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Patient Name</label>
+            <input 
+              type="text" name="patientName" placeholder="Full Name"
+              value={patientDetails.patientName} onChange={handlePatientChange}
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm font-bold text-gray-700"
+            />
+          </div>
 
-           <div className="mt-6">
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2 block">Pathologist Comments</label>
-              <textarea 
-                rows="3" 
-                value={comments}
-                onChange={(e) => setComments(e.target.value)}
-                placeholder="Enter clinical observations, recommendations, or summary..." 
-                className="w-full p-3 border border-gray-300 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-              ></textarea>
-           </div>
+          <div className="flex gap-2">
+             <div className="space-y-1 flex-1">
+                <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Age</label>
+                <input 
+                  type="text" name="age" placeholder="Age"
+                  value={patientDetails.age} onChange={handlePatientChange}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm font-medium text-gray-700"
+                />
+             </div>
+             <div className="space-y-1 flex-1">
+                <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Gender</label>
+                <select 
+                  name="gender" value={patientDetails.gender} onChange={handlePatientChange}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm font-medium text-gray-700 bg-white"
+                >
+                   <option>Male</option><option>Female</option><option>Other</option>
+                </select>
+             </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Sample Date</label>
+            <input 
+              type="date" name="sampleDate" value={patientDetails.sampleDate} onChange={handlePatientChange}
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm font-medium text-gray-700 cursor-pointer"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Referring Dr.</label>
+            <input 
+              type="text" name="referringDr" placeholder="Dr. Name"
+              value={patientDetails.referringDr} onChange={handlePatientChange}
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm font-medium text-gray-700"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Department</label>
+            <input 
+              type="text" name="dept" value={patientDetails.dept} onChange={handlePatientChange}
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm font-medium text-gray-700"
+            />
+          </div>
         </div>
-      )}
+      </div>
 
-      {/* MODE B: FILE UPLOAD */}
-      {entryMode === "upload" && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 animate-in fade-in">
-           <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide mb-4">Upload Scanned Report</h2>
-           
-           <div 
-             className={`relative flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-xl transition-all duration-200 
-               ${dragActive ? "border-purple-500 bg-purple-50" : "border-gray-300 bg-slate-50 hover:bg-slate-100"}`}
-             onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}
-           >
-             <input 
-               type="file" 
-               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
-               onChange={(e) => e.target.files[0] && setFile(e.target.files[0])} 
-               accept=".pdf,.jpg,.png,.jpeg" 
-             />
-             {!file ? (
-               <div className="text-center z-0 pointer-events-none p-4">
-                 <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4 border border-gray-200">
-                   <Upload size={32} className="text-purple-600" strokeWidth={1.5} />
-                 </div>
-                 <p className="text-base font-bold text-slate-700">Click to upload or drag and drop</p>
-                 <p className="text-xs text-slate-400 mt-1 font-medium">SVG, PNG, JPG or PDF (max. 10MB)</p>
-               </div>
-             ) : (
-               <div className="flex flex-col items-center z-20">
-                  <div className="bg-emerald-50 p-4 rounded-full shadow-sm mb-3 border border-emerald-100">
-                     <FileText size={32} className="text-emerald-600" />
+      {/* --- SECTION 2: RESULT ENTRY --- */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mb-4 md:mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 border-b border-gray-100 pb-2 gap-2">
+            <h2 className="text-xs md:text-sm font-bold text-gray-900 uppercase tracking-wide">
+               Test Results: <span className="text-purple-700">{selectedTestType}</span>
+            </h2>
+            <span className="text-[10px] text-gray-400 font-medium italic hidden sm:block">
+               *Values flagged by ref. range
+            </span>
+        </div>
+
+        {/* --- 1. DESKTOP VIEW (TABLE) --- */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-gray-50 text-gray-600 border-y border-gray-200">
+              <tr>
+                <th className="p-4 text-xs font-bold uppercase tracking-wider w-[30%]">Parameter</th>
+                <th className="p-4 text-xs font-bold uppercase tracking-wider w-[25%]">Input Value</th>
+                <th className="p-4 text-xs font-bold uppercase tracking-wider w-[15%]">Units</th>
+                <th className="p-4 text-xs font-bold uppercase tracking-wider w-[15%]">Range</th>
+                <th className="p-4 text-xs font-bold uppercase tracking-wider w-[15%] text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {currentParams.map((item) => {
+                const currentVal = results[item.id] || "";
+                const flag = getFlag(currentVal, item.min, item.max);
+                return (
+                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="p-4 text-sm font-bold text-gray-700">{item.param}</td>
+                    <td className="p-4">
+                        <input 
+                         type="number" placeholder="0.00"
+                         className={`w-full p-2.5 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500 transition-all font-mono font-bold text-sm ${flag?.label === 'High' ? 'bg-red-50 border-red-200 text-red-700' : flag?.label === 'Low' ? 'bg-yellow-50 border-yellow-200 text-yellow-800' : 'bg-white border-gray-300 text-gray-800'}`}
+                         value={currentVal} onChange={(e) => handleResultChange(item.id, e.target.value)}
+                        />
+                    </td>
+                    <td className="p-4 text-sm text-gray-500 font-medium">{item.unit}</td>
+                    <td className="p-4 text-sm text-gray-500 font-medium whitespace-nowrap">{item.min} - {item.max}</td>
+                    <td className="p-4 text-center">
+                      {flag && (
+                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border ${flag.color}`}>
+                           {flag.label === "High" ? <AlertCircle size={10}/> : null}
+                           {flag.label === "High" ? "High" : flag.label === "Low" ? "Low" : "Normal"}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* --- 2. MOBILE VIEW (CARDS) --- */}
+        <div className="md:hidden space-y-4">
+           {currentParams.map((item) => {
+             const currentVal = results[item.id] || "";
+             const flag = getFlag(currentVal, item.min, item.max);
+             return (
+               <div key={item.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50/50">
+                  <div className="flex justify-between items-start mb-2">
+                     <span className="font-bold text-sm text-gray-800">{item.param}</span>
+                     <span className="text-[10px] text-gray-500 bg-white px-2 py-0.5 rounded border border-gray-200">{item.min}-{item.max} {item.unit}</span>
                   </div>
-                  <p className="text-slate-800 font-bold text-lg">{file.name}</p>
-                  <p className="text-slate-500 text-xs mt-1 font-medium">{(file.size / 1024).toFixed(2)} KB</p>
+                  
+                  <div className="flex gap-2 items-center">
+                     <input 
+                       type="number" placeholder="Enter Value"
+                       className={`flex-1 p-2 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500 transition-all font-mono font-bold text-sm ${flag?.label === 'High' ? 'bg-red-50 border-red-200 text-red-700' : flag?.label === 'Low' ? 'bg-yellow-50 border-yellow-200 text-yellow-800' : 'bg-white border-gray-300 text-gray-800'}`}
+                       value={currentVal} onChange={(e) => handleResultChange(item.id, e.target.value)}
+                     />
+                     <div className="w-20 flex justify-center">
+                       {flag ? (
+                         <span className={`inline-flex items-center justify-center w-full px-2 py-2 rounded-lg text-[10px] font-bold border ${flag.color}`}>
+                           {flag.label.toUpperCase()}
+                         </span>
+                       ) : (
+                         <span className="text-[10px] text-gray-400 font-medium px-2">—</span>
+                       )}
+                     </div>
+                  </div>
+               </div>
+             )
+           })}
+        </div>
+      </div>
+
+      {/* --- SECTION 3: FOOTER ACTIONS --- */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
+         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Comments */}
+            <div>
+               <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-2 block">Pathologist Comments</label>
+               <textarea 
+                 rows="3" 
+                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none text-sm"
+                 placeholder="Clinical notes..."
+                 value={comments} onChange={(e) => setComments(e.target.value)}
+               ></textarea>
+            </div>
+
+            {/* Verification & Buttons */}
+            <div className="flex flex-col justify-between">
+               <div className="mb-4 lg:mb-0">
+                  <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-2 block">Verified By <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <select 
+                      className="cursor-pointer w-full p-2 border border-gray-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-purple-500 appearance-none font-medium text-gray-700 text-sm"
+                      value={verifiedBy} onChange={(e) => setVerifiedBy(e.target.value)}
+                    >
+                      <option value="">-- Select Lab Technician --</option>
+                      {technicians.map(tech => <option key={tech.id} value={tech.id}>{tech.name}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-3 gap-2 mt-4">
                   <button 
-                    onClick={(e) => { e.stopPropagation(); setFile(null); }} 
-                    className="mt-4 text-red-600 flex items-center gap-1.5 text-xs font-bold bg-white border border-red-200 hover:bg-red-50 px-4 py-2 rounded-lg cursor-pointer transition-colors shadow-sm relative z-20"
+                    onClick={() => alert('Draft Saved!')}
+                    className="col-span-1 py-2.5 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 font-bold rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer text-xs md:text-sm"
                   >
-                    <X size={14} /> Remove File
+                     <Save size={14} /> <span className="hidden sm:inline">Draft</span>
+                  </button>
+                  <button 
+                    className="col-span-1 py-2.5 bg-white text-purple-700 border border-purple-200 hover:bg-purple-50 font-bold rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer text-xs md:text-sm"
+                  >
+                     <Printer size={14} /> <span className="hidden sm:inline">Print</span>
+                  </button>
+                  <button 
+                    onClick={() => {
+                        if(!verifiedBy) alert('Please select a verifier');
+                        else alert('Results Submitted!');
+                    }}
+                    className="col-span-1 py-2.5 bg-purple-700 text-white hover:bg-purple-800 font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-1 cursor-pointer text-xs md:text-sm"
+                  >
+                     <CheckCircle size={14} /> <span className="hidden sm:inline">Submit</span>
                   </button>
                </div>
-             )}
-           </div>
-        </div>
-      )}
-
-      {/* --- ACTION FOOTER --- */}
-      <div className="flex justify-end gap-3">
-        <button 
-          onClick={() => navigate(-1)}
-          className="px-6 py-2.5 rounded-lg font-bold text-slate-600 hover:bg-slate-100 border border-transparent hover:border-slate-200 transition-all text-sm"
-        >
-          Cancel
-        </button>
-        <button 
-          onClick={handleSubmit}
-          className="bg-purple-700 hover:bg-purple-800 text-white px-8 py-2.5 rounded-lg font-bold shadow-md shadow-purple-200 transition-all active:scale-95 flex items-center gap-2 text-sm"
-        >
-          <Save size={18} /> Save Report
-        </button>
+            </div>
+         </div>
       </div>
 
     </div>

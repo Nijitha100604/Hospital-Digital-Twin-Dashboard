@@ -36,7 +36,7 @@ import SuppliersList from "./pages/inventory/SuppliersList";
 import EditSupplierDetails from "./pages/inventory/editSupplierDetails";
 import ViewMedicineDetails from "./pages/inventory/viewMedicineDetails";
 import LabReportsList from "./pages/laboratory/labReportsList";
-import LabResultsEntry from "./pages/laboratory/LabResultsEntry";
+import LabResultsEntry from "./pages/laboratory/labResultsEntry";
 import PatientWiseReports from "./pages/laboratory/patientWiseReports";
 import UploadReport from "./pages/laboratory/uploadReport";
 import AddStaff from "./pages/staff_management/AddStaff";

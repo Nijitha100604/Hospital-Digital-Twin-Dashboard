@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Upload, FileText, X, CheckCircle, Calendar, User, FlaskConical, Hash } from "lucide-react";
+import { Upload, FileText, X, CheckCircle, Calendar, User, FlaskConical, Hash, Keyboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // Import Patient Data
@@ -146,6 +146,24 @@ export default function UploadReport() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6 font-sans">
       
+      {/* --- HEADER --- */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div>
+           <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+             <Upload className="text-purple-600"/> Upload Lab Report
+           </h1>
+           <p className="text-sm text-gray-500 mt-1">Upload scanned reports for patients.</p>
+        </div>
+
+        {/* Navigation Button to Manual Entry */}
+        <button 
+            onClick={() => navigate('/lab-results-entry')} 
+            className="flex items-center gap-2 bg-white text-purple-700 border border-purple-200 px-4 py-2 rounded-lg text-sm font-bold hover:bg-purple-50 transition-colors shadow-sm"
+        >
+            <Keyboard size={16}/> Manual Entry
+        </button>
+      </div>
+
       {/* --- FORM SECTION --- */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-3">
@@ -298,4 +316,3 @@ export default function UploadReport() {
     </div>
   );
 }
-
