@@ -11,6 +11,7 @@ import {
   Save, 
   Trash2 
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // --- HELPER: Time Conversion ---
 const to12Hour = (time24) => {
@@ -32,6 +33,7 @@ const to24Hour = (time12, period) => {
 };
 
 function ShiftPlanner() {
+  const navigate = useNavigate();
   /* -------------------- STATES -------------------- */
   const [viewMode, setViewMode] = useState("Weekly"); 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -248,7 +250,7 @@ function ShiftPlanner() {
               {/* Right Side: Assign Button */}
               <div className="flex-none ml-auto">
                   <button 
-                    onClick={() => alert('Navigate to assign shift page')} 
+                    onClick={() => navigate('/assign-shift')} // CHANGED: Using navigate function
                     className="bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-xs font-bold shadow-md transition-all active:scale-95 whitespace-nowrap"
                   >
                     <Plus size={14} strokeWidth={3}/> 
