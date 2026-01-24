@@ -20,12 +20,15 @@ const addStaff = async (req, res) => {
       licenseNumber,
       employmentType,
       joiningDate,
+      status,
+      profilePhoto: profilePhotoBase64,
+      idProofDoc: idProofDocBase64
     } = req.body;
 
-    const profileImage = req.files?.profilePhoto?.[0]; // Assuming Multer handles multiple files
+    const profileImage = req.files?.profilePhoto?.[0];
     const idProofFile = req.files?.idProofDoc?.[0];
 
-    // Basic Validation (Check required fields not handled by Mongoose or frontend)
+    // Basic Validation
     if (
       !fullName ||
       !email ||
@@ -40,12 +43,10 @@ const addStaff = async (req, res) => {
       });
     }
 
-    // Email Validator
     if (!validator.isEmail(email)) {
       return res.json({ success: false, message: "Invalid email address format" });
     }
 
-    // Duplicate Check (Email or License)
     const existingStaff = await staffModel.findOne({
       $or: [{ email: email }, { licenseNumber: licenseNumber }],
     });
@@ -57,17 +58,20 @@ const addStaff = async (req, res) => {
       });
     }
 
-    // Image Uploads
     let profileUrl = "";
     let idProofUrl = "";
     let idProofOriginalName = "";
 
+    // Handle file uploads
     if (profileImage) {
       const uploadRes = await cloudinary.uploader.upload(profileImage.path, {
         resource_type: "auto",
         folder: "staff_profiles",
       });
       profileUrl = uploadRes.secure_url;
+    } else if (profilePhotoBase64) {
+      // Use base64 data if provided
+      profileUrl = profilePhotoBase64;
     }
 
     if (idProofFile) {
@@ -77,9 +81,10 @@ const addStaff = async (req, res) => {
       });
       idProofUrl = uploadRes.secure_url;
       idProofOriginalName = idProofFile.originalname;
+    } else if (idProofDocBase64) {
+      idProofUrl = idProofDocBase64;
     }
 
-    // Create New Staff Object
     const newStaff = new staffModel({
       fullName,
       gender,
@@ -95,6 +100,7 @@ const addStaff = async (req, res) => {
       licenseNumber,
       employmentType,
       joiningDate,
+      status: status || "Active",
       profilePhoto: profileUrl,
       idProofDoc: idProofUrl,
       idProofName: idProofOriginalName,
@@ -112,7 +118,7 @@ const addStaff = async (req, res) => {
 // --- 2. GET ALL STAFF ---
 const getAllStaff = async (req, res) => {
   try {
-    const staffList = await staffModel.find().sort({ createdAt: -1 }); // Latest first
+    const staffList = await staffModel.find().sort({ createdAt: -1 });
     res.json({ success: true, data: staffList });
   } catch (error) {
     console.log(error);
@@ -120,7 +126,7 @@ const getAllStaff = async (req, res) => {
   }
 };
 
-// --- 3. GET STAFF BY ID (STF0001) ---
+// --- 3. GET STAFF BY ID ---
 const getStaffById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -147,7 +153,6 @@ const updateStaff = async (req, res) => {
       return res.json({ success: false, message: "Staff not found!" });
     }
 
-    // Handle File Updates
     const profileImage = req.files?.profilePhoto?.[0];
     const idProofFile = req.files?.idProofDoc?.[0];
 
@@ -170,7 +175,6 @@ const updateStaff = async (req, res) => {
       idProofName = idProofFile.originalname;
     }
 
-    // Prepare Update Object (Using Nullish Coalescing ?? to keep old values if new ones are missing)
     const updateData = {
       fullName: req.body.fullName ?? existing.fullName,
       gender: req.body.gender ?? existing.gender,
@@ -186,7 +190,7 @@ const updateStaff = async (req, res) => {
       licenseNumber: req.body.licenseNumber ?? existing.licenseNumber,
       employmentType: req.body.employmentType ?? existing.employmentType,
       joiningDate: req.body.joiningDate ?? existing.joiningDate,
-      isActive: req.body.isActive ?? existing.isActive,
+      status: req.body.status ?? existing.status,
       profilePhoto: profileUrl,
       idProofDoc: idProofUrl,
       idProofName: idProofName,
@@ -220,4 +224,5 @@ const deleteStaff = async (req, res) => {
   }
 };
 
+// ✅ MAKE SURE THIS EXPORT IS AT THE END OF THE FILE
 export { addStaff, getAllStaff, getStaffById, updateStaff, deleteStaff };
