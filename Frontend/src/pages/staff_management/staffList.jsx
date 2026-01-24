@@ -1,31 +1,61 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios"; // Import axios
 import { FaUserTie, FaPlus, FaSearch, FaFilter, FaEye, FaTimes } from "react-icons/fa";
-import { staffList } from "../../data/staffList";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; // Optional: For error notifications
 
 function StaffList() {
   const navigate = useNavigate();
+  
+  // --- STATE ---
+  const [staffData, setStaffData] = useState([]); // Store backend data here
+  const [loading, setLoading] = useState(true);   // Loading state
   const [searchTerm, setSearchTerm] = useState("");
   const [openFilter, setOpenFilter] = useState(null);
   
-  // State to store selected values
   const [selectedFilters, setSelectedFilters] = useState({
     Department: "",
     Role: "",
     Status: ""
   });
 
-  // Helper to get unique values for dropdowns
-  const getUniqueValues = (key) => {
-    const dataKey = key === "Role" ? "designation" : key.toLowerCase();
-    return [...new Set(staffList.map((item) => item[dataKey]))].filter(Boolean);
+  // --- FETCH DATA FROM BACKEND ---
+  const fetchStaffData = async () => {
+    try {
+      // Replace with your actual backend URL
+      const response = await axios.get("http://localhost:4000/api/staff/all-staff");
+      
+      if (response.data.success) {
+        setStaffData(response.data.data);
+      } else {
+        toast.error("Failed to fetch staff data");
+      }
+    } catch (error) {
+      console.error("Error fetching staff:", error);
+      toast.error("Error connecting to server");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Filter Logic
-  const filteredData = staffList.filter((item) => {
-    const matchesSearch =
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.staffId.toLowerCase().includes(searchTerm.toLowerCase());
+  useEffect(() => {
+    fetchStaffData();
+  }, []);
+
+  // --- HELPER: Get Unique Values for Dropdowns ---
+  const getUniqueValues = (key) => {
+    const dataKey = key === "Role" ? "designation" : key.toLowerCase();
+    // Use staffData state instead of the static file
+    return [...new Set(staffData.map((item) => item[dataKey]))].filter(Boolean);
+  };
+
+  // --- FILTER LOGIC ---
+  const filteredData = staffData.filter((item) => {
+    // Safety check for undefined fields
+    const nameMatch = item.fullName?.toLowerCase().includes(searchTerm.toLowerCase());
+    const idMatch = item.staffId?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesSearch = nameMatch || idMatch;
 
     const matchesDept = selectedFilters.Department 
       ? item.department === selectedFilters.Department 
@@ -157,17 +187,25 @@ function StaffList() {
           </thead>
 
           <tbody className="text-gray-700">
-            {filteredData.length > 0 ? (
+            {loading ? (
+               <tr>
+                 <td colSpan="7" className="px-6 py-10 text-center text-gray-500">
+                   Loading staff data...
+                 </td>
+               </tr>
+            ) : filteredData.length > 0 ? (
               filteredData.map((item) => (
                 <tr
-                  key={item.staffId}
+                  key={item._id || item.staffId} // Ensure key is unique
                   className="border-b hover:bg-gray-50 transition-colors"
                 >
                   <td className="px-6 py-4">{item.staffId}</td>
-                  <td className="px-6 py-4 font-medium text-gray-900">{item.name}</td>
+                  
+                  {/* Backend Fields: fullName, designation, etc */}
+                  <td className="px-6 py-4 font-medium text-gray-900">{item.fullName}</td>
                   <td className="px-6 py-4">{item.designation}</td>
                   <td className="px-6 py-4">{item.department}</td>
-                  <td className="px-6 py-4">{item.contact}</td>
+                  <td className="px-6 py-4">{item.contactNumber}</td>
 
                   <td className="px-6 py-4 text-center">
                     <span
@@ -181,7 +219,6 @@ function StaffList() {
                     </span>
                   </td>
 
-                  {/* --- VIEW ICON MAPPING --- */}
                   <td className="px-6 py-4 text-center">
                     <div className="flex justify-center">
                       <FaEye
