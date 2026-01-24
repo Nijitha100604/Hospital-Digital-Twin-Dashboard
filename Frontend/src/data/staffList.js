@@ -281,5 +281,4 @@ export const staffList = [
     status: "Active"
   }
 
-
 ];
