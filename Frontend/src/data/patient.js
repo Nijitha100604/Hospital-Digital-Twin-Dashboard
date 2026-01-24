@@ -217,7 +217,7 @@ export const allAppointments = [
     appointmentType: "Emergency",
     consultationType: "In-Person",
     date: "2025-01-05",
-    timeSlot: "09:00 – 10:00 AM",
+    timeSlot: "09:00 - 10:00 AM",
     status: "Scheduled",
     vitals: [],
     diagnosis: "",

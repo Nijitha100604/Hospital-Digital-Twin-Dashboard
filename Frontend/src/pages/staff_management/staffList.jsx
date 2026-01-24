@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios"; // Import axios
 import { FaUserTie, FaPlus, FaSearch, FaFilter, FaEye, FaTimes } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify"; // Optional: For error notifications
+import { useContext } from "react";
+import { StaffContext } from "../../context/StaffContext";
+import { AppContext } from "../../context/AppContext";
 
 function StaffList() {
   const navigate = useNavigate();
   
   // --- STATE ---
-  const [staffData, setStaffData] = useState([]); // Store backend data here
-  const [loading, setLoading] = useState(true);   // Loading state
   const [searchTerm, setSearchTerm] = useState("");
   const [openFilter, setOpenFilter] = useState(null);
+  const { fetchStaffs, staffs, loading } = useContext(StaffContext);
+  const {token} = useContext(AppContext);
   
   const [selectedFilters, setSelectedFilters] = useState({
     Department: "",
@@ -19,38 +20,23 @@ function StaffList() {
     Status: ""
   });
 
-  // --- FETCH DATA FROM BACKEND ---
-  const fetchStaffData = async () => {
-    try {
-      // Replace with your actual backend URL
-      const response = await axios.get("http://localhost:4000/api/staff/all-staff");
-      
-      if (response.data.success) {
-        setStaffData(response.data.data);
-      } else {
-        toast.error("Failed to fetch staff data");
-      }
-    } catch (error) {
-      console.error("Error fetching staff:", error);
-      toast.error("Error connecting to server");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    fetchStaffData();
-  }, []);
+    if(token){
+      fetchStaffs();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   // --- HELPER: Get Unique Values for Dropdowns ---
   const getUniqueValues = (key) => {
     const dataKey = key === "Role" ? "designation" : key.toLowerCase();
     // Use staffData state instead of the static file
-    return [...new Set(staffData.map((item) => item[dataKey]))].filter(Boolean);
+    return [...new Set(staffs.map((item) => item[dataKey]))].filter(Boolean);
   };
 
   // --- FILTER LOGIC ---
-  const filteredData = staffData.filter((item) => {
+  const filteredData = staffs.filter((item) => {
     // Safety check for undefined fields
     const nameMatch = item.fullName?.toLowerCase().includes(searchTerm.toLowerCase());
     const idMatch = item.staffId?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -106,7 +92,7 @@ function StaffList() {
 
         {/* SEARCH + FILTER ROW */}
         <div className="flex flex-wrap items-center gap-4 mt-5">
-          <div className="relative flex-1 min-w-[260px]">
+          <div className="relative flex-1 min-w-65">
             <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm" />
             <input
               type="text"
@@ -172,7 +158,7 @@ function StaffList() {
       </div>
 
       {/* TABLE SECTION */}
-      <div className="mt-6 bg-white rounded-xl shadow-sm overflow-x-auto min-h-[400px]">
+      <div className="mt-6 bg-white rounded-xl shadow-sm overflow-x-auto min-h-100">
         <table className="w-full min-w-max text-sm">
           <thead className="bg-gray-200 text-gray-800">
             <tr>

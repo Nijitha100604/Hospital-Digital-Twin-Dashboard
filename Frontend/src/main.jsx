@@ -5,14 +5,17 @@ import App from './App.jsx'
 import AppContextProvider from './context/AppContext.jsx'
 import PatientContextProvider from './context/PatientContext.jsx';
 import MedicineContextProvider from './context/MedicineContext.jsx';
+import StaffContextProvider from './context/StaffContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <AppContextProvider>
       <MedicineContextProvider>
-        <PatientContextProvider>
-        <App />
-      </PatientContextProvider>
+        <StaffContextProvider>
+          <PatientContextProvider>
+            <App />
+          </PatientContextProvider>
+      </StaffContextProvider>
       </MedicineContextProvider>
     </AppContextProvider>
   </BrowserRouter>,

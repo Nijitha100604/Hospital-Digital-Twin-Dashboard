@@ -1,8 +1,9 @@
 import staffModel from "../models/staffModel.js";
 import { v2 as cloudinary } from "cloudinary";
 import validator from "validator";
+import bcrypt from "bcrypt";
 
-// --- 1. ADD NEW STAFF ---
+// Add new staff
 const addStaff = async (req, res) => {
   try {
     const {
@@ -21,12 +22,15 @@ const addStaff = async (req, res) => {
       employmentType,
       joiningDate,
       status,
-      profilePhoto: profilePhotoBase64,
-      idProofDoc: idProofDocBase64
+      password
     } = req.body;
 
-    const profileImage = req.files?.profilePhoto?.[0];
-    const idProofFile = req.files?.idProofDoc?.[0];
+    if (!password) {
+      return res.json({ success: false, message: "Password is required",});
+    }
+
+    const profilePhoto = req.files?.profilePhoto?.[0];
+    const idProofDoc = req.files?.idProofDoc?.[0]; 
 
     // Basic Validation
     if (
@@ -60,30 +64,19 @@ const addStaff = async (req, res) => {
 
     let profileUrl = "";
     let idProofUrl = "";
-    let idProofOriginalName = "";
 
-    // Handle file uploads
-    if (profileImage) {
-      const uploadRes = await cloudinary.uploader.upload(profileImage.path, {
-        resource_type: "auto",
-        folder: "staff_profiles",
-      });
-      profileUrl = uploadRes.secure_url;
-    } else if (profilePhotoBase64) {
-      // Use base64 data if provided
-      profileUrl = profilePhotoBase64;
+    if (profilePhoto) {
+      const imageUpload = await cloudinary.uploader.upload(profilePhoto.path, { resource_type: "auto" });
+      profileUrl = imageUpload.secure_url;
     }
 
-    if (idProofFile) {
-      const uploadRes = await cloudinary.uploader.upload(idProofFile.path, {
-        resource_type: "auto",
-        folder: "staff_docs",
-      });
-      idProofUrl = uploadRes.secure_url;
-      idProofOriginalName = idProofFile.originalname;
-    } else if (idProofDocBase64) {
-      idProofUrl = idProofDocBase64;
+    if (idProofDoc) {
+      const imageUpload = await cloudinary.uploader.upload(idProofDoc.path, { resource_type: "auto" });
+      idProofUrl = imageUpload.secure_url;
     }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     const newStaff = new staffModel({
       fullName,
@@ -100,10 +93,10 @@ const addStaff = async (req, res) => {
       licenseNumber,
       employmentType,
       joiningDate,
-      status: status || "Active",
+      status,
+      password: hashedPassword, 
       profilePhoto: profileUrl,
       idProofDoc: idProofUrl,
-      idProofName: idProofOriginalName,
     });
 
     await newStaff.save();
@@ -115,7 +108,7 @@ const addStaff = async (req, res) => {
   }
 };
 
-// --- 2. GET ALL STAFF ---
+// Get all staffs
 const getAllStaff = async (req, res) => {
   try {
     const staffList = await staffModel.find().sort({ createdAt: -1 });

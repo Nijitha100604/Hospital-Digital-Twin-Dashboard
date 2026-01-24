@@ -379,8 +379,4 @@ export const staffList = [
     profilePhoto: "",
     status: "Active"
   }
-<<<<<<< HEAD
-
-=======
->>>>>>> 2e7033969f0b990da654585781026f2a68a7b1ac
 ];

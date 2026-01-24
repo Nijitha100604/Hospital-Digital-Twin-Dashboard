@@ -8,8 +8,12 @@ import {
   FaUser
 } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
-import { departmentDoctorData } from '../../data/patient';
 import { toast } from "react-toastify";
+import { useContext } from 'react';
+import { StaffContext } from '../../context/StaffContext';
+import { AppContext } from '../../context/AppContext';
+import { useEffect } from 'react';
+import { PatientContext } from '../../context/PatientContext';
 
 function BookAppointment() {
 
@@ -17,6 +21,10 @@ function BookAppointment() {
 
   const [selectedDept, setSelectedDept] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState("");
+
+  const {staffs, fetchStaffs} = useContext(StaffContext);
+  const {patients, fetchPatients} = useContext(PatientContext);
+  const {token} = useContext(AppContext);
 
   const[name, setName] = useState("");
   const[patientId, setPatientId] = useState("");
@@ -30,9 +38,19 @@ function BookAppointment() {
   const[timeSlot, setTimeSlot] = useState("")
   const[remarks, setRemarks] = useState("");
 
-  const doctorList = departmentDoctorData.find(
-    (item) => item.department === selectedDept
-  )?.doctors || [];
+  const doctorList = staffs?.filter(
+    (staff) => staff.designation === "Doctor" && staff.department === selectedDept && staff.available
+  );
+
+  const depts = [
+    "General Medicine",
+    "Gynecology",
+    "Pediatrics",
+    "Orthopedics",
+    "Cardiology",
+    "Neurology",
+    "Dermatology"
+  ];
 
   const formattedData = {
     "Name" : name,
@@ -75,6 +93,47 @@ function BookAppointment() {
     toast.success("Patient added successfully");
     navigate("/all-appointments");
   }
+
+  const fetchPatientDetails = (id) =>{
+
+    if(!id){
+      setName("");
+      setAge("");
+      setGender("");
+      setBloodGroup("");
+      setContact("");
+      return;
+    };
+
+    const patient = patients.find(
+      (p) => p.patientId === id
+    );
+
+    if(patient){
+      setName(patient?.personal?.name);
+      setAge(patient?.personal?.age);
+      setGender(patient?.personal?.gender);
+      setBloodGroup(patient?.personal?.bloodGroup);
+      setContact(patient?.personal?.contact);
+    } else{
+      setName("");
+      setAge("");
+      setGender("");
+      setBloodGroup("");
+      setContact("");
+      toast.error("Patient not found");
+    }
+  }
+
+  useEffect(()=>{
+
+    if(token){
+      fetchStaffs();
+      fetchPatients();    
+    }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
 
   return (
     <>
@@ -125,88 +184,71 @@ function BookAppointment() {
           <input 
             type="text"
             value={patientId}
-            onChange={(e)=>setPatientId(e.target.value)}
+            onChange={(e) => {
+              const id = e.target.value;
+              setPatientId(id);
+              fetchPatientDetails(id);
+            }}
             required
             placeholder='Enter Patient ID'
-            className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+            className = "w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
         </div>
 
         {/* Patient Name */}
         <div>
-          <label className="text-sm text-gray-800 font-medium">Patient Name <span className="text-red-600">*</span></label>
+          <label className="text-sm text-gray-800 font-medium">Patient Name </label>
           <input 
             type="text"
             value={name}
-            onChange={(e)=>setName(e.target.value)}
-            required
-            placeholder='Enter Patient Name'
-            className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+            disabled
+            className = "w-full bg-gray-200 mt-1 border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
         </div>
 
         {/* Gender */}
         <div>
-          <label className="text-sm text-gray-800 font-medium">Gender <span className="text-red-600">*</span></label>
-          <select
+          <label className="text-sm text-gray-800 font-medium">Gender</label>
+          <input
             required
             value={gender}
-            onChange={(e)=>setGender(e.target.value)}
-            className = {`w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700`}
-          >
-            <option value = "">Select Gender</option>
-            <option value = "Male">Male</option>
-            <option value = "Female">Female</option>
-            <option value = "Others">Others</option>
-          </select>
+            disabled
+            className = {`w-full bg-gray-200 mt-1 border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700`}
+          />
         </div>
 
         {/* Age */}
         <div>
-          <label className="text-sm text-gray-800 font-medium">Age <span className="text-red-600">*</span></label>
+          <label className="text-sm text-gray-800 font-medium">Age</label>
           <input 
             type="number"
             value={age}
-            onChange={(e)=>setAge(e.target.value)}
-            required
-            placeholder='Enter the Age'
-            className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+            disabled
+            className = "w-full bg-gray-200 mt-1 border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
         </div>
 
         {/* Blood Type */}
         <div>
-          <label className="text-sm text-gray-800 font-medium">Blood Group <span className="text-red-600">*</span></label>
-          <select
+          <label className="text-sm text-gray-800 font-medium">Blood Group</label>
+          <input
             required
             value={bloodGroup}
-            onChange={(e)=>setBloodGroup(e.target.value)}
-            className = {`w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700`}
-          >
-            <option value = "">Select Blood Group</option>
-            <option value = "A+ve">A+ve</option>
-            <option value = "B+ve">B+ve</option>
-            <option value = "A-ve">A-ve</option>
-            <option value = "B-ve">B-ve</option>
-            <option value = "AB+ve">AB+ve</option>
-            <option value = "AB-ve">AB-ve</option>
-            <option value = "O+ve">O+ve</option>
-            <option value = "O-ve">O-ve</option>
-          </select>
+            disabled
+            className = {`w-full bg-gray-200 mt-1 border border-gray-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700`}
+          />
         </div>
 
         {/* Contact Number */}
         <div>
-          <label className="text-sm text-gray-800 font-medium">Contact Number <span className="text-red-600">*</span></label>
+          <label className="text-sm text-gray-800 font-medium">Contact Number </label>
           <input 
             type="tel"
             pattern="[0-9]{10}"
             maxLength={10}
             value={contact}
-            onChange={(e)=>setContact(e.target.value)}
-            required
-            placeholder='Enter the Contact Number'
-            className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+            disabled
+            className = "w-full bg-gray-200 mt-1 border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
         </div>
 
@@ -229,7 +271,7 @@ function BookAppointment() {
           required
           value={appointmentType}
           onChange={(e)=>setAppointmentType(e.target.value)}
-          className = {`w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700`}
+          className = {`w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${appointmentType === "" ? "text-gray-500" : "text-gray-900"}`}
         >
           <option value = "">Select Appointment Type</option>
           <option value = "General Consultation">General Consultation</option>
@@ -249,12 +291,12 @@ function BookAppointment() {
             setSelectedDept(e.target.value);
             setSelectedDoctor("");
           }}
-          className = {`w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700`}
+          className = {`w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${selectedDept === "" ? "text-gray-500" : "text-gray-900"}`}
         >
         <option value="">Select Department</option>
-        {departmentDoctorData.map((item) => (
-          <option key={item.department} value={item.department}>
-            {item.department}
+        {depts.map((item) => (
+          <option key={item} value={item}>
+            {item}
           </option>
         ))} 
         </select>
@@ -267,13 +309,13 @@ function BookAppointment() {
           required
           value={selectedDoctor}
           onChange={(e) => setSelectedDoctor(e.target.value)}
-          className = {`w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700`}
+          className = {`w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${selectedDoctor === "" ? "text-gray-500" : "text-gray-900"}`}
           disabled={!selectedDept}
         >
           <option value = "">Select Doctor</option>
           {doctorList.map((doctor) => (
-            <option key={doctor} value={doctor}>
-              {doctor}
+            <option key={doctor.staffId} value={doctor.staffId}>
+              {doctor.staffId} - {doctor.fullName}
             </option>
           ))}
         </select>
@@ -286,7 +328,7 @@ function BookAppointment() {
           required
           value={consultationType}
           onChange={(e)=>setConsultationType(e.target.value)}
-          className = {`w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700`}
+          className = {`w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${consultationType === "" ? "text-gray-500" : "text-gray-900"}`}
         >
           <option value = "">Select Consultation Type</option>
           <option value = "In-Person">In-Person</option>
@@ -303,7 +345,7 @@ function BookAppointment() {
           onChange={(e)=>setDate(e.target.value)}
           required
           placeholder='Select Date '
-          className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+          className = {`w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${date === "" ? "text-gray-500" : "text-gray-900"}`}
         />
       </div>
 
@@ -314,7 +356,7 @@ function BookAppointment() {
           required
           value={timeSlot}
           onChange={(e)=>setTimeSlot(e.target.value)}
-          className = {`w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700`}
+          className = {`w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${timeSlot === "" ? "text-gray-500" : "text-gray-900"}`}
         >
           <option value = "">Select Time Slot</option>
           <option value = "9-11">9:00 - 11:00 AM</option>
@@ -335,7 +377,7 @@ function BookAppointment() {
             value={remarks}
             onChange={(e)=>setRemarks(e.target.value)}
             placeholder='Enter Appointment Reason'
-            className = "w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+            className = "w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
           />
         </div>
       </div>
