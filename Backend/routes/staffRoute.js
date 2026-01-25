@@ -13,8 +13,12 @@ import {
 const staffRouter = express.Router();
 
 staffRouter.post( "/add-staff", authUser, upload.fields([
-    { name: "profilePhoto", maxCount: 1 },
-    { name: "idProofDoc", maxCount: 1 }
+    { 
+      name: "profilePhoto", 
+      maxCount: 1 },
+    { 
+      name: "idProofDoc", 
+      maxCount: 1 }
   ]), addStaff);
 staffRouter.get( "/all-staff", authUser, getAllStaff );
 staffRouter.get( "/staff/:id", authUser, getStaffById );
