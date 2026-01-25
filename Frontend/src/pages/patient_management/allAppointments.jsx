@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { 
   FaRegCalendarCheck, 
   FaPlus, 
@@ -13,24 +13,27 @@ import {
 } from "react-icons/fa";
 import { MdSchedule } from "react-icons/md";
 import { useNavigate } from 'react-router-dom';
-import { allAppointments } from './../../data/patient';
+import { PatientContext } from '../../context/PatientContext';
+import { AppContext } from '../../context/AppContext';
 
 function AllAppointments() {
 
   const navigate = useNavigate();
+  const { fetchAppointments, appointments, appLoading} = useContext(PatientContext);
+  const {token} = useContext(AppContext);
 
   // Appointment counts
-  const totalAppointments = allAppointments.length;
-  const scheduledAppointments = allAppointments.filter(
+  const totalAppointments = appointments?.length;
+  const scheduledAppointments = appointments?.filter(
     item => item.status === "Scheduled"
   ).length;
-  const cancelledAppointments = allAppointments.filter(
+  const cancelledAppointments = appointments?.filter(
     item => item.status === "Cancelled"
   ).length;
-  const rescheduledAppointments = allAppointments.filter(
+  const rescheduledAppointments = appointments?.filter(
     item => item.status === "Rescheduled"
   ).length;
-   const completedAppointments = allAppointments.filter(
+   const completedAppointments = appointments?.filter(
     item => item.status === "Completed"
   ).length;
 
@@ -49,20 +52,6 @@ function AllAppointments() {
         return "bg-white"
     }
   }
-
-  // Formating input date
-
-  const formatToInputDate = (dateStr) => {
-    const [day, monthStr, year] = dateStr.split(" ");
-
-  const months = {
-    Jan: "01", Feb: "02", Mar: "03", Apr: "04",
-    May: "05", Jun: "06", Jul: "07", Aug: "08",
-    Sep: "09", Oct: "10", Nov: "11", Dec: "12"
-  };
-
-  return `${year}-${months[monthStr]}-${day.padStart(2, "0")}`;
-  };
 
 
   // Filters 
@@ -89,16 +78,16 @@ function AllAppointments() {
     setOpenFilter(null)
   }
 
-  const filteredData = allAppointments.filter((item)=>{
+  const filteredData = appointments.filter((item)=>{
     
-    const searchMatch = searchTerm.trim() === "" || item.patientName.toLowerCase().includes(searchTerm.toLowerCase()) || item.patientId.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchMatch = searchTerm.trim() === "" || item?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || item?.patientId?.toLowerCase().includes(searchTerm.toLowerCase());
   
-    const statusMatch = !filters.status || item.status === filters.status;
+    const statusMatch = !filters.status || item?.status === filters.status;
 
-    const consultationMatch = !filters.consultation || item.appointmentType === filters.consultation;
+    const consultationMatch = !filters.consultation || item?.consultationType === filters.consultation;
   
     const dateMatch =
-    !filters.date || formatToInputDate(item.date) === filters.date;
+    !filters.date || item?.date === filters.date;
     return searchMatch && statusMatch && consultationMatch && dateMatch;
 
   });
@@ -115,6 +104,27 @@ function AllAppointments() {
     startIndex + records_per_page
   );
   const totalPages = Math.ceil(filteredData.length / records_per_page);
+
+  useEffect(()=>{
+      if(token){
+        fetchAppointments();
+      }
+      window.scroll(0,0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  if(appLoading){
+    return(
+      <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
+      <div className="flex flex-col items-center justify-center h-75 gap-4">
+        <div className="w-12 h-12 border-4 border-gray-300 border-t-fuchsia-700 rounded-full animate-spin"></div>
+        <p className="text-gray-600 text-sm font-medium tracking-wide">
+          Fetching Appointments...
+        </p>
+      </div>
+      </div>
+    )
+  };
 
   return (
     <>
@@ -374,6 +384,23 @@ function AllAppointments() {
       
       </div>
 
+      {!appLoading && paginatedData.length === 0 && (
+        <div className="flex flex-col items-center justify-center h-75 gap-4 text-center">
+          <div className="bg-gray-200 p-4 rounded-full">
+            <FaCalendarTimes className="text-gray-600 text-3xl" />
+          </div>
+          <p className="text-gray-800 text-lg font-semibold">
+            No Appointments Found
+          </p>
+          <p className="text-gray-500 text-sm max-w-sm">
+            There are currently no appointments available.  
+          </p>
+
+        </div>
+      )}
+
+      {
+      !appLoading && paginatedData.length > 0 && (
       <div className="mt-4 w-full px-2 flex flex-col gap-3">
         {
           paginatedData.map((item, index)=>(
@@ -381,33 +408,35 @@ function AllAppointments() {
               key={index}
               className="flex items-center flex-wrap gap-4 justify-between px-3 py-3 bg-white border border-gray-400 rounded-lg hover:bg-gray-200 hover:border-2 cursor-pointer"
             >
-              <p className="inline-flex text-sm bg-gray-300 font-medium text-gray-800 px-3 py-2 items-center rounded-lg">{item.appointmentNumber}</p>
+              <p className="inline-flex text-sm bg-gray-300 font-medium text-gray-800 px-3 py-2 items-center rounded-lg">{item?.appointmentId}</p>
               <div className="flex flex-col gap-2 items-center">
-                <p className="text-sm font-bold">{item.patient.name}</p>
-                <p className="text-sm text-gray-600">{item.patientId}</p>
+                <p className="text-sm font-bold">{item?.name}</p>
+                <p className="text-sm text-gray-600">{item?.patientId}</p>
                 <div className="flex gap-2 items-center">
                   <FaPhone 
                     size={12} 
                     className="text-gray-600"
                   />
-                  <p className="text-sm text-gray-600">{item.patient.contact}</p>
+                  <p className="text-sm text-gray-600">{item?.contact}</p>
                 </div>
               </div>
               <div className="flex flex-col gap-2 items-center">
-                <p className="text-sm font-bold">{item.doctorName}</p>
-                <p className="text-sm text-gray-600">{item.doctorCategory}</p>
+                <p className="text-sm font-bold">{item?.doctorName}</p>
+                <p className="text-sm text-gray-600">{item?.department}</p>
               </div>
-              <p className={`text-sm font-medium px-2 py-1 w-20 text-center rounded-lg ${item.consultationType === "In-Person" ? "bg-red-300 text-red-600" : "bg-blue-300 text-blue-600"}`} >{item.consultationType}</p>
-              <p className="text-sm text-gray-700 font-bold">{item.date}</p>
-              <p className={`text-sm font-semibold px-3 py-2 text-white rounded-lg cursor-pointer ${getStatusClass(item.status)}`}>{item.status}</p>
+              <p className={`text-sm font-medium px-2 py-1 w-20 text-center rounded-lg ${item?.consultationType === "In-Person" ? "bg-red-300 text-red-600" : "bg-blue-300 text-blue-600"}`} >{item?.consultationType}</p>
+              <p className="text-sm text-gray-700 font-bold">{item?.date}</p>
+              <p className={`text-sm font-semibold px-3 py-2 text-white rounded-lg cursor-pointer ${getStatusClass(item?.status)}`}>{item?.status}</p>
               <FaEye 
                 size={20}
-                onClick={() => { navigate(`/view-appointment/${item.patientId}`); window.scrollTo(0, 0)}}
+                onClick={() => { navigate(`/view-appointment/${item?._id}`); window.scrollTo(0, 0)}}
               />
             </div>
           ))
         }
       </div>
+       )
+      }
 
       {/* Bottom of the table */}
       <div className="flex justify-end gap-2 mt-4">

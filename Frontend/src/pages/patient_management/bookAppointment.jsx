@@ -14,17 +14,21 @@ import { StaffContext } from '../../context/StaffContext';
 import { AppContext } from '../../context/AppContext';
 import { useEffect } from 'react';
 import { PatientContext } from '../../context/PatientContext';
+import axios from 'axios';
 
 function BookAppointment() {
 
   const navigate = useNavigate();
 
   const [selectedDept, setSelectedDept] = useState("");
-  const [selectedDoctor, setSelectedDoctor] = useState("");
+  const [selectedDoc, setSelectedDoc] = useState("");
+  const [doctorId, setDoctorId] = useState("");
+  const [doctorName, setDoctorName] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const {staffs, fetchStaffs} = useContext(StaffContext);
-  const {patients, fetchPatients} = useContext(PatientContext);
-  const {token} = useContext(AppContext);
+  const {patients, fetchPatients, fetchAppointments} = useContext(PatientContext);
+  const {token, backendUrl} = useContext(AppContext);
 
   const[name, setName] = useState("");
   const[patientId, setPatientId] = useState("");
@@ -52,22 +56,6 @@ function BookAppointment() {
     "Dermatology"
   ];
 
-  const formattedData = {
-    "Name" : name,
-    "PatientId" : patientId,
-    "Age": age,
-    "Gender": gender,
-    "Blood Group": bloodGroup,
-    "Contact": contact,
-    "Appointment Type": appointmentType,
-    "Consultation Type": consultationType,
-    "Department": selectedDept,
-    "Doctor": selectedDoctor,
-    "Date": date,
-    "Time Slot": timeSlot,
-    "remarks": remarks
-  }
-
   const handleCancel = () => {
     if (window.confirm("Are you sure you want to clear the form?")){
     setName("");
@@ -82,16 +70,58 @@ function BookAppointment() {
     setRemarks("");
     setTimeSlot("");
     setSelectedDept("");
-    setSelectedDoctor(""); 
+    setSelectedDoc(""); 
+    setDoctorId("");
+    setDoctorName("");
     toast.info("All fields cleared !");
   }
   }
 
-  const handleSubmit = (e) =>{
+  const handleSubmit = async(e) =>{
     e.preventDefault();
-    console.log(formattedData);
-    toast.success("Patient added successfully");
-    navigate("/all-appointments");
+    
+    if(!token){
+      toast.error("Unauthorized. Please login again");
+      return;
+    }
+    setLoading(true);
+
+    try{
+
+      const {data} = await axios.post(`${backendUrl}/api/appointment/book-appointment`, 
+        {
+          patientId,
+          docId: doctorId,
+          appointmentType,
+          department: selectedDept,
+          doctorName,
+          consultationType,
+          date,
+          timeSlot,
+          remarks,
+          name,
+          age,
+          gender,
+          bloodGroup,
+          contact
+        },
+        {headers: {token}});
+      if(data.success){
+        toast.success(data.message, { autoClose: 2000 });
+        await fetchAppointments();
+        setTimeout(() => {
+          navigate("/all-appointments");
+        }, 1000);
+      } else{
+        toast.error(data.message);
+        setLoading(false);
+      }
+
+    } catch(error){
+      console.log(error);
+      toast.error("Internal Server Error");
+      setLoading(false);
+    }
   }
 
   const fetchPatientDetails = (id) =>{
@@ -139,6 +169,18 @@ function BookAppointment() {
     <>
 
     <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
+
+    {loading && (
+        <div className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-white/40 backdrop-blur-md">
+          <div className="flex flex-col items-center gap-4 bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
+            <div className="w-14 h-14 border-4 border-gray-200 border-t-fuchsia-700 rounded-full animate-spin"></div>
+            <div className="text-center">
+              <p className="text-lg font-semibold text-gray-900">Booking Appointment...</p>
+              <p className="text-xs text-gray-500 mt-1">Uploading appointment details</p>
+            </div>
+          </div>
+        </div>
+    )}
 
     {/* Header and view all appointments */}
     <div className="flex flex-wrap justify-between items-center">
@@ -289,7 +331,9 @@ function BookAppointment() {
           value={selectedDept}
           onChange={(e)=>{
             setSelectedDept(e.target.value);
-            setSelectedDoctor("");
+            setSelectedDoc("");
+            setDoctorId("");
+            setDoctorName("");
           }}
           className = {`w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${selectedDept === "" ? "text-gray-500" : "text-gray-900"}`}
         >
@@ -307,14 +351,20 @@ function BookAppointment() {
         <label className="text-sm text-gray-800 font-medium">Doctor <span className="text-red-600">*</span></label>
         <select
           required
-          value={selectedDoctor}
-          onChange={(e) => setSelectedDoctor(e.target.value)}
-          className = {`w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${selectedDoctor === "" ? "text-gray-500" : "text-gray-900"}`}
+          value={selectedDoc}
+          onChange={(e) => {
+            const id = e.target.value;
+            const name = e.target.selectedOptions[0].dataset.name;
+            setSelectedDoc(id);   
+            setDoctorId(id);      
+            setDoctorName(name);  
+          }}
+          className = {`w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${selectedDoc=== "" ? "text-gray-500" : "text-gray-900"}`}
           disabled={!selectedDept}
         >
           <option value = "">Select Doctor</option>
           {doctorList.map((doctor) => (
-            <option key={doctor.staffId} value={doctor.staffId}>
+            <option key={doctor.staffId} value={doctor.staffId} data-name={doctor.fullName}>
               {doctor.staffId} - {doctor.fullName}
             </option>
           ))}
@@ -343,6 +393,7 @@ function BookAppointment() {
           type="date"
           value={date}
           onChange={(e)=>setDate(e.target.value)}
+          min={new Date().toISOString().split("T")[0]}
           required
           placeholder='Select Date '
           className = {`w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${date === "" ? "text-gray-500" : "text-gray-900"}`}
@@ -359,10 +410,10 @@ function BookAppointment() {
           className = {`w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${timeSlot === "" ? "text-gray-500" : "text-gray-900"}`}
         >
           <option value = "">Select Time Slot</option>
-          <option value = "9-11">9:00 - 11:00 AM</option>
-          <option value = "11-1">11:00 - 1:00 PM</option>
-          <option value = "2-5">2:00 - 5:00 PM</option>
-          <option value = "5-8">5:00 - 8:00 PM</option>
+          <option value = "9:00 AM - 11:00 AM">9:00 AM - 11:00 AM</option>
+          <option value = "11:00 AM - 1:00 PM">11:00 AM - 1:00 PM</option>
+          <option value = "2:00 PM - 5:00 PM">2:00 PM - 5:00 PM</option>
+          <option value = "5:00 PM - 8:00 PM">5:00 PM - 8:00 PM</option>
         </select>
       </div>
 
@@ -397,6 +448,7 @@ function BookAppointment() {
       
         <button 
           type = "submit"
+          disabled={loading}
           className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800
           transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         >

@@ -101,7 +101,7 @@ function AddNewPatient() {
           });
       if(data.success){
         toast.success(data.message, { autoClose: 2000 });
-        await fetchPatients()
+        await fetchPatients();
         setTimeout(() => {
           navigate("/patient-list");
         }, 1000);

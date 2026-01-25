@@ -18,7 +18,7 @@ import { formatDate } from '../../utils/formatDate';
 
 function PatientList() {
 
-  const { patients, loading } = useContext(PatientContext);
+  const { patients, patientLoading } = useContext(PatientContext);
 
   const [openFilter, setOpenFilter] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -296,7 +296,7 @@ function PatientList() {
           {/* patient records table */}
 
           {
-            loading ? (
+            patientLoading ? (
               <div className="flex items-center justify-center gap-2 py-10 text-gray-600 text-lg">
                 <FaSpinner className="animate-spin" />
                 Loading Patients...

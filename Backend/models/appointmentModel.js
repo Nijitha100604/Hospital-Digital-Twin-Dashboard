@@ -3,11 +3,16 @@ import mongoose from 'mongoose';
 const appointmentSchema = new mongoose.Schema({
 
     patientId: { type: String, required: true },
-    staffId: { type: String, required: true },
+    name: { type: String, required: true },
+    age: { type: Number, required: true },
+    gender: { type: String, required: true },
+    bloodGroup: { type: String, required: true },
+    contact: { type: String, required: true },
     appointmentId: {type: String, unique: true},
     appointmentType: { type: String, required: true},
     department: { type: String, required: true},
-    doctor: { type: String, required: true},
+    docId: { type: String, required: true},
+    doctorName: { type: String, required: true },
     consultationType: { type: String, required: true},
     date: { type: String, required: true},
     timeSlot: { type: String, required: true},
