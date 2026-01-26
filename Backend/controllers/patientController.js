@@ -106,7 +106,6 @@ const patientAppDetails = async(req, res) =>{
 }
 
 // Fetch Patient data
-
 const patientData = async(req, res) =>{
     try{
 
@@ -126,9 +125,55 @@ const patientData = async(req, res) =>{
     }
 }
 
+// Vitals entry
+const vitalsEntry = async(req, res) => {
+
+    try {
+
+        const {patientId, appointmentId, vitals} = req.body;
+        if(!patientId){
+            return res.json({success: false, message: "Patient ID is required"})
+        }
+        if(!appointmentId){
+            return res.json({success: false, message: "Appointment ID required"});
+        }
+        if(!vitals || !Array.isArray(vitals) || vitals.length === 0){
+            return res.json({success: false, message: "Vitals required"});
+        }
+
+        const patient = await patientModel.findOne({patientId});
+        if(!patient){
+            return res.json({success: false, message: "Patient not found"});
+        }
+
+        const index = patient.vitals.findIndex(
+            v => v.appointmentId === appointmentId
+        );
+
+        if (index !== -1) {
+            patient.vitals[index].vitalsData = vitals;
+        } else {
+            patient.vitals.push({
+                appointmentId,
+                date: new Date().toISOString().split("T")[0],
+                vitalsData: vitals
+            });
+        }
+
+        await patient.save();
+        res.json({success: true, message: "Vitals saved Successfully"});
+
+    } catch(error) {
+        console.log(error);
+        res.json({success: false, message: error});
+    }
+
+}
+
 export {
     addPatient,
     allPatients,
     patientAppDetails,
-    patientData
+    patientData,
+    vitalsEntry
 }

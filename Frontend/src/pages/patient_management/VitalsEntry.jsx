@@ -11,32 +11,41 @@ import {
     FaEye,
     FaTimes
  } from "react-icons/fa";
-import { nursePatientVitalsList } from '../../data/patient';
 import VitalModal from './../../components/modals/VitalModal';
+import { useContext } from 'react';
+import { PatientContext } from './../../context/PatientContext';
+import { AppContext } from '../../context/AppContext';
+import { useEffect } from 'react';
 
 function VitalsEntry() {
 
-    const totalAppointments = nursePatientVitalsList.length;
-    const completed = nursePatientVitalsList.filter(
+  const {appointments,fetchAppointments, patients, fetchPatients} = useContext(PatientContext);
+  const {token} = useContext(AppContext);
+
+  const getAppointmentStatus = (appointmentId, patientId)=>{
+
+    const patient = patients.find(p => p.patientId === patientId);
+    if(!patient || !patient.vitals) return "Pending";
+
+    const hasVitals = patient.vitals.some(
+      v => v.appointmentId === appointmentId
+    );
+
+    return hasVitals ? "Completed" : "Pending";
+  }
+
+  const vitalsList = appointments?.map((appt) => ({
+    ...appt,
+    status: getAppointmentStatus(appt.appointmentId, appt.patientId)
+  }));
+
+    const totalAppointments = vitalsList.length;
+    const completed = vitalsList.filter(
         item => item.status === "Completed"
     ).length;
-    const pending = nursePatientVitalsList.filter(
+    const pending = vitalsList.filter(
         item => item.status === "Pending"
     ).length;
-
-    // Format the input data
-
-    const formatToInputDate = (dateStr) => {
-        const [day, monthStr, year] = dateStr.split(" ");
-
-        const months = {
-            Jan: "01", Feb: "02", Mar: "03", Apr: "04",
-            May: "05", Jun: "06", Jul: "07", Aug: "08",
-            Sep: "09", Oct: "10", Nov: "11", Dec: "12"
-        };
-
-        return `${year}-${months[monthStr]}-${day.padStart(2, "0")}`;
-    };
 
     // Filters
     const [openFilter, setOpenFilter] = useState(null);
@@ -57,13 +66,13 @@ function VitalsEntry() {
     setOpenFilter(null)
     }
 
-    const filteredData = nursePatientVitalsList.filter((item)=>{
+    const filteredData = vitalsList.filter((item)=>{
         
-      const searchMatch = searchTerm.trim() === "" || item.name.toLowerCase().includes(searchTerm.toLowerCase()) || item.patientId.toLowerCase().includes(searchTerm.toLowerCase());
+      const searchMatch = searchTerm.trim() === "" || item?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || item?.patientId?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const statusMatch = !filters.status || item.status === filters.status;
+      const statusMatch = !filters.status || item?.status === filters.status;
       
-      const dateMatch = !filters.date || formatToInputDate(item.date) === filters.date;
+      const dateMatch = !filters.date || item?.date === filters.date;
         
       return searchMatch && statusMatch && dateMatch;
     
@@ -97,6 +106,15 @@ function VitalsEntry() {
     const [openPopUp, setOpenPopUp] = useState(false);
     const [popUpType, setPopUpType] = useState(null);
     const [selectedPatient, setSelectedPatient] = useState(null);
+
+    useEffect(()=>{
+      if(token){
+        fetchAppointments();
+        fetchPatients();
+      }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token])
 
   return (
     <>
@@ -272,29 +290,29 @@ function VitalsEntry() {
             paginatedData.map((item, index)=>(
             <div 
             key={index}
-            className="flex items-center flex-wrap gap-4 justify-between px-3 py-3 bg-white border border-gray-400 rounded-lg hover:bg-gray-200 hover:border-2 cursor-pointer"
+            className="flex items-center flex-wrap gap-4 justify-between px-3 py-3 bg-white border border-gray-400 rounded-lg hover:bg-gray-100 cursor-pointer hover:shadow-md hover:shadow-gray-500 hover:border-gray-800"
             >
-                <p className="inline-flex text-sm bg-gray-300 font-medium text-gray-800 px-3 py-2 items-center rounded-lg">{item.appointmentId}</p>
+                <p className="inline-flex text-sm bg-gray-300 font-medium text-gray-800 px-3 py-2 items-center rounded-lg">{item?.appointmentId}</p>
                 <div className="flex flex-col gap-2 items-center">
-                    <p className="text-sm font-bold">{item.name}</p>
-                    <p className="text-sm text-gray-600">{item.patientId}</p>
+                    <p className="text-sm font-bold">{item?.name}</p>
+                    <p className="text-sm text-gray-600">{item?.patientId}</p>
                     <div className="flex gap-2 items-center">
                     <FaPhone 
                     size={12} 
                     className="text-gray-600"
                     />
-                    <p className="text-sm text-gray-600">{item.contact}</p>
+                    <p className="text-sm text-gray-600">{item?.contact}</p>
                     </div>
                 </div>
                 <div className="flex flex-col gap-2 items-center">
-                    <p className="text-sm font-bold">{item.doctorName}</p>
-                    <p className="text-sm text-gray-600">{item.doctorDepartment}</p>
+                    <p className="text-sm font-bold">{item?.doctorName}</p>
+                    <p className="text-sm text-gray-600">{item?.department}</p>
                 </div>
-                <p className="text-sm text-gray-700 font-bold">{item.date}</p>
-                <p className={`text-sm font-semibold px-3 py-2 text-white rounded-lg cursor-pointer ${getStatusClass(item.status)}`}>{item.status}</p>
+                <p className="text-sm text-gray-700 font-bold">{item?.date}</p>
+                <p className={`text-sm font-semibold px-3 py-2 text-white rounded-lg cursor-pointer ${getStatusClass(item?.status)}`}>{item?.status}</p>
                 
                 {
-                  item.status === "Pending" ?
+                  item?.status === "Pending" ?
                   <FaEdit
                     size={20}
                     className="text-blue-700 cursor-pointer"
@@ -350,6 +368,7 @@ function VitalsEntry() {
       open={openPopUp}
       type={popUpType}
       item={selectedPatient}
+      patients={patients}
       onClose={() => setOpenPopUp(false)}
     />
 

@@ -5,7 +5,8 @@ import {
     addPatient, 
     allPatients, 
     patientAppDetails,
-    patientData 
+    patientData,
+    vitalsEntry 
 } from '../controllers/patientController.js';
 
 const patientRouter = express.Router();
@@ -14,5 +15,6 @@ patientRouter.post('/add-patient', authUser, upload.single('idProof'), addPatien
 patientRouter.get('/all-patients', authUser, allPatients);
 patientRouter.get('/app-details', authUser, patientAppDetails);
 patientRouter.get('/:id', authUser, patientData);
+patientRouter.post('/add-vitals', authUser, vitalsEntry);
 
 export default patientRouter

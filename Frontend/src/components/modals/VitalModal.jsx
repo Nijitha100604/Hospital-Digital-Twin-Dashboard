@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react'
+import { useContext } from 'react';
 import { FaTimes, FaTrash } from "react-icons/fa";
 import { toast } from 'react-toastify';
+import { AppContext } from '../../context/AppContext';
+import axios from 'axios';
+import { PatientContext } from '../../context/PatientContext';
 
-const VitalModal = ({ open, type, item, onClose }) =>{
+const VitalModal = ({ open, type, patients, item, onClose }) =>{
+
+    const {backendUrl, token} = useContext(AppContext);
+    const {fetchPatients} = useContext(PatientContext);
 
     const vital_units = {
         "Heart Rate": "bpm",
@@ -65,12 +72,8 @@ const VitalModal = ({ open, type, item, onClose }) =>{
     const handleUpdateVital = () =>{
         if (!vitalName || !value) return;
         const isNormal = checkVitalStatus(vitalName, value);
-        if (vitals.some(v => v.name === vitalName)) {
-            toast.error("Vital already added");
-            return;
-        }
-        if (newVitals.some(v => v.name === vitalName)) {
-            toast.error("Vital already added");
+        if (vitals.some(v => v.name === vitalName) || newVitals.some(v => v.name === vitalName)) {
+            toast.error("Vital already exists");
             return;
         }
         setNewVitals(prev => [
@@ -95,20 +98,85 @@ const VitalModal = ({ open, type, item, onClose }) =>{
     };
 
     const handleClose = () => {
-        setVitals([]);
         setNewVitals([]);
         setVitalName("");
         setValue("");
         onClose();
     };
 
+    const saveVitals = async() =>{
 
-    useEffect(() => {
-    if (type === "view" && item?.vitals) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setVitals(item.vitals)
+        try{
+            
+            const {data} = await axios.post(`${backendUrl}/api/patient/add-vitals`, {
+                patientId: item.patientId,
+                appointmentId: item.appointmentId,
+                vitals
+            }, {headers: {token}}) 
+            if(data.success){
+                toast.success("Vitals saved successfully", { autoClose: 2000 });
+                await fetchPatients();
+                setTimeout(() => { handleClose() }, 1000);
+            } else{
+                toast.error(data.message);
+            }
+
+        } catch(error){
+            console.log(error)
+            toast.error("Internal server Error");
+        }
+
     }
-    }, [type, item])
+
+    const updateVitals = async() =>{
+
+        try{
+           
+            const {data} = await axios.post(`${backendUrl}/api/patient/add-vitals`,{
+                patientId: item.patientId,
+                appointmentId: item.appointmentId,
+                vitals: [...vitals, ...newVitals]
+            }, {headers: {token}})
+            if(data.success){
+                toast.success("Vitals Updated" , { autoClose: 2000 });
+                await fetchPatients();
+                setTimeout(() => { handleClose() }, 1000);
+            } else{
+                toast.error(data.message);
+            }
+
+        }catch(error){
+            console.log(error);
+            toast.error("Internal Server Error");
+        }
+
+    }
+
+
+   useEffect(()=>{
+
+    const fetchDetails = () =>{
+        if(!item || !patients) return
+
+        const patient = patients.find(
+            p => p.patientId === item.patientId
+        );
+
+        if(!patient || !patient.vitals){
+            setVitals([]);
+            return;
+        }
+
+        const appointmentVitals = patient.vitals.find(
+            v => v.appointmentId === item.appointmentId
+        );
+
+        setVitals(appointmentVitals?.vitalsData || []);
+
+    }
+    fetchDetails();
+
+   }, [item, patients])
 
     if(!open) return null;
 
@@ -222,11 +290,7 @@ const VitalModal = ({ open, type, item, onClose }) =>{
                                             </div>
                                         ))
                                     }
-                                    <button onClick={()=>{
-                                        onClose();
-                                        setVitals([]);
-                                        toast.success("Vitals Created")
-                                        }}
+                                    <button onClick={saveVitals}
                                         className="mt-5 bg-green-600 text-white cursor-pointer px-4 py-2 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
                                     >Save Vitals</button>
 
@@ -355,11 +419,7 @@ const VitalModal = ({ open, type, item, onClose }) =>{
                                             </div>
                                         ))
                                     }
-                                    <button onClick={()=>{
-                                        onClose();
-                                        setNewVitals([]);
-                                        toast.success("Vitals Updated")
-                                        }}
+                                    <button onClick={updateVitals}
                                         className="mt-5 bg-green-600 cursor-pointer text-white px-4 py-2 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
                                     >Update Vitals</button>
 

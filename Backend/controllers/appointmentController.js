@@ -1,6 +1,7 @@
 import appointmentModel from "../models/appointmentModel.js";
 import patientModel from "../models/patientModel.js";
 import staffModel from './../models/staffModel.js';
+import consultationModel from './../models/consultationModel.js';
 
 // Book appointment
 const createAppointment = async(req, res) =>{
@@ -89,6 +90,20 @@ const createAppointment = async(req, res) =>{
         const newAppointment = new appointmentModel(appointmentData);
         await newAppointment.save();
 
+        const newConsultation = new consultationModel({
+            appointmentId: newAppointment.appointmentId,
+            doctorId: docId,
+            patientId: patientId,
+            doctor: {
+                diagnosis: "",
+                remarks: ""
+            },
+            prescriptions: [],
+            labReports: [],
+            admission: []
+        })
+
+        await newConsultation.save();
         return res.json({success: true, message: "Appointment created successfully !"});
 
     }catch(error){
@@ -111,7 +126,8 @@ const allAppointments = async(req, res)=>{
     }
 }
 
+
 export {
     createAppointment,
-    allAppointments
+    allAppointments,
 }

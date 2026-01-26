@@ -78,11 +78,11 @@ function AllAppointments() {
     setOpenFilter(null)
   }
 
-  const filteredData = appointments.filter((item)=>{
+  const filteredData = appointments?.filter((item)=>{
     
     const searchMatch = searchTerm.trim() === "" || item?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || item?.patientId?.toLowerCase().includes(searchTerm.toLowerCase());
   
-    const statusMatch = !filters.status || item?.status === filters.status;
+    const statusMatch = !filters.status || item?.status?.toLowerCase() === filters.status.toLowerCase();
 
     const consultationMatch = !filters.consultation || item?.consultationType === filters.consultation;
   
@@ -406,7 +406,7 @@ function AllAppointments() {
           paginatedData.map((item, index)=>(
             <div 
               key={index}
-              className="flex items-center flex-wrap gap-4 justify-between px-3 py-3 bg-white border border-gray-400 rounded-lg hover:bg-gray-200 hover:border-2 cursor-pointer"
+              className="flex items-center flex-wrap gap-4 justify-between px-3 py-3 bg-white border border-gray-500 rounded-lg hover:bg-gray-100 cursor-pointer hover:shadow-md hover:shadow-gray-500 hover:border-gray-800"
             >
               <p className="inline-flex text-sm bg-gray-300 font-medium text-gray-800 px-3 py-2 items-center rounded-lg">{item?.appointmentId}</p>
               <div className="flex flex-col gap-2 items-center">
@@ -429,7 +429,11 @@ function AllAppointments() {
               <p className={`text-sm font-semibold px-3 py-2 text-white rounded-lg cursor-pointer ${getStatusClass(item?.status)}`}>{item?.status}</p>
               <FaEye 
                 size={20}
-                onClick={() => { navigate(`/view-appointment/${item?._id}`); window.scrollTo(0, 0)}}
+                onClick={(e) => { 
+                  e.stopPropagation();
+                  navigate(`/view-appointment/${item?._id}`); 
+                  window.scrollTo(0, 0)
+                }}
               />
             </div>
           ))

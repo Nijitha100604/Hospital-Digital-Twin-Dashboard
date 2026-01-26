@@ -23,10 +23,16 @@ const patientSchema = new mongoose.Schema({
     proof: { type: String, default : "" },
     vitals:[
         {
-            name: {type: String, required: true},
-            value : {type: mongoose.Schema.Types.Mixed, required: true},
-            unit : {type: String, required: true},
-            status : {type: String, required: true}
+            appointmentId: { type: String, required: true }, 
+            date: { type: String },
+            vitalsData: [
+                {
+                    name: { type: String, required: true },
+                    value: { type: mongoose.Schema.Types.Mixed, required: true },
+                    unit: { type: String, required: true },
+                    status: { type: String, required: true }
+                }
+            ]
         }
     ]
 
