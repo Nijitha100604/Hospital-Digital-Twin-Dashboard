@@ -1,17 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import axios from "axios";
 import { 
-  Calendar, 
-  ChevronLeft, 
-  ChevronRight, 
-  Search, 
-  CheckCircle, 
-  Plus, 
-  X, 
-  Clock, 
-  Save, 
-  Trash2 
+  Calendar, ChevronLeft, ChevronRight, Search, CheckCircle, 
+  Plus, X, Clock, Save, Trash2, Loader2 
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { StaffContext } from "../../context/StaffContext";
+import { AppContext } from "../../context/AppContext";
+import { toast } from "react-toastify";
 
 // --- HELPER: Time Conversion ---
 const to12Hour = (time24) => {
@@ -32,114 +28,172 @@ const to24Hour = (time12, period) => {
   return `${hours.toString().padStart(2, '0')}:${m}`;
 };
 
+// Helper to get YYYY-MM-DD string (matches backend)
+const getYYYYMMDD = (date) => {
+    return date.toISOString().split('T')[0];
+};
+
 function ShiftPlanner() {
   const navigate = useNavigate();
+  const { staffs, fetchStaffs } = useContext(StaffContext);
+  const { token, backendUrl } = useContext(AppContext);
+
   /* -------------------- STATES -------------------- */
   const [viewMode, setViewMode] = useState("Weekly"); 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState("");
   const [daysToDisplay, setDaysToDisplay] = useState([]);
   
-  // Modal & Data States
+  // Data States
+  const [dbShifts, setDbShifts] = useState([]); // Shifts from Database
+  const [loading, setLoading] = useState(false);
+
+  // Modal States
   const [selectedCell, setSelectedCell] = useState(null); 
   const [editData, setEditData] = useState({ 
-    type: "", 
-    startVal: "", startAmpm: "AM",
-    endVal: "", endAmpm: "AM"
+    type: "Morning", 
+    startVal: "09:00", startAmpm: "AM",
+    endVal: "05:00", endAmpm: "PM"
   });
-  const [manualOverrides, setManualOverrides] = useState({});
-
-  /* -------------------- CONFIG DATA -------------------- */
-  const staffList = [
-    { id: 1, name: "Dr. John Smith", role: "Doctor" },
-    { id: 2, name: "Nurse Sarah Jones", role: "Nurse" },
-    { id: 3, name: "Tech Mark Lee", role: "Technician" },
-    { id: 4, name: "Joldir Elnath", role: "Admin" },
-    { id: 5, name: "Patina Gruns", role: "Nurse" },
-    { id: 6, name: "Ressasa John", role: "Support" },
-    { id: 7, name: "Sarah Saralh", role: "Doctor" },
-    { id: 8, name: "Dr. Emily White", role: "Doctor" },
-    { id: 9, name: "Nurse Bob", role: "Nurse" },
-    { id: 10, name: "Tech Mike", role: "Technician" },
-  ];
 
   const shiftTypes = {
-    Morning: { label: "Morning", defaultTime: "09:00 - 17:00", style: "bg-blue-50 text-blue-600 border-blue-100" },
-    Evening: { label: "Evening", defaultTime: "17:00 - 01:00", style: "bg-orange-50 text-orange-600 border-orange-100" },
-    Night: { label: "Night", defaultTime: "01:00 - 09:00", style: "bg-purple-50 text-purple-600 border-purple-100" },
+    Morning: { label: "Morning", defaultTime: "08:00 - 16:00", style: "bg-blue-50 text-blue-600 border-blue-100" },
+    Evening: { label: "Evening", defaultTime: "16:00 - 00:00", style: "bg-orange-50 text-orange-600 border-orange-100" },
+    Night: { label: "Night", defaultTime: "00:00 - 08:00", style: "bg-purple-50 text-purple-600 border-purple-100" },
     Available: { label: "Available", defaultTime: "", style: "bg-green-50 text-green-700 border-green-100" },
     Leave: { label: "Leave", defaultTime: "", style: "bg-gray-100 text-gray-500 border-gray-200" },
   };
 
   const shiftKeys = Object.keys(shiftTypes);
 
-  /* -------------------- LOGIC -------------------- */
-  const parseTimeRange = (timeString) => {
-    if (!timeString || !timeString.includes("-")) return { start: "", end: "" };
-    const parts = timeString.split("-").map(t => t.trim());
-    return { start: parts[0] || "", end: parts[1] || "" };
+  /* -------------------- API CALLS -------------------- */
+  
+  // 1. Fetch Staff (if not already loaded)
+  useEffect(() => {
+    if (token && staffs.length === 0) {
+        fetchStaffs();
+    }
+  }, [token, staffs]);
+
+  // 2. Fetch Shifts from DB
+  const fetchShifts = async () => {
+    try {
+        setLoading(true);
+        const { data } = await axios.get(`${backendUrl}/api/shift/all-shifts`, { headers: { token } });
+        if(data.success) {
+            setDbShifts(data.data);
+        } else {
+            toast.error(data.message);
+        }
+    } catch (error) {
+        toast.error("Failed to load shifts");
+    } finally {
+        setLoading(false);
+    }
   };
 
-  const getShiftDetails = (staffId, date) => {
-    const key = `${staffId}_${date.toDateString()}`;
-    if (manualOverrides[key]) {
-      const savedData = manualOverrides[key]; 
-      const config = shiftTypes[savedData.type] || shiftTypes["Available"];
-      return { key: savedData.type, label: config.label, time: savedData.time, style: config.style };
+  useEffect(() => {
+    if(token) {
+        fetchShifts();
     }
-    const algoKey = shiftKeys[(staffId + date.getDate() + date.getMonth()) % shiftKeys.length];
-    const config = shiftTypes[algoKey];
-    return { key: algoKey, label: config.label, time: config.defaultTime, style: config.style };
+  }, [token]);
+
+  // 3. Save Shift to DB
+  const handleSaveShift = async () => {
+    if(!selectedCell) return;
+
+    // Convert time to 24h format for backend
+    const start24 = to24Hour(editData.startVal, editData.startAmpm);
+    const end24 = to24Hour(editData.endVal, editData.endAmpm);
+
+    const payload = {
+        staffId: selectedCell.staff.staffId, // Use the real staff ID from DB
+        date: getYYYYMMDD(selectedCell.dateObj),
+        shiftType: editData.type,
+        startTime: start24,
+        endTime: end24,
+        location: "General Ward", // You can add a location input later
+        notes: "Scheduled via Planner",
+        isExtraDuty: false,
+        notified: true
+    };
+
+    try {
+        const { data } = await axios.post(`${backendUrl}/api/shift/add-shift`, payload, { headers: { token } });
+        
+        if (data.success) {
+            toast.success("Shift assigned successfully");
+            fetchShifts(); // Refresh grid
+            setSelectedCell(null);
+        } else {
+            toast.error(data.message);
+        }
+    } catch (error) {
+        toast.error(error.response?.data?.message || "Error saving shift");
+    }
+  };
+
+  // 4. Remove Shift (Delete)
+  const handleRemoveShift = async () => {
+    if(!selectedCell || !selectedCell.existingShiftId) return;
+
+    try {
+        const { data } = await axios.delete(`${backendUrl}/api/shift/delete/${selectedCell.existingShiftId}`, { headers: { token } });
+        if(data.success) {
+            toast.success("Shift removed");
+            fetchShifts();
+            setSelectedCell(null);
+        } else {
+            toast.error(data.message);
+        }
+    } catch (error) {
+        toast.error("Error removing shift");
+    }
+  };
+
+  /* -------------------- LOGIC -------------------- */
+  
+  // Find a shift in the DB array for a specific staff and date
+  const getShiftDetails = (staffId, dateObj) => {
+    const dateStr = getYYYYMMDD(dateObj);
+    
+    // Find matching shift
+    const foundShift = dbShifts.find(s => s.staffId === staffId && s.date === dateStr);
+
+    if (foundShift) {
+        const config = shiftTypes[foundShift.shiftType] || shiftTypes["Morning"];
+        return { 
+            id: foundShift._id, // Store DB ID for deletion
+            key: foundShift.shiftType, 
+            label: foundShift.shiftType, 
+            time: `${foundShift.startTime} - ${foundShift.endTime}`, 
+            style: config.style 
+        };
+    }
+
+    // Default State (Available)
+    return { id: null, key: 'Available', label: 'Available', time: '', style: shiftTypes['Available'].style };
   };
 
   const handleCellClick = (staff, dateObj) => {
-    const currentDetails = getShiftDetails(staff.id, dateObj);
-    const { start, end } = parseTimeRange(currentDetails.time);
-    const s = to12Hour(start);
-    const e = to12Hour(end);
-
-    setSelectedCell({ staff, dateObj });
-    setEditData({ 
-      type: currentDetails.key, 
-      startVal: s.time, startAmpm: s.period,
-      endVal: e.time, endAmpm: e.period
-    });
-  };
-
-  const handleTypeChange = (newType) => {
-    const defaultTime = shiftTypes[newType]?.defaultTime || "";
-    const { start, end } = parseTimeRange(defaultTime);
-    const s = to12Hour(start);
-    const e = to12Hour(end);
-
-    setEditData({ 
-      ...editData,
-      type: newType, 
-      startVal: s.time, startAmpm: s.period,
-      endVal: e.time, endAmpm: e.period
-    });
-  };
-
-  const handleSaveShift = () => {
-    if(!selectedCell) return;
-    const key = `${selectedCell.staff.id}_${selectedCell.dateObj.toDateString()}`;
+    const details = getShiftDetails(staff.staffId, dateObj);
     
-    let finalTime = "";
-    if (editData.startVal && editData.endVal) {
-      const start24 = to24Hour(editData.startVal, editData.startAmpm);
-      const end24 = to24Hour(editData.endVal, editData.endAmpm);
-      finalTime = `${start24} - ${end24}`;
+    // Parse existing time if available, else default to 09:00 - 17:00
+    let sTime = { time: "09:00", period: "AM" };
+    let eTime = { time: "05:00", period: "PM" };
+
+    if (details.key !== 'Available' && details.time) {
+        const [start, end] = details.time.split(' - ');
+        sTime = to12Hour(start);
+        eTime = to12Hour(end);
     }
 
-    setManualOverrides(prev => ({...prev, [key]: { type: editData.type, time: finalTime }}));
-    setSelectedCell(null);
-  };
-
-  const handleRemoveShift = () => {
-    if(!selectedCell) return;
-    const key = `${selectedCell.staff.id}_${selectedCell.dateObj.toDateString()}`;
-    setManualOverrides(prev => ({...prev, [key]: { type: "Available", time: "" }}));
-    setSelectedCell(null);
+    setSelectedCell({ staff, dateObj, existingShiftId: details.id });
+    setEditData({ 
+      type: details.key !== 'Available' ? details.key : "Morning", 
+      startVal: sTime.time, startAmpm: sTime.period,
+      endVal: eTime.time, endAmpm: eTime.period
+    });
   };
 
   /* -------------------- DATE ENGINE -------------------- */
@@ -173,31 +227,26 @@ function ShiftPlanner() {
     setDaysToDisplay(dates);
   }, [currentDate, viewMode]);
 
-  const filteredStaff = staffList.filter((s) => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  // Use Staff Data from Context
+  const filteredStaff = staffs.filter((s) => s.fullName.toLowerCase().includes(searchTerm.toLowerCase()));
 
   /* -------------------- RENDER -------------------- */
   return (
-    // h-dvh uses Dynamic Viewport Height to fix mobile browser scroll issues
     <div className="flex flex-col h-dvh w-full bg-gray-50 overflow-hidden font-sans text-slate-900">
 
       {/* --- FIXED HEADER SECTION --- */}
       <div className="flex-none bg-gray-50 z-30">
-        
-        {/* Title Area */}
         <div className="px-4 py-4 md:px-6">
             <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2 text-slate-800">
                 <Calendar className="text-purple-600" size={24}/> Shift Planner
             </h2>
         </div>
         
-        {/* Controls Toolbar Container */}
         <div className="px-4 pb-4 md:px-6">
           <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-200 flex flex-wrap items-center justify-between gap-3">
               
               {/* Left Side: Toggles & Date Nav */}
               <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
-                  
-                  {/* View Toggles */}
                   <div className="flex bg-gray-100 rounded-lg p-1 shrink-0">
                       <button 
                         onClick={() => setViewMode("Weekly")} 
@@ -213,7 +262,6 @@ function ShiftPlanner() {
                       </button>
                   </div>
 
-                  {/* Date Navigation */}
                   <div className="flex items-center gap-1 md:gap-2 bg-gray-50 rounded-lg px-1 py-0.5 border border-gray-100 shrink-0">
                       <button 
                         onClick={() => { 
@@ -250,7 +298,7 @@ function ShiftPlanner() {
               {/* Right Side: Assign Button */}
               <div className="flex-none ml-auto">
                   <button 
-                    onClick={() => navigate('/assign-shift')} // CHANGED: Using navigate function
+                    onClick={() => navigate('/assign-shift')} 
                     className="bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-xs font-bold shadow-md transition-all active:scale-95 whitespace-nowrap"
                   >
                     <Plus size={14} strokeWidth={3}/> 
@@ -262,14 +310,18 @@ function ShiftPlanner() {
         </div>
       </div>
 
-      {/* --- TABLE AREA (SCROLLABLE) --- */}
+      {/* --- TABLE AREA --- */}
       <div className="flex-1 overflow-hidden px-4 pb-4">
         <div className="bg-white h-full w-full rounded-xl shadow-sm border border-gray-200 overflow-auto relative">
+            {loading && (
+                <div className="absolute inset-0 bg-white/80 z-50 flex items-center justify-center">
+                    <Loader2 className="animate-spin text-purple-600" size={32} />
+                </div>
+            )}
+            
             <table className="border-separate border-spacing-0 min-w-full">
-            {/* HEADERS */}
             <thead className="bg-gray-50 sticky top-0 z-20 shadow-sm">
                 <tr>
-                    {/* Search Box (Sticky Top-Left) */}
                     <th className="sticky left-0 top-0 z-30 bg-white min-w-[160px] w-[200px] border-b border-r border-gray-200 p-3 shadow-[4px_0_8px_-2px_rgba(0,0,0,0.05)]">
                         <div className="relative group">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-500 transition-colors" size={14}/>
@@ -281,8 +333,6 @@ function ShiftPlanner() {
                             />
                         </div>
                     </th>
-                    
-                    {/* Date Headers */}
                     {daysToDisplay.map((d, i) => {
                         const { day, date } = formatDateDisplay(d);
                         const isToday = new Date().toDateString() === d.toDateString();
@@ -296,19 +346,16 @@ function ShiftPlanner() {
                 </tr>
             </thead>
             
-            {/* BODY */}
             <tbody>
                 {filteredStaff.map((staff) => (
-                <tr key={staff.id} className="group hover:bg-gray-50">
-                    {/* Staff Name (Sticky Left) */}
+                <tr key={staff.staffId} className="group hover:bg-gray-50">
                     <td className="sticky left-0 z-10 bg-white group-hover:bg-gray-50 border-b border-r border-gray-200 p-4 transition-colors shadow-[4px_0_8px_-2px_rgba(0,0,0,0.05)]">
-                        <div className="font-bold text-sm text-slate-800 truncate max-w-[180px]">{staff.name}</div>
-                        <div className="text-xs text-slate-500 font-medium">{staff.role}</div>
+                        <div className="font-bold text-sm text-slate-800 truncate max-w-[180px]">{staff.fullName}</div>
+                        <div className="text-xs text-slate-500 font-medium">{staff.designation}</div>
                     </td>
                     
-                    {/* Shift Cells */}
                     {daysToDisplay.map((d, i) => {
-                    const details = getShiftDetails(staff.id, d);
+                    const details = getShiftDetails(staff.staffId, d);
                     return (
                         <td key={i} className="p-1 border-b border-gray-100 h-[70px] min-w-[100px]">
                         <div 
@@ -349,7 +396,7 @@ function ShiftPlanner() {
                 </button>
                 <div className="flex flex-col gap-1 text-white">
                     <span className="text-[10px] font-bold uppercase opacity-80 tracking-widest">Edit Schedule</span>
-                    <h3 className="text-xl font-bold truncate">{selectedCell.staff.name}</h3>
+                    <h3 className="text-xl font-bold truncate">{selectedCell.staff.fullName}</h3>
                     <p className="text-sm font-medium opacity-90 flex items-center gap-2 mt-0.5">
                         <Calendar size={14} className="opacity-70"/> 
                         {selectedCell.dateObj.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'})}
@@ -367,7 +414,7 @@ function ShiftPlanner() {
                       <select 
                         className="cursor-pointer w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all appearance-none" 
                         value={editData.type} 
-                        onChange={(e) => handleTypeChange(e.target.value)}
+                        onChange={(e) => setEditData(prev => ({...prev, type: e.target.value}))}
                       >
                           {shiftKeys.map(k => <option key={k} value={k}>{shiftTypes[k].label}</option>)}
                       </select>
@@ -425,12 +472,15 @@ function ShiftPlanner() {
 
                 {/* 3. Action Buttons */}
                 <div className="flex gap-3 pt-2">
-                    <button 
-                      onClick={handleRemoveShift} 
-                      className="cursor-pointer flex-1 py-3 border border-red-100 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Trash2 size={14}/> Clear
-                    </button>
+                    {selectedCell.existingShiftId && (
+                        <button 
+                        onClick={handleRemoveShift} 
+                        className="cursor-pointer flex-1 py-3 border border-red-100 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                        >
+                        <Trash2 size={14}/> Remove
+                        </button>
+                    )}
+                    
                     <button 
                       onClick={handleSaveShift} 
                       className="cursor-pointer flex-[2] py-3 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-100 transition-all flex items-center justify-center gap-2"
