@@ -9,6 +9,7 @@ import patientRouter from './routes/patientRoute.js';
 import appointmentRouter from './routes/appointmentRoute.js';
 import medicineRouter from './routes/medicineRoute.js';
 import supplierRouter from './routes/supplierRoute.js';
+import shiftRouter from './routes/shiftRoute.js';
 
 // app config
 const app = express();
@@ -31,6 +32,10 @@ app.use('/api/appointment', appointmentRouter);
 //medicine routes
 app.use('/api/medicine', medicineRouter);
 app.use('/api/supplier', supplierRouter)
+
+// shift routes
+app.use('/api/staff', staffRouter);
+app.use('/api/shift', shiftRouter);
 
 app.get('/',(req,res)=>{
     res.send('API WORKING');
