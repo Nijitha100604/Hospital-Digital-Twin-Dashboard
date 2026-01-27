@@ -1,7 +1,19 @@
 import supplierModel from "../models/supplierModel.js";
 import { v2 as cloudinary } from "cloudinary";
 
-// Add new supplier
+// Helper to determine resource type
+const getResourceType = (mimetype) => {
+  if (
+    mimetype.includes("pdf") ||
+    mimetype.includes("document") ||
+    mimetype.includes("text")
+  ) {
+    return "raw"; 
+  }
+  return "auto"; 
+};
+
+// Add New Supplier 
 const addSupplier = async (req, res) => {
   try {
     const {
@@ -21,15 +33,19 @@ const addSupplier = async (req, res) => {
       bankName,
       accountNumber,
       ifsc,
-      itemsSupplied, // Expecting comma-separated string from frontend form
+      itemsSupplied, 
+      totalSupplies,
       notes,
       status,
       rating,
+      // Allow passing document details via JSON body if file isn't uploaded 
+      documentName: bodyDocName,
+      documentUrl: bodyDocUrl
     } = req.body;
 
-    const file = req.file; // For optional document/contract upload
-    let documentUrl = "";
-    let documentName = "";
+    const file = req.file; 
+    let documentUrl = bodyDocUrl || "";
+    let documentName = bodyDocName || "";
 
     // Required fields check
     if (
@@ -46,7 +62,7 @@ const addSupplier = async (req, res) => {
       });
     }
 
-    // Duplicate check (by email)
+    // Duplicate check
     const duplicate = await supplierModel.findOne({ email });
     if (duplicate) {
       return res.json({
@@ -57,44 +73,48 @@ const addSupplier = async (req, res) => {
 
     // Upload document if provided
     if (file) {
+      const resourceType = getResourceType(file.mimetype);
       const uploadResult = await cloudinary.uploader.upload(file.path, {
-        resource_type: "auto",
+        resource_type: resourceType,
+        use_filename: true,
+        unique_filename: false,
       });
       documentUrl = uploadResult.secure_url;
       documentName = file.originalname;
     }
 
-    // Process itemsSupplied (convert comma string to array)
+    // Process itemsSupplied
     let suppliesArray = [];
     if (itemsSupplied) {
-      suppliesArray = typeof itemsSupplied === "string" 
-        ? itemsSupplied.split(",").map((item) => item.trim())
-        : itemsSupplied;
+      suppliesArray =
+        typeof itemsSupplied === "string"
+          ? itemsSupplied.split(",").map((item) => item.trim())
+          : itemsSupplied; // Accepts Array if sent via JSON
     }
 
-    // Create new supplier
     const newSupplier = new supplierModel({
       supplierName,
       contactPerson,
       email,
       phone,
       address: {
-        street: street || "",
-        city: city || "",
-        state: state || "",
-        zip: zip || "",
-        country: country || "",
+        street: street || req.body.address?.street || "",
+        city: city || req.body.address?.city || "",
+        state: state || req.body.address?.state || "",
+        zip: zip || req.body.address?.zip || "",
+        country: country || req.body.address?.country || "",
       },
       category,
       taxId: taxId || "",
       paymentTerms,
       creditLimit: creditLimit || 0,
       bankDetails: {
-        bankName: bankName || "",
-        accountNumber: accountNumber || "",
-        ifsc: ifsc || "",
+        bankName: bankName || req.body.bankDetails?.bankName || "",
+        accountNumber: accountNumber || req.body.bankDetails?.accountNumber || "",
+        ifsc: ifsc || req.body.bankDetails?.ifsc || "",
       },
       itemsSupplied: suppliesArray,
+      totalSupplies: totalSupplies || 0,
       notes: notes || "",
       status: status || "Active",
       rating: rating || 0,
@@ -111,32 +131,52 @@ const addSupplier = async (req, res) => {
   }
 };
 
-// Get all suppliers
-const getAllSuppliers = async (req, res) => {
+// Seed Suppliers (Bulk Add via Array)
+const seedSuppliers = async (req, res) => {
   try {
-    const suppliers = await supplierModel.find().sort({ createdAt: -1 });
-    res.json({
-      success: true,
-      data: suppliers,
-    });
+    const suppliers = req.body; 
+
+    if (!Array.isArray(suppliers)) {
+      return res.json({ success: false, message: "Expected an array of suppliers" });
+    }
+
+    let count = 0;
+    for (const s of suppliers) {
+      const exists = await supplierModel.findOne({ email: s.email });
+      if (!exists) {
+        const newSupplier = new supplierModel(s);
+        await newSupplier.save();
+        count++;
+      }
+    }
+
+    res.json({ success: true, message: `Successfully added ${count} new suppliers!` });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
   }
 };
 
-// Get supplier by ID
+// Get All Suppliers
+const getAllSuppliers = async (req, res) => {
+  try {
+    const suppliers = await supplierModel.find().sort({ createdAt: -1 });
+    res.json({ success: true, data: suppliers });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// Get Supplier by ID
 const getSupplierById = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // Find using custom ID (supplierId: SUP0001)
     const supplier = await supplierModel.findOne({ supplierId: id });
 
     if (!supplier) {
       return res.json({ success: false, message: "Supplier not found!" });
     }
-
     res.json({ success: true, data: supplier });
   } catch (error) {
     console.log(error);
@@ -144,12 +184,10 @@ const getSupplierById = async (req, res) => {
   }
 };
 
-// Update supplier
+// Update Supplier
 const updateSupplier = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // Find by custom supplierId
     const existing = await supplierModel.findOne({ supplierId: id });
 
     if (!existing) {
@@ -162,19 +200,22 @@ const updateSupplier = async (req, res) => {
 
     // Upload new document if provided
     if (file) {
+      const resourceType = getResourceType(file.mimetype);
       const uploadResult = await cloudinary.uploader.upload(file.path, {
-        resource_type: "auto",
+        resource_type: resourceType,
+        use_filename: true,
+        unique_filename: false,
       });
       documentUrl = uploadResult.secure_url;
       documentName = file.originalname;
     }
 
-    // Process itemsSupplied update
     let suppliesArray = existing.itemsSupplied;
     if (req.body.itemsSupplied) {
-      suppliesArray = typeof req.body.itemsSupplied === "string" 
-        ? req.body.itemsSupplied.split(",").map((item) => item.trim())
-        : req.body.itemsSupplied;
+      suppliesArray =
+        typeof req.body.itemsSupplied === "string"
+          ? req.body.itemsSupplied.split(",").map((item) => item.trim())
+          : req.body.itemsSupplied;
     }
 
     const updateData = {
@@ -182,7 +223,6 @@ const updateSupplier = async (req, res) => {
       contactPerson: req.body.contactPerson ?? existing.contactPerson,
       email: req.body.email ?? existing.email,
       phone: req.body.phone ?? existing.phone,
-      
       address: {
         street: req.body.street ?? existing.address.street,
         city: req.body.city ?? existing.address.city,
@@ -190,19 +230,17 @@ const updateSupplier = async (req, res) => {
         zip: req.body.zip ?? existing.address.zip,
         country: req.body.country ?? existing.address.country,
       },
-
       category: req.body.category ?? existing.category,
       taxId: req.body.taxId ?? existing.taxId,
       paymentTerms: req.body.paymentTerms ?? existing.paymentTerms,
       creditLimit: req.body.creditLimit ?? existing.creditLimit,
-
       bankDetails: {
         bankName: req.body.bankName ?? existing.bankDetails.bankName,
         accountNumber: req.body.accountNumber ?? existing.bankDetails.accountNumber,
         ifsc: req.body.ifsc ?? existing.bankDetails.ifsc,
       },
-
       itemsSupplied: suppliesArray,
+      totalSupplies: req.body.totalSupplies ?? existing.totalSupplies,
       notes: req.body.notes ?? existing.notes,
       status: req.body.status ?? existing.status,
       rating: req.body.rating ?? existing.rating,
@@ -211,7 +249,6 @@ const updateSupplier = async (req, res) => {
     };
 
     await supplierModel.updateOne({ supplierId: id }, updateData);
-
     res.json({ success: true, message: "Supplier updated successfully!" });
   } catch (error) {
     console.log(error);
@@ -219,11 +256,10 @@ const updateSupplier = async (req, res) => {
   }
 };
 
-// Delete supplier
+// Delete Supplier
 const deleteSupplier = async (req, res) => {
   try {
     const { id } = req.params;
-
     const supplier = await supplierModel.findOne({ supplierId: id });
 
     if (!supplier) {
@@ -231,7 +267,6 @@ const deleteSupplier = async (req, res) => {
     }
 
     await supplierModel.deleteOne({ supplierId: id });
-
     res.json({ success: true, message: "Supplier deleted successfully!" });
   } catch (error) {
     console.log(error);
@@ -241,6 +276,7 @@ const deleteSupplier = async (req, res) => {
 
 export {
   addSupplier,
+  seedSuppliers, 
   getAllSuppliers,
   getSupplierById,
   updateSupplier,

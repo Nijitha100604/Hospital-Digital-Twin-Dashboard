@@ -7,19 +7,26 @@ import PatientContextProvider from './context/PatientContext.jsx';
 import MedicineContextProvider from './context/MedicineContext.jsx';
 import StaffContextProvider from './context/StaffContext.jsx';
 import LabContextProvider from './context/LabContext.jsx';
+import SupplierContextProvider from './context/SupplierContext.jsx';
+import ShiftContextProvider from './context/ShiftContext.jsx';
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById("root")).render(
+
   <BrowserRouter>
-    <AppContextProvider>
-      <MedicineContextProvider>
+  <AppContextProvider>
+    <StaffContextProvider>
+      <ShiftContextProvider>
         <LabContextProvider>
-          <StaffContextProvider>
-            <PatientContextProvider>
-              <App />
-            </PatientContextProvider>
-          </StaffContextProvider>
+            <SupplierContextProvider>
+              <MedicineContextProvider>
+              <PatientContextProvider>
+                <App />
+              </PatientContextProvider>
+              </MedicineContextProvider>
+            </SupplierContextProvider>
         </LabContextProvider>
-      </MedicineContextProvider>
-    </AppContextProvider>
-  </BrowserRouter>,
-)
+      </ShiftContextProvider>
+    </StaffContextProvider>
+  </AppContextProvider>
+  </BrowserRouter>
+);

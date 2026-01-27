@@ -23,7 +23,6 @@ const EditMedicineDetails = () => {
 
   const { getMedicineById, updateMedicine } = useContext(MedicineContext);
 
- 
   const [loading, setLoading] = useState(true);
   const [medicine, setMedicine] = useState(null);
 
@@ -40,6 +39,9 @@ const EditMedicineDetails = () => {
   const [batchNumber, setBatchNumber] = useState("");
   const [quantity, setQuantity] = useState("");
   const [minimumThreshold, setMinimumThreshold] = useState("");
+  
+  // --- NEW STATE ---
+  const [manufacturingDate, setManufacturingDate] = useState(""); 
   const [expiryDate, setExpiryDate] = useState("");
 
   const [storageLocation, setStorageLocation] = useState("");
@@ -54,7 +56,6 @@ const EditMedicineDetails = () => {
 
   useEffect(() => {
     const fetchMedicine = async () => {
-
       const data = await getMedicineById(id);
 
       if (data) {
@@ -73,6 +74,9 @@ const EditMedicineDetails = () => {
         setBatchNumber(data.batchNumber);
         setQuantity(data.quantity);
         setMinimumThreshold(data.minimumThreshold);
+        
+        // --- SET DATES ---
+        setManufacturingDate(data.manufacturingDate || ""); 
         setExpiryDate(data.expiryDate);
 
         setStorageLocation(data.storageLocation);
@@ -93,7 +97,7 @@ const EditMedicineDetails = () => {
     fetchMedicine();
   }, [id, getMedicineById]);
 
-  {/* Handling image */}
+  /* Handling image */
   const handleImageChange = (e) => {
     if (e.target.files[0]) {
       setImageName(e.target.files[0].name);
@@ -105,10 +109,10 @@ const EditMedicineDetails = () => {
     setImageName("");
   };
 
-  {/* Sumbit */}
+  /* Submit */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Show loading screen immediately on click
+    setLoading(true);
 
     const formData = new FormData();
 
@@ -124,6 +128,9 @@ const EditMedicineDetails = () => {
     formData.append("batchNumber", batchNumber);
     formData.append("quantity", quantity);
     formData.append("minimumThreshold", minimumThreshold);
+    
+    // --- APPEND DATES ---
+    formData.append("manufacturingDate", manufacturingDate);
     formData.append("expiryDate", expiryDate);
 
     formData.append("storageLocation", storageLocation);
@@ -143,13 +150,11 @@ const EditMedicineDetails = () => {
 
     if (success) {
       navigate(`/medicine-details/${id}`);
-      
     } else {
-      setLoading(false); // Stop loading if error occurred
+      setLoading(false);
     }
   };
 
-  
   if (loading) {
     return <Loading />;
   }
@@ -190,10 +195,9 @@ const EditMedicineDetails = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Left column */}
-
           <div className="lg:col-span-2 space-y-6">
+            
             {/* Basic Information */}
-
             <Section title="Basic Information" icon={<FaInfoCircle />}>
               <Input
                 label="Medicine Name"
@@ -269,7 +273,6 @@ const EditMedicineDetails = () => {
             </Section>
 
             {/* Stock Information */}
-
             <Section title="Stock Information" icon={<FaWarehouse />}>
               <Input
                 label="Batch Number"
@@ -293,13 +296,25 @@ const EditMedicineDetails = () => {
                 onChange={setMinimumThreshold}
               />
 
-              <Input
-                label="Expiry Date"
-                type="date"
-                required
-                value={expiryDate}
-                onChange={setExpiryDate}
-              />
+              {/* --- DATES SECTION --- */}
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Mfg Date"
+                  type="date"
+                  required
+                  value={manufacturingDate}
+                  onChange={setManufacturingDate}
+                />
+
+                <Input
+                  label="Expiry Date"
+                  type="date"
+                  required
+                  value={expiryDate}
+                  onChange={setExpiryDate}
+                />
+              </div>
+              {/* --------------------- */}
 
               <Input
                 label="Storage Location"
@@ -316,14 +331,12 @@ const EditMedicineDetails = () => {
           </div>
 
           {/* RIGHT COLUMN */}
-
           <div className="space-y-6">
+            
             {/* Image Upload */}
-
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
                 <FaImage className="text-gray-400" />
-
                 <h3 className="font-bold text-gray-800">Medicine Image</h3>
               </div>
 
@@ -357,7 +370,6 @@ const EditMedicineDetails = () => {
                   ) : (
                     <div className="flex flex-col items-center">
                       <FaUpload className="text-3xl text-gray-400 mb-3" />
-
                       <p className="text-sm font-medium text-gray-700">
                         Click to change
                       </p>
@@ -375,7 +387,6 @@ const EditMedicineDetails = () => {
             </div>
 
             {/* Supplier & Pricing */}
-
             <Section title="Supplier & Pricing" icon={<FaTruck />}>
               <Input
                 label="Supplier Name"
@@ -401,11 +412,9 @@ const EditMedicineDetails = () => {
             </Section>
 
             {/* Description */}
-
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
                 <FaStickyNote className="text-gray-400" />
-
                 <h3 className="font-bold text-gray-800">Description</h3>
               </div>
 
@@ -421,7 +430,6 @@ const EditMedicineDetails = () => {
         </div>
 
         {/* ACTION BUTTONS */}
-
         <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
           <button
             type="button"

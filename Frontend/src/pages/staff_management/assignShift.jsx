@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { 
   FaCalendarAlt, FaSearch, FaExclamationTriangle, FaUserCircle, 
-  FaEnvelope, FaPhone, FaArrowLeft, FaCheckCircle, FaEdit, FaPlusCircle 
+  FaEnvelope, FaPhone, FaArrowLeft, FaCheckCircle, FaEdit, FaPlusCircle, FaSpinner 
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { staffList } from "../../data/staffList";
-import { shiftData } from "../../data/shiftData"; 
+import { StaffContext } from "../../context/StaffContext"; // Connect Staff Context
+import { ShiftContext } from "../../context/ShiftContext"; // Connect Shift Context
 
-function assignShift() {
+function AssignShift() {
   const navigate = useNavigate();
+
+  // --- CONTEXT ---
+  const { staffs, fetchStaffs } = useContext(StaffContext);
+  const { shifts, addShift, fetchShifts } = useContext(ShiftContext);
 
   // --- STATES ---
   const [searchTerm, setSearchTerm] = useState("");
@@ -29,6 +33,14 @@ function assignShift() {
   const [conflict, setConflict] = useState(null); 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // --- INITIAL LOAD ---
+  useEffect(() => {
+    // Ensure we have fresh data when page loads
+    if (staffs.length === 0) fetchStaffs();
+    if (shifts.length === 0) fetchShifts();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // --- DEFAULT TIME CONFIGURATION ---
   const shiftDefaults = {
     Morning: { start: "09:00", end: "17:00" }, // 09:00 AM - 05:00 PM
@@ -36,22 +48,24 @@ function assignShift() {
     Night:   { start: "01:00", end: "09:00" }  // 01:00 AM - 09:00 AM
   };
 
-  // --- 1. SEARCH LOGIC ---
+  // --- 1. SEARCH LOGIC (Using Context Data) ---
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setSearchResults([]);
     } else {
-      const results = staffList.filter(
+      const results = staffs.filter(
         (staff) =>
-          staff.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          staff.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           staff.staffId.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setSearchResults(results);
     }
-  }, [searchTerm]);
+  }, [searchTerm, staffs]);
 
   const handleSelectStaff = (staff) => {
     setSelectedStaff(staff);
+    // Auto-fill department from staff profile
+    setFormData(prev => ({ ...prev, department: staff.department })); 
     setSearchTerm("");
     setSearchResults([]);
     if(formData.date) {
@@ -59,29 +73,31 @@ function assignShift() {
     }
   };
 
-  // --- 2. CONFLICT CHECK LOGIC ---
+  // --- 2. CONFLICT CHECK LOGIC (Using Context Data) ---
   const checkConflict = (staffId, date) => {
     if (!staffId || !date) {
       setConflict(null);
       return;
     }
 
-    const foundShift = shiftData.find(
-      (shift) => shift.staffId === staffId && shift.date === date
+    // Check against real shifts from DB
+    const foundShift = shifts.find(
+      (shift) => shift.staffId === staffId && shift.date === date && shift.status !== 'Cancelled'
     );
 
     if (foundShift) {
-      if (foundShift.type === "Leave") {
+      // Assuming you might implement Leave types later in DB
+      if (foundShift.shiftType === "Leave") {
         setConflict({
             type: 'LEAVE',
             data: foundShift,
-            message: `${selectedStaff?.name} is currently marked on LEAVE.`
+            message: `${selectedStaff?.fullName} is currently marked on LEAVE.`
         });
       } else {
         setConflict({
             type: 'SHIFT',
             data: foundShift,
-            message: `${selectedStaff?.name} already has a ${foundShift.type.toUpperCase()} shift (${foundShift.location}).`
+            message: `${selectedStaff?.fullName} already has a ${foundShift.shiftType.toUpperCase()} shift (${foundShift.location}).`
         });
       }
     } else {
@@ -89,15 +105,12 @@ function assignShift() {
     }
   };
 
-  // --- 3. HANDLE CHANGE (With Auto-Time Logic) ---
+  // --- 3. HANDLE CHANGE ---
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
-    // Create a copy of existing form data
     let updatedData = { ...formData, [name]: value };
 
-    // AUTO-FILL TIME LOGIC
-    // If the user changes the Shift Type, automatically set the Start/End times
+    // Auto-fill times based on Shift Type
     if (name === "shiftType" && shiftDefaults[value]) {
         updatedData.startTime = shiftDefaults[value].start;
         updatedData.endTime = shiftDefaults[value].end;
@@ -105,44 +118,55 @@ function assignShift() {
 
     setFormData(updatedData);
 
-    // Conflict check trigger
+    // Trigger conflict check if date changes
     if (name === "date" && selectedStaff) {
       checkConflict(selectedStaff.staffId, value);
     }
   };
 
-  // --- 4. SUBMIT LOGIC ---
-  const handleAssign = (resolutionType = 'NORMAL') => {
+  // --- 4. SUBMIT LOGIC (Connect to Backend) ---
+  const handleAssign = async (resolutionType = 'NORMAL') => {
     if (!selectedStaff || !formData.date || !formData.shiftType) {
       alert("Please fill in all required fields (Staff, Date, Shift Type).");
       return;
     }
 
-    let confirmMsg = `Assign ${formData.shiftType} shift to ${selectedStaff.name}?`;
-    
+    // Confirmation
+    let confirmMsg = `Assign ${formData.shiftType} shift to ${selectedStaff.fullName}?`;
     if (resolutionType === 'OVERWRITE') {
-        confirmMsg = `⚠️ CONFIRM REPLACEMENT\n\nThis will remove the existing ${conflict.data.type} shift and assign this new ${formData.shiftType} shift instead.\n\nProceed?`;
+        confirmMsg = `⚠️ CONFIRM REPLACEMENT\n\nThis will remove the existing shift and assign this new one.\n\nProceed?`;
     } else if (resolutionType === 'EXTRA') {
-        confirmMsg = `⚠️ CONFIRM EXTRA DUTY\n\n${selectedStaff.name} will have TWO shifts on this date (Double Duty).\n\nProceed?`;
+        confirmMsg = `⚠️ CONFIRM EXTRA DUTY\n\n${selectedStaff.fullName} will have TWO shifts on this date.\n\nProceed?`;
     }
 
     if (!window.confirm(confirmMsg)) return;
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      let actionLog = "";
-      if (resolutionType === 'OVERWRITE') actionLog = "Previous shift removed. New shift assigned.";
-      else if (resolutionType === 'EXTRA') actionLog = "Added as Extra Duty (Hospital Welfare).";
-      else actionLog = "Shift assigned successfully.";
+    // Prepare Payload
+    const shiftPayload = {
+        staffId: selectedStaff.staffId,
+        staffName: selectedStaff.fullName, // Optional, backend might fetch it, but good to send
+        date: formData.date,
+        shiftType: formData.shiftType,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        location: formData.location || "General Ward",
+        notes: formData.notes,
+        isExtraDuty: resolutionType === 'EXTRA',
+        notified: notify
+        // Note: If OVERWRITE logic is needed, you'd typically delete the old shift first here
+    };
 
-      let notifyMsg = notify ? `\n\n🔔 Notification sent to:\n📧 ${selectedStaff.email}\n📱 ${selectedStaff.contact}` : "";
+    // Call Context Function
+    const success = await addShift(shiftPayload);
 
-      alert(`✅ Success!\n${actionLog}${notifyMsg}`);
-      
-      setIsSubmitting(false);
+    setIsSubmitting(false);
+
+    if (success) {
+      // Navigate back on success
       navigate('/shift-planner');
-    }, 1500);
+    }
   };
 
   return (
@@ -178,7 +202,7 @@ function assignShift() {
             />
             {selectedStaff && (
               <button 
-                onClick={() => { setSelectedStaff(null); setConflict(null); setSearchTerm(""); }}
+                onClick={() => { setSelectedStaff(null); setConflict(null); setSearchTerm(""); setFormData(prev => ({...prev, department: ""})); }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-700 text-sm font-semibold hover:bg-red-50 px-3 py-1 rounded transition"
               >
                 Change User
@@ -186,12 +210,13 @@ function assignShift() {
             )}
           </div>
 
+          {/* Search Dropdown */}
           {searchResults.length > 0 && (
             <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto">
               {searchResults.map((staff) => (
                 <div key={staff.staffId} onClick={() => handleSelectStaff(staff)} className="p-3 hover:bg-purple-50 cursor-pointer border-b flex justify-between items-center transition-colors">
                   <div>
-                    <p className="font-semibold text-gray-800">{staff.name}</p>
+                    <p className="font-semibold text-gray-800">{staff.fullName}</p>
                     <p className="text-xs text-gray-500">{staff.staffId} • {staff.designation}</p>
                   </div>
                 </div>
@@ -199,17 +224,20 @@ function assignShift() {
             </div>
           )}
 
+          {/* Selected Staff Card */}
           {selectedStaff && (
             <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-4 bg-purple-50 p-4 rounded-lg border border-purple-100 animate-in slide-in-from-top-2">
               <div className="bg-purple-200 p-3 rounded-full text-purple-700 w-fit">
-                <FaUserCircle size={24} />
+                {selectedStaff.profilePhoto ? (
+                    <img src={selectedStaff.profilePhoto} alt="Profile" className="w-10 h-10 rounded-full object-cover"/>
+                ) : <FaUserCircle size={24} />}
               </div>
               <div>
-                <p className="font-bold text-gray-800 text-lg">{selectedStaff.name}</p>
+                <p className="font-bold text-gray-800 text-lg">{selectedStaff.fullName}</p>
                 <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-1">
                   <span className="flex items-center gap-1 bg-purple-100 px-2 py-0.5 rounded text-purple-800 text-xs font-semibold">ID: {selectedStaff.staffId}</span>
                   <span className="flex items-center gap-1"><FaEnvelope size={12}/> {selectedStaff.email}</span>
-                  <span className="flex items-center gap-1"><FaPhone size={12}/> {selectedStaff.contact}</span>
+                  <span className="flex items-center gap-1"><FaPhone size={12}/> {selectedStaff.contactNumber}</span>
                 </div>
               </div>
             </div>
@@ -234,8 +262,9 @@ function assignShift() {
                 </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                <button onClick={() => handleAssign('OVERWRITE')} className="flex-1 whitespace-nowrap px-4 py-2 bg-white border border-gray-300 hover:border-red-400 hover:text-red-600 text-gray-700 rounded-lg shadow-sm text-sm font-bold transition-all flex items-center justify-center gap-2">
-                    <FaEdit /> Edit / Replace Previous
+                {/* Note: Overwrite logic would need backend support to delete old shift first */}
+                <button onClick={() => alert("Overwrite feature requires additional backend logic (delete old + add new). Use Extra Duty for now.")} className="flex-1 whitespace-nowrap px-4 py-2 bg-white border border-gray-300 hover:border-red-400 hover:text-red-600 text-gray-700 rounded-lg shadow-sm text-sm font-bold transition-all flex items-center justify-center gap-2">
+                    <FaEdit /> Overwrite
                 </button>
                 <button onClick={() => handleAssign('EXTRA')} className="flex-1 whitespace-nowrap px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md text-sm font-bold transition-all flex items-center justify-center gap-2">
                     <FaPlusCircle /> Add as Extra Duty
@@ -264,6 +293,17 @@ function assignShift() {
                 <option value="Emergency">Emergency</option>
                 <option value="Radiology">Radiology</option>
                 <option value="Pediatrics">Pediatrics</option>
+                <option value="Gynecology">Gynecology</option>
+                <option value="Dermatology">Dermatology</option>
+                <option value="General Medicine">General Medicine</option>
+                <option value="Orthopedics">Orthopedics</option>
+                <option value="Pharmacy">Pharmacy</option>
+                <option value="Housekeeping">Housekeeping</option>
+                <option value="Pathology">Pathology</option>
+                <option value="Biochemistry">Biochemistry</option>
+                <option value="Microbiology">Microbiology</option>
+                <option value="Administration">Administration</option>
+                <option value="Front Desk">Front Desk</option>
               </select>
             </div>
           </div>
@@ -271,7 +311,6 @@ function assignShift() {
           <div className="space-y-6">
             <div>
               <label className="block text-gray-700 font-bold mb-2">Shift Type</label>
-              {/* UPDATED: Options are now simple labels */}
               <select name="shiftType" value={formData.shiftType} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 bg-white shadow-sm">
                 <option value="">Select Shift Type</option>
                 <option value="Morning">Morning</option>
@@ -283,23 +322,15 @@ function assignShift() {
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <label className="block text-gray-700 font-bold mb-2 text-sm">Start Time</label>
-                {/* Standard Time Input - Auto-filled but Editable */}
                 <input 
-                  type="time" 
-                  name="startTime" 
-                  value={formData.startTime} 
-                  onChange={handleChange} 
+                  type="time" name="startTime" value={formData.startTime} onChange={handleChange} 
                   className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 shadow-sm"
                 />
               </div>
               <div className="flex-1">
                 <label className="block text-gray-700 font-bold mb-2 text-sm">End Time</label>
-                {/* Standard Time Input - Auto-filled but Editable */}
                 <input 
-                  type="time" 
-                  name="endTime" 
-                  value={formData.endTime} 
-                  onChange={handleChange} 
+                  type="time" name="endTime" value={formData.endTime} onChange={handleChange} 
                   className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 shadow-sm"
                 />
               </div>
@@ -323,7 +354,7 @@ function assignShift() {
           <input type="checkbox" id="notify" checked={notify} onChange={(e) => setNotify(e.target.checked)} className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500 cursor-pointer"/>
           <div className="flex flex-col">
               <label htmlFor="notify" className="text-gray-800 font-bold cursor-pointer select-none">Notify Staff via Email/SMS</label>
-              <p className="text-xs text-gray-500 mt-1">Alert will be sent to <b>{selectedStaff?.email || "their email"}</b> and <b>{selectedStaff?.contact || "phone"}</b>.</p>
+              <p className="text-xs text-gray-500 mt-1">Alert will be sent to <b>{selectedStaff?.email || "their email"}</b> and <b>{selectedStaff?.contactNumber || "phone"}</b>.</p>
           </div>
         </div>
 
@@ -342,4 +373,4 @@ function assignShift() {
   );
 }
 
-export default assignShift;
+export default AssignShift;

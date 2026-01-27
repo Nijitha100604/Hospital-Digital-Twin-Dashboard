@@ -1,18 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { 
   FaUserTie, FaEdit, FaArrowLeft, FaSearch, 
-  FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaSave, FaTimes 
+  FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaSave, FaTimes, FaSpinner 
 } from "react-icons/fa";
-import { staffList } from "../../data/staffList";
+import { StaffContext } from "../../context/StaffContext"; // Import Context
 
 function StaffProfile() {
   const { id } = useParams(); 
   const navigate = useNavigate();
   
+  // --- CONTEXT ---
+  const { getStaffById, updateStaff, staffs, fetchStaffs } = useContext(StaffContext);
+
   // --- STATES ---
   const [staff, setStaff] = useState(null);
   const [formData, setFormData] = useState({});
+  const [loading, setLoading] = useState(false);
+  
+  // Search States (For when no ID is present)
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
 
@@ -23,32 +29,51 @@ function StaffProfile() {
     personal: false     
   });
 
-  // --- 1. FETCH DATA ---
+  // --- 1. INITIAL DATA LOADING ---
   useEffect(() => {
+    // If accessing the Search View (no ID), make sure we have the list
+    if (!id && staffs.length === 0) {
+      fetchStaffs();
+    }
+
+    // If accessing a specific profile (ID exists)
     if (id) {
-      const foundStaff = staffList.find((item) => item.staffId === id);
-      if (foundStaff) {
-        setStaff(foundStaff);
-        setFormData(foundStaff);
-      }
+      const loadData = async () => {
+        setLoading(true);
+        // Try finding in existing context first to be fast
+        let foundStaff = staffs.find((item) => item.staffId === id);
+        
+        // If not found (e.g., direct link refresh), fetch from API
+        if (!foundStaff) {
+            foundStaff = await getStaffById(id);
+        }
+
+        if (foundStaff) {
+          setStaff(foundStaff);
+          setFormData(foundStaff);
+        }
+        setLoading(false);
+      };
+      loadData();
     } else {
       setStaff(null);
     }
-  }, [id]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, getStaffById]);
 
-  // --- 2. SEARCH LOGIC ---
+  // --- 2. SEARCH LOGIC (Using Backend Data) ---
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setSearchResults([]);
     } else {
-      const results = staffList.filter(
+      const results = staffs.filter(
         (item) =>
-          item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           item.staffId.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setSearchResults(results);
     }
-  }, [searchTerm]);
+  }, [searchTerm, staffs]);
 
   // --- HELPER: CALCULATE EXPERIENCE ---
   const calculateYears = (dateString) => {
@@ -59,18 +84,15 @@ function StaffProfile() {
     let years = today.getFullYear() - joinDate.getFullYear();
     const m = today.getMonth() - joinDate.getMonth();
     
-    // If we haven't reached the joining month yet, subtract a year
     if (m < 0 || (m === 0 && today.getDate() < joinDate.getDate())) {
       years--;
     }
     return years < 0 ? "0" : years.toString(); 
   };
 
-  // --- 3. HANDLE INPUT CHANGE (With Auto-Calc) ---
+  // --- 3. HANDLE INPUT CHANGE ---
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
-    // Create copy of current data
     let updatedData = { ...formData, [name]: value };
 
     // Auto-calculate experience if joining date changes
@@ -81,15 +103,7 @@ function StaffProfile() {
     setFormData(updatedData);
   };
 
-  // --- 4. TOGGLE EDIT MODE ---
-  const toggleEdit = (section) => {
-    setEditSection((prev) => ({ ...prev, [section]: !prev[section] }));
-    if (editSection[section]) {
-      setFormData(staff); // Reset on cancel
-    }
-  };
-
-  // --- 5. TOGGLE STATUS (Basic Info) ---
+  // --- 4. TOGGLE STATUS ---
   const toggleStatus = () => {
     if (editSection.basic) {
       setFormData((prev) => ({
@@ -99,21 +113,35 @@ function StaffProfile() {
     }
   };
 
-  // --- 6. SAVE CHANGES ---
-  const handleSave = (section) => {
-    setStaff(formData);
+  // --- 5. SAVE CHANGES (Connect to Backend) ---
+  const handleSave = async (section) => {
     
-    // Update local dataset (simulated DB update)
-    const index = staffList.findIndex(s => s.staffId === formData.staffId);
-    if (index !== -1) {
-      staffList[index] = formData;
-    }
+    // Create FormData object
+    const submissionData = new FormData();
+    Object.keys(formData).forEach(key => {
+        // Exclude internal MongoDB fields
+        if(key !== '_id' && key !== 'createdAt' && key !== 'updatedAt' && key !== '__v') {
+            submissionData.append(key, formData[key]);
+        }
+    });
 
-    setEditSection((prev) => ({ ...prev, [section]: false }));
-    // Optional: Add toast notification here
+    // Call API
+    const success = await updateStaff(staff.staffId, submissionData);
+    
+    if (success) {
+        setStaff(formData); // Update local view
+        setEditSection((prev) => ({ ...prev, [section]: false }));
+    }
   };
 
-  // --- HELPER: RENDER VALUE OR "NOT PROVIDED" ---
+  const toggleEdit = (section) => {
+    setEditSection((prev) => ({ ...prev, [section]: !prev[section] }));
+    if (editSection[section]) {
+      setFormData(staff); // Reset on cancel
+    }
+  };
+
+  // --- HELPER: RENDER VALUE ---
   const renderValue = (value) => {
     return value ? (
       <span className="text-gray-800 font-medium">{value}</span>
@@ -122,42 +150,72 @@ function StaffProfile() {
     );
   };
 
-  // --- VIEW: SEARCH (No ID) ---
+  // ==========================================
+  // VIEW 1: SEARCH SCREEN (No ID provided)
+  // ==========================================
   if (!id) {
     return (
-      <div className="p-6 max-w-4xl mx-auto">
-        <div className="bg-white rounded-xl shadow-sm p-8 text-center min-h-[400px] flex flex-col justify-center items-center">
+      <div className="p-6 max-w-4xl mx-auto animate-in fade-in duration-300">
+        <div className="bg-white rounded-xl shadow-sm p-8 text-center min-h-[400px] flex flex-col justify-center items-center border border-gray-200">
           <div className="bg-purple-100 p-4 rounded-full mb-4">
             <FaUserTie className="text-purple-600 text-3xl" />
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Find Staff Member</h2>
+          <p className="text-gray-500 mb-6">Search from {staffs.length} registered staff members</p>
+          
           <div className="relative w-full max-w-md mt-4">
             <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Enter Name or ID..."
-              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600 outline-none"
+              placeholder="Enter Name or ID (e.g., STF001)..."
+              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600 outline-none transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            
+            {/* Search Dropdown */}
             {searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border z-10 text-left">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-10 text-left max-h-60 overflow-y-auto">
                 {searchResults.map((item) => (
-                  <div key={item.staffId} onClick={() => navigate(`/staff-profile/${item.staffId}`)} className="p-3 hover:bg-purple-50 cursor-pointer border-b flex justify-between">
-                    <div><p className="font-semibold">{item.name}</p><p className="text-xs text-gray-500">{item.staffId}</p></div>
-                    <span className="text-xs bg-gray-200 px-2 py-1 rounded">View</span>
+                  <div 
+                    key={item.staffId} 
+                    onClick={() => navigate(`/staff-profile/${item.staffId}`)} 
+                    className="p-3 hover:bg-purple-50 cursor-pointer border-b last:border-0 flex justify-between items-center transition-colors"
+                  >
+                    <div>
+                        <p className="font-semibold text-gray-800">{item.fullName}</p>
+                        <p className="text-xs text-gray-500">{item.staffId} • {item.designation}</p>
+                    </div>
+                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded font-medium">View</span>
                   </div>
                 ))}
               </div>
             )}
-            {searchTerm && searchResults.length === 0 && <div className="absolute top-full w-full bg-white p-4 shadow rounded mt-2 text-gray-500">No staff found.</div>}
+            
+            {searchTerm && searchResults.length === 0 && (
+                <div className="absolute top-full w-full bg-white p-4 shadow-lg rounded-xl mt-2 text-gray-500 border border-gray-100">
+                    No staff found matching "{searchTerm}"
+                </div>
+            )}
           </div>
         </div>
       </div>
     );
   }
 
-  if (!staff) return <div className="p-10 text-center">Staff not found. <button onClick={() => navigate('/staff-list')} className="text-purple-600 underline">Back</button></div>;
+  // ==========================================
+  // VIEW 2: PROFILE SCREEN (ID provided)
+  // ==========================================
+
+  if (loading) return <div className="flex justify-center p-20"><FaSpinner className="animate-spin text-3xl text-purple-600"/></div>;
+  
+  if (!staff) return (
+    <div className="p-10 text-center text-gray-500">
+        Staff not found. 
+        <br/>
+        <button onClick={() => navigate('/staff-list')} className="text-purple-600 underline mt-2">Go to List</button>
+    </div>
+  );
 
   return (
     <div className="p-2 animate-in fade-in duration-300">
@@ -165,13 +223,13 @@ function StaffProfile() {
       {/* Header */}
       <div className="mb-6">
         <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-500 hover:text-purple-700 mb-3 text-sm font-medium transition-colors">
-            <FaArrowLeft size={12}/> Back to List
+            <FaArrowLeft size={12}/> Back
         </button>
         <div className="flex items-center gap-3">
           <FaUserTie className="text-gray-700" size={24} />
           <div>
             <h2 className="text-xl font-bold text-gray-900">Staff Profile</h2>
-            <p className="text-sm text-gray-500">Details for <span className="font-semibold text-gray-800">{staff.name}</span></p>
+            <p className="text-sm text-gray-500">Details for <span className="font-semibold text-gray-800">{staff.fullName}</span></p>
           </div>
         </div>
       </div>
@@ -193,13 +251,13 @@ function StaffProfile() {
           </div>
 
           <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-purple-50 mb-4 shadow-sm">
-            <img src="https://img.freepik.com/free-photo/doctor-with-his-arms-crossed-white-background_1368-5790.jpg" alt="Profile" className="w-full h-full object-cover"/>
+            <img src={staff.profilePhoto || "https://img.freepik.com/free-photo/doctor-with-his-arms-crossed-white-background_1368-5790.jpg"} alt="Profile" className="w-full h-full object-cover"/>
           </div>
 
           {editSection.basic ? (
-            <input name="name" value={formData.name} onChange={handleInputChange} className="text-xl font-bold text-center border-b-2 border-purple-300 bg-purple-50 outline-none mb-1 w-full"/>
+            <input name="fullName" value={formData.fullName} onChange={handleInputChange} className="text-xl font-bold text-center border-b-2 border-purple-300 bg-purple-50 outline-none mb-1 w-full"/>
           ) : (
-            <h3 className="text-xl font-bold text-gray-900">{staff.name}</h3>
+            <h3 className="text-xl font-bold text-gray-900">{staff.fullName}</h3>
           )}
 
           <p className="text-gray-600 text-sm mt-1 mb-4 font-medium">{staff.designation}</p>
@@ -212,7 +270,7 @@ function StaffProfile() {
             <span 
               onClick={toggleStatus}
               className={`px-5 py-1.5 rounded-full text-sm font-medium shadow-sm text-white transition-all
-                ${formData.status === 'Active' ? 'bg-green-600' : 'bg-red-500'}
+                ${(editSection.basic ? formData.status : staff.status) === 'Active' ? 'bg-green-600' : 'bg-red-500'}
                 ${editSection.basic ? 'cursor-pointer ring-2 ring-offset-2 ring-purple-400 scale-105' : ''}
               `}
               title={editSection.basic ? "Click to toggle" : ""}
@@ -225,9 +283,9 @@ function StaffProfile() {
             <div className="flex justify-between items-center text-gray-700 text-sm h-8">
               <span className="font-semibold flex items-center gap-2"><FaPhoneAlt size={12}/> Phone:</span>
               {editSection.basic ? (
-                 <input name="contact" value={formData.contact} onChange={handleInputChange} className="text-right border-b border-purple-300 bg-purple-50 outline-none w-32"/>
+                 <input name="contactNumber" value={formData.contactNumber} onChange={handleInputChange} className="text-right border-b border-purple-300 bg-purple-50 outline-none w-32"/>
               ) : (
-                <span className="text-gray-600">{staff.contact}</span>
+                <span className="text-gray-600">{staff.contactNumber}</span>
               )}
             </div>
             <div className="flex justify-between items-center text-gray-700 text-sm">
@@ -264,14 +322,13 @@ function StaffProfile() {
                              <select name="department" value={formData.department} onChange={handleInputChange} className="w-full p-2 border border-purple-300 rounded bg-purple-50 outline-none">
                                 <option value="Cardiology">Cardiology</option>
                                 <option value="Neurology">Neurology</option>
-                                <option value="Emergency">Emergency</option>
-                                <option value="Radiology">Radiology</option>
                                 <option value="Pediatrics">Pediatrics</option>
-                                <option value="Pathology">Pathology</option>
                                 <option value="Administration">Administration</option>
-                                <option value="Pharmacy">Pharmacy</option>
-                                <option value="Orthopedics">Orthopedics</option>
                                 <option value="Gynecology">Gynecology</option>
+                                <option value="Dermatology">Dermatology</option>
+                                <option value="General Medicine">General Medicine</option>
+                                <option value="Orthopedics">Orthopedics</option>
+                                <option value="Pharmacy">Pharmacy</option>
                                 <option value="Housekeeping">Housekeeping</option>
                              </select>
                         ) : (
@@ -291,9 +348,9 @@ function StaffProfile() {
                     <div>
                         <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Joining Date</p>
                         {editSection.professional ? (
-                            <input type="date" name="joiningDate" value={formData.joiningDate || ""} onChange={handleInputChange} className="w-full p-2 border border-purple-300 rounded bg-purple-50 outline-none"/>
+                            <input type="date" name="joiningDate" value={formData.joiningDate ? new Date(formData.joiningDate).toISOString().split('T')[0] : ""} onChange={handleInputChange} className="w-full p-2 border border-purple-300 rounded bg-purple-50 outline-none"/>
                         ) : (
-                            renderValue(staff.joiningDate)
+                            renderValue(new Date(staff.joiningDate).toLocaleDateString())
                         )}
                     </div>
                     {/* Experience (Read Only) */}
@@ -335,9 +392,9 @@ function StaffProfile() {
                 </div>
 
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-4">
-                     
-                     {/* Gender Field */}
-                     <div>
+                      
+                      {/* Gender Field */}
+                      <div>
                         <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Gender</p>
                         {editSection.personal ? (
                            <select name="gender" value={formData.gender || ""} onChange={handleInputChange} className="w-full p-2 border border-purple-300 rounded bg-purple-50 outline-none">
@@ -355,9 +412,9 @@ function StaffProfile() {
                     <div>
                         <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Date of Birth</p>
                         {editSection.personal ? (
-                           <input type="date" name="dob" value={formData.dob || ""} onChange={handleInputChange} className="w-full p-2 border border-purple-300 rounded bg-purple-50 outline-none"/>
+                           <input type="date" name="dateOfBirth" value={formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString().split('T')[0] : ""} onChange={handleInputChange} className="w-full p-2 border border-purple-300 rounded bg-purple-50 outline-none"/>
                         ) : (
-                           renderValue(staff.dob)
+                           renderValue(new Date(staff.dateOfBirth).toLocaleDateString())
                         )}
                     </div>
 

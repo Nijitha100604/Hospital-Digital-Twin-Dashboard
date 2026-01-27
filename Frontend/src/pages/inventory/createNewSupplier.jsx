@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useContext } from "react";
 import {
   FaUser,
   FaTruck,
@@ -13,13 +13,21 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { SupplierContext } from "../../context/SupplierContext"; 
+import Loading from "../Loading"; 
 
 const CreateNewSupplier = () => {
   const navigate = useNavigate();
   const fileRef = useRef(null);
-  const [fileName, setFileName] = useState("");
+  
+  const { addSupplier } = useContext(SupplierContext);
 
-  /* ===== REQUIRED FIELDS ===== */
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [fileName, setFileName] = useState("");
+  const [file, setFile] = useState(null); 
+
+  /* Required fields */
   const [supplierName, setSupplierName] = useState("");
   const [contactPerson, setContactPerson] = useState("");
   const [email, setEmail] = useState("");
@@ -45,32 +53,95 @@ const CreateNewSupplier = () => {
   const [ifsc, setIfsc] = useState("");
 
   const [supplies, setSupplies] = useState("");
+  const [totalSupplies, setTotalSupplies] = useState("");
   const [notes, setNotes] = useState("");
 
+  // Handle File Selection
   const handleFileChange = (e) => {
-    if (e.target.files[0]) setFileName(e.target.files[0].name);
+    if (e.target.files[0]) {
+      setFileName(e.target.files[0].name);
+      setFile(e.target.files[0]); 
+    }
   };
 
-  const handleSubmit = (e) => {
+  // Submit Handler
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!supplierName || !contactPerson || !email || !phone) {
+    // Basic Validation
+    if (!supplierName || !contactPerson || !email || !phone || !category || !paymentTerms) {
       toast.error("Please fill all required fields");
       return;
     }
 
-    toast.success("Supplier Created Successfully");
-    navigate("/suppliers-list");
+    setIsLoading(true);
+
+    try {
+      const formData = new FormData();
+
+      // Append Basic Info
+      formData.append("supplierName", supplierName);
+      formData.append("contactPerson", contactPerson);
+      formData.append("email", email);
+      formData.append("phone", phone);
+
+      // Append Address
+      formData.append("street", street);
+      formData.append("city", city);
+      formData.append("state", state);
+      formData.append("zip", zip);
+      formData.append("country", country);
+
+      // Append Business Info
+      formData.append("category", category);
+      formData.append("taxId", taxId);
+      formData.append("paymentTerms", paymentTerms);
+      formData.append("creditLimit", creditLimit);
+      formData.append("status", status);
+      formData.append("rating", rating);
+
+      // Append Banking
+      formData.append("bankName", bankName);
+      formData.append("accountNumber", accountNumber);
+      formData.append("ifsc", ifsc);
+
+      // Append Notes & Supplies 
+      formData.append("itemsSupplied", supplies); 
+      formData.append("notes", notes);
+
+      // Append File 
+      if (file) {
+        formData.append("document", file);
+      }
+
+      // Call Context Function
+      const success = await addSupplier(formData);
+
+      if (success) {
+        navigate("/suppliers-list"); 
+      } else {
+        setIsLoading(false);
+      }
+
+    } catch (error) {
+      console.error(error);
+      toast.error("An unexpected error occurred");
+      setIsLoading(false);
+    }
   };
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <>
-      <div className="bg-white p-4 rounded-lg mb-4 flex flex-wrap justify-between">
+      <div className="bg-white p-4 rounded-lg mb-4 flex flex-wrap justify-between shadow-sm border border-gray-200">
         {/* Header */}
         <div className="flex flex-col gap-1">
           <div className="flex gap-3 items-center">
             <FaPlusCircle className=" text-lg text-gray-500" />
-            <p className="font-bold text-lg">Add New Supplier</p>
+            <p className="font-bold text-lg text-gray-800">Add New Supplier</p>
           </div>
           <p className="text-sm text-gray-500">Add new supplier to inventory</p>
         </div>
@@ -79,7 +150,7 @@ const CreateNewSupplier = () => {
         <div className="flex justify-end mt-3 mb-3">
           <button
             onClick={() => navigate(-1)}
-            className="flex  items-center gap-2 text-sm border bg-gray-200 hover:text-white hover:bg-fuchsia-900 border-fuchsia-700 rounded px-3 py-1  text-black cursor-pointer"
+            className="flex items-center gap-2 text-sm border bg-gray-100 hover:text-white hover:bg-fuchsia-800 border-gray-300 rounded-lg px-4 py-2 text-gray-700 cursor-pointer transition-colors"
           >
             <FaArrowLeft /> Back
           </button>
@@ -133,35 +204,30 @@ const CreateNewSupplier = () => {
               <TwoCol>
                 <Input
                   label="Street Address"
-                  required
                   placeholder="Enter street address"
                   value={street}
                   onChange={setStreet}
                 />
                 <Input
                   label="City"
-                  required
                   placeholder="Enter city"
                   value={city}
                   onChange={setCity}
                 />
                 <Input
                   label="State"
-                  required
                   placeholder="Enter state"
                   value={state}
                   onChange={setState}
                 />
                 <Input
                   label="ZIP Code"
-                  required
                   placeholder="Enter ZIP code"
                   value={zip}
                   onChange={setZip}
                 />
                 <Input
                   label="Country"
-                  required
                   placeholder="Enter country"
                   value={country}
                   onChange={setCountry}
@@ -179,11 +245,10 @@ const CreateNewSupplier = () => {
                   required
                   value={category}
                   onChange={setCategory}
-                  options={["Pharmaceutical", "Medical Equipment"]}
+                  options={["Pharmaceutical", "Medical Equipment", "Consumables", " Medicine Distributor"]}
                 />
                 <Input
                   label="Tax ID / GST Number"
-                  required
                   placeholder="Enter tax ID"
                   value={taxId}
                   onChange={setTaxId}
@@ -193,11 +258,10 @@ const CreateNewSupplier = () => {
                   required
                   value={paymentTerms}
                   onChange={setPaymentTerms}
-                  options={["Immediate", "15 Days", "30 Days"]}
+                  options={["Immediate", "15 Days", "30 Days", "45 Days", "60 Days"]}
                 />
                 <Input
                   label="Credit Limit"
-                  required
                   placeholder="Enter credit limit"
                   value={creditLimit}
                   onChange={setCreditLimit}
@@ -239,11 +303,19 @@ const CreateNewSupplier = () => {
               icon={<FaTruck className="text-blue-500 text-2xl" />}
             >
               <Textarea
-                required
-                placeholder="Enter supplies (comma separated)"
+                placeholder="Enter supplies (comma separated, e.g. Paracetamol, Gloves)"
                 value={supplies}
                 onChange={setSupplies}
               />
+
+              <Input
+                  label="Total Supplies Count"
+                  type="number"
+                  placeholder="e.g. 150"
+                  value={totalSupplies}
+                  onChange={setTotalSupplies}
+                />
+                
             </Card>
 
             <Card
@@ -251,7 +323,7 @@ const CreateNewSupplier = () => {
               icon={<FaStickyNote className="text-purple-800 text-2xl" />}
             >
               <Textarea
-                placeholder="Add additional notes"
+                placeholder="Add additional notes about this supplier..."
                 value={notes}
                 onChange={setNotes}
               />
@@ -264,15 +336,13 @@ const CreateNewSupplier = () => {
               <TwoCol>
                 <Select
                   label="Supplier Status"
-                  required
                   value={status}
                   onChange={setStatus}
-                  options={["Active", "Inactive"]}
+                  options={["Active", "Inactive", "Blacklisted"]}
                 />
 
                 <Input
-                  label="Rating (out of 5)"
-                  required
+                  label="Rating (0-5)"
                   placeholder="e.g. 4.5"
                   value={rating}
                   onChange={setRating}
@@ -281,25 +351,26 @@ const CreateNewSupplier = () => {
             </Card>
 
             <Card
-              title="Documents"
+              title="Documents / Contract"
               icon={<FaUpload className="text-red-600 text-2xl" />}
             >
               <div
                 onClick={() => fileRef.current.click()}
-                className="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center cursor-pointer hover:border-fuchsia-600"
+                className="border-2 border-dashed border-gray-300 bg-gray-50 rounded-lg p-6 text-center cursor-pointer hover:border-fuchsia-600 hover:bg-fuchsia-50 transition-all"
               >
-                <FaUpload className="mx-auto text-xl text-gray-500" />
-                <p className="text-sm mt-2">
-                  Drop files here or{" "}
-                  <span className="underline">click to upload</span>
+                <FaUpload className="mx-auto text-2xl text-gray-400 mb-2" />
+                <p className="text-sm font-medium text-gray-700">
+                  Drop file here or <span className="text-fuchsia-600 underline">click to upload</span>
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 mt-1">
                   PDF, DOC, DOCX (Max 10MB)
                 </p>
               </div>
 
               {fileName && (
-                <p className="text-sm text-green-600 mt-2">{fileName}</p>
+                <div className="mt-3 bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded-md text-sm flex items-center gap-2">
+                   <FaStickyNote /> {fileName}
+                </div>
               )}
 
               <input
@@ -307,21 +378,22 @@ const CreateNewSupplier = () => {
                 ref={fileRef}
                 onChange={handleFileChange}
                 className="hidden"
+                accept=".pdf,.doc,.docx,.jpg,.png"
               />
             </Card>
 
-            <div className="flex gap-4 lg:mt-70 justify-end">
+            <div className="flex gap-4 lg:mt-4 justify-end">
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                className="flex cursor-pointer items-center gap-2 bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-md"
+                className="flex cursor-pointer items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-2.5 rounded-lg font-medium shadow-sm transition-colors"
               >
                 <FaTimes /> Cancel
               </button>
 
               <button
                 type="submit"
-                className="flex cursor-pointer items-center gap-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-4 py-2 rounded-md"
+                className="flex cursor-pointer items-center gap-2 bg-fuchsia-800 hover:bg-fuchsia-900 text-white px-6 py-2.5 rounded-lg font-medium shadow-sm transition-colors"
               >
                 <FaSave /> Add Supplier
               </button>
@@ -338,9 +410,9 @@ export default CreateNewSupplier;
 /* ===== Reusable UI ===== */
 
 const Card = ({ title, icon, children }) => (
-  <div className="bg-white border border-gray-300 rounded-xl p-4">
-    <p className="font-semibold mb-4 flex items-center gap-2">
-      <span className="text-gray-500">{icon}</span>
+  <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-5">
+    <p className="font-bold text-gray-800 mb-5 flex items-center gap-3 border-b border-gray-100 pb-3">
+      <span className="p-2 bg-gray-100 rounded-lg">{icon}</span>
       {title}
     </p>
     {children}
@@ -348,34 +420,34 @@ const Card = ({ title, icon, children }) => (
 );
 
 const TwoCol = ({ children }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{children}</div>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">{children}</div>
 );
 
 const Input = ({ label, required, placeholder, value, onChange }) => (
-  <div>
-    <label className="text-sm font-medium">
-      {label} {required && <span className="text-red-600">*</span>}
+  <div className="w-full">
+    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
+      {label} {required && <span className="text-red-500">*</span>}
     </label>
     <input
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full mt-1 bg-gray-200 px-3 py-2 rounded-md outline-0"
+      className="w-full px-3 py-2.5 rounded-lg border border-gray-300 bg-white focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent outline-none transition-all text-sm text-gray-700 placeholder-gray-400"
     />
   </div>
 );
 
 const Select = ({ label, required, value, onChange, options }) => (
-  <div>
-    <label className="text-sm font-medium">
-      {label} {required && <span className="text-red-600">*</span>}
+  <div className="w-full">
+    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
+      {label} {required && <span className="text-red-500">*</span>}
     </label>
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full mt-1 bg-gray-200 px-3 py-2 rounded-md outline-0"
+      className="w-full px-3 py-2.5 rounded-lg border border-gray-300 bg-white focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent outline-none transition-all text-sm text-gray-700 cursor-pointer appearance-none"
     >
-      <option value="">Select</option>
+      <option value="">Select Option</option>
       {options.map((o) => (
         <option key={o}>{o}</option>
       ))}
@@ -389,6 +461,6 @@ const Textarea = ({ placeholder, value, onChange }) => (
     value={value}
     onChange={(e) => onChange(e.target.value)}
     placeholder={placeholder}
-    className="w-full bg-gray-200 px-3 py-2 rounded-md outline-0"
+    className="w-full px-3 py-2.5 rounded-lg border border-gray-300 bg-white focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent outline-none transition-all text-sm text-gray-700 placeholder-gray-400 resize-none"
   />
 );

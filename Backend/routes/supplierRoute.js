@@ -4,6 +4,7 @@ import authUser from "../middlewares/authUser.js";
 
 import {
   addSupplier,
+  seedSuppliers, 
   getAllSuppliers,
   getSupplierById,
   updateSupplier,
@@ -12,27 +13,26 @@ import {
 
 const supplierRouter = express.Router();
 
-// Add New Supplier 
+// Add New Supplier (Single)
 supplierRouter.post(
   "/add-supplier",
   authUser,
-  upload.single("document"), // Field name 'document' matches controller logic
+  upload.single("document"), 
   addSupplier
 );
 
-// Get All Suppliers
-supplierRouter.get(
-    "/all-suppliers", 
-    authUser, 
-    getAllSuppliers
+// Seed Suppliers (Add via JSON)
+supplierRouter.post(
+  "/seed-suppliers",
+  authUser,
+  seedSuppliers
 );
 
+// Get All Suppliers
+supplierRouter.get("/all-suppliers", authUser, getAllSuppliers);
+
 // Get Supplier by Id
-supplierRouter.get(
-    "/supplier/:id", 
-    authUser, 
-    getSupplierById
-);
+supplierRouter.get("/supplier/:id", authUser, getSupplierById);
 
 // Update Supplier
 supplierRouter.put(
@@ -43,10 +43,6 @@ supplierRouter.put(
 );
 
 // Delete Supplier
-supplierRouter.delete(
-    "/delete/:id", 
-    authUser, 
-    deleteSupplier
-);
+supplierRouter.delete("/delete/:id", authUser, deleteSupplier);
 
 export default supplierRouter;
