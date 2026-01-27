@@ -15,6 +15,7 @@ const addMedicine = async (req, res) => {
       batchNumber,
       quantity,
       minimumThreshold,
+      manufacturingDate,
       expiryDate,
       storageLocation,
       storageConditions,
@@ -38,6 +39,7 @@ const addMedicine = async (req, res) => {
       !batchNumber ||
       !quantity ||
       !expiryDate ||
+      !manufacturingDate ||
       !supplierName ||
       !costPerUnit
     ) {
@@ -176,6 +178,7 @@ let imageName = existing.medicineImageName || "";
       quantity: req.body.quantity ?? existing.quantity,
       minimumThreshold:
         req.body.minimumThreshold ?? existing.minimumThreshold,
+      manufacturingDate: req.body.manufacturingDate ?? existing.manufacturingDate,
       expiryDate: req.body.expiryDate ?? existing.expiryDate,
       storageLocation: req.body.storageLocation ?? existing.storageLocation,
       storageConditions:

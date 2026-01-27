@@ -34,6 +34,7 @@ const medicineSchema = new mongoose.Schema(
     batchNumber: { type: String, required: true },
     quantity: { type: Number, required: true },
     minimumThreshold: { type: Number, default: 0 },
+    manufacturingDate: { type: String, required: true },
     expiryDate: { type: String, required: true },
 
     storageLocation: { type: String, default: "" },
