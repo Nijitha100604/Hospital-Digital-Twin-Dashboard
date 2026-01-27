@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { doctorConsultations } from '../../data/patient';
-import { FaCheckCircle, FaEye, FaPlus, FaSave, FaTrash, FaUserMd } from 'react-icons/fa';
+import { FaCheckCircle, FaEye, FaInfoCircle, FaPlus, FaSave, FaTrash, FaUserMd } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { PatientContext } from './../../context/PatientContext';
+import { AppContext } from '../../context/AppContext';
+import axios from 'axios';
+import { LabContext } from '../../context/LabContext';
 
 function PatientConsultation() {
 
@@ -20,17 +23,73 @@ function PatientConsultation() {
     const [labReports, setLabReports] = useState([]);
     const [newLabReports, setNewLabReports] = useState([]);
 
-    const handleSaveDiagnosis = () =>{
-      if(!diagnosis || !doctorRemarks) return;
+    const { fetchPatients, consultations, fetchConsultations } = useContext(PatientContext);
+    const { token, backendUrl } = useContext(AppContext);
+    const { fetchLabReports, reports } = useContext(LabContext);
+    const [ patient, setPatient ] = useState({});
+    const [ appointment, setAppointment ] = useState({});
 
-      setConsultation(prev => ({
-        ...prev,
-        diagnosis,
-        doctorRemarks
-      }));
-      toast.success("Diagnosis and Remarks Added");
-      setDiagnosis("");
-      setDoctorRemarks("");
+    const patientDetails = async(id) =>{
+
+      try{
+
+        const {data} = await axios.get(`${backendUrl}/api/patient/${id}`, {headers: {token}});
+        if(data.success){
+          setPatient(data.data);
+        } else{
+          toast.error(data.message);
+        }
+
+      } catch(error){
+        console.log(error);
+        toast.error("Internal Server Error");
+      }
+
+    }
+
+    const appointmentDetails = async(id) =>{
+
+      try{
+        const {data} = await axios.get(`${backendUrl}/api/appointment/${id}`, {headers: {token}});
+        if(data.success){
+          setAppointment(data.data);
+        } else{
+          toast.error(data.message);
+        }
+      } catch(error){
+        console.log(error);
+        toast.error("Internal Server Error");
+      }
+
+    }
+
+    const handleSaveDiagnosis = async() =>{
+      
+      if(!diagnosis || !doctorRemarks){
+        toast.error("Diagnosis and Remarks required");
+        return;
+      }
+
+      try{
+        const {data} = await axios.post(`${backendUrl}/api/consultation/add-diagnosis-remarks`, { 
+          appointmentId : consultation?.appointmentId,
+          diagnosis,
+          remarks: doctorRemarks 
+        }, {headers: {token}});
+
+        if(data.success){
+          toast.success(data.message, {autoClose: 2000});
+          await fetchConsultations();
+          setDiagnosis("");
+          setDoctorRemarks("");
+        } else{
+          toast.error(data.message);
+        }
+      } catch(error){
+        console.log(error);
+        toast.error("Internal Server Error");
+      }
+
     }
 
     const frequencyMap = {
@@ -74,59 +133,181 @@ function PatientConsultation() {
       );
     };
 
-    const handleSavePrescription = () => {
-      if (prescriptions.length === 0) return;
+    const handleSavePrescription = async() => {
+      if (prescriptions.length === 0) {
+        toast.error("Add at least one medicine");
+        return;
+      }
 
-      setConsultation(prev => ({
-        ...prev,
-        prescriptions
-      }));
+      try{
+
+        const {data} = await axios.post(`${backendUrl}/api/consultation/add-prescriptions`, {
+          appointmentId: consultation?.appointmentId,
+          prescriptions
+        }, {headers: {token}});
+
+        if(data.success){
+          toast.success(data.message, {autoClose: 2000});
+          await fetchConsultations();
+          setPrescriptions([]);
+        } else{
+          toast.error(data.message);
+        }
+
+      } catch(error){
+        console.log(error);
+        toast.error("Internal Server Error");
+      }
+
     };
 
     const handleAddLabTest = () =>{
       if(!labTestName) return;
 
       const newTest = {
-      testName: labTestName,
-      status: "Pending",
+      testName: labTestName
       };
 
-      setLabReports(prev => [...prev, newTest]);
       setNewLabReports(prev => [...prev, newTest]);
       setLabTestName("");
+    }
+
+    const handleRemoveNewLabTest = (index) => {
+      setNewLabReports(prev =>
+        prev.filter((_, i) => i !== index)
+      );
+    };
+
+    const handleSaveLabReports = async() => {
+
+      if (newLabReports.length === 0) {
+        toast.error("Add at least one lab test");
+        return;
+      }
+      try{
+
+        const {data} = await axios.post(`${backendUrl}/api/consultation/add-labReports`,{
+          appointmentId: consultation.appointmentId,
+          consultationId: consultation.consultationId,
+          patientId: consultation.patientId,
+          labTests: newLabReports.map(test => ({
+            testName: test.testName
+          }))
+        }, {headers: {token}})
+
+        if(data.success){
+          toast.success(data.message, {autoClose: 2000});
+          setNewLabReports([]);
+          await fetchConsultations();
+          await fetchLabReports();
+        } else {
+          toast.error(data.message);
+        }
+
+      } catch(error){
+        console.log(error);
+        toast.error("Internal Server Error");
+      }
+
+    };
+
+    const getLabReports = (appointmentId) =>{
+
+      if(!reports || reports.length === 0 || !appointmentId){
+        return;
+      }
+
+      const mappedReports = reports
+      .filter(report => report.appointmentId === appointmentId)
+      .map(report => ({
+        labReportId: report.labReportId,
+        testName: report.testName,
+        status: report.status
+      }));
+
+      setLabReports(mappedReports);
 
     }
 
-    const handleSaveLabReports = () => {
-      setConsultation(prev => ({
-        ...prev,
-        labReports
-      }));
-      toast.success("Lab tests requested");
-      setNewLabReports([]);
-    };
+    const handleAppointmentAction = async(status) =>{
+
+      try{
+
+        if(status !== "In Progress" && status !== "Completed"){
+          toast.error("Invalid action");
+          return;
+        }
+
+        if(status === "Completed" && 
+          (
+            !consultation?.doctor?.diagnosis?.trim() ||
+            !consultation?.doctor?.remarks?.trim() ||
+            !consultation?.prescriptions || consultation.prescriptions.length === 0
+          )){
+          toast.error("Enter the diagnosis, remarks and prescriptions before completing the status");
+          return;
+        }
+
+        const {data} = await axios.put(`${backendUrl}/api/appointment/update-status`, {
+          appointmentId: consultation?.appointmentId,
+          status
+        }, {headers: {token}});
+
+        if(data.success){
+          toast.success(data.message, {autoClose: 2000});
+          await fetchConsultations();
+        } else{
+          toast.error(data.message);
+        }
+
+      } catch(error){
+        console.log(error);
+        toast.error("Internal Server Error");
+      }
+
+    }
 
     useEffect(()=>{
       const fetchConsultation = async() =>{
-        console.log(id);
-        await new Promise(resolve => setTimeout(resolve, 200));
+      
+        if(!consultations || consultations.length === 0) return;
 
-        const foundConsultation = doctorConsultations.find(
+        const foundConsultation = consultations.find(
           (item) => item.appointmentId === id
         );
 
         if(foundConsultation){
           setConsultation(foundConsultation);
-          setDiagnosis(consultation?.diagnosis || "");
-          setDoctorRemarks(consultation?.doctorRemarks || "");
-          setPrescriptions(consultation?.prescriptions || []);
-          setLabReports(consultation?.labReports || []);
+          patientDetails(foundConsultation?.patientId);
+          appointmentDetails(foundConsultation?.appointmentId);
+          setDiagnosis(foundConsultation?.doctor?.diagnosis || "");
+          setDoctorRemarks(foundConsultation?.doctor?.remarks || "");
+          setPrescriptions(foundConsultation?.prescriptions || []);
         }
       }
       fetchConsultation();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id]);
+    }, [id, consultations]);
+
+    useEffect(()=>{
+
+      if(token){
+        fetchPatients();
+        fetchConsultations();
+        fetchLabReports();
+      }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token]);
+
+    useEffect(()=>{
+      if (consultation?.appointmentId && reports?.length > 0) {
+        getLabReports(consultation.appointmentId);
+      }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [consultation, reports])
+
 
     const getStatusClass = (status) =>{
     switch(status?.toLowerCase()){
@@ -168,26 +349,26 @@ function PatientConsultation() {
     <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-4 mt-4">
 
       {/* General details */}
-      <div className="bg-white border border-gray-300 px-4 py-2 rounded-lg">
+      <div className="bg-white border border-gray-300 p-4 rounded-lg flex flex-col justify-between">
 
         <div className="mb-3">
           <p className="text-fuchsia-900 text-sm font-semibold">Patient Details</p>
           <div className="mt-2 flex flex-wrap justify-between items-center">
             <div className="flex flex-col gap-1">
               <p className="text-sm text-gray-700">Name</p>
-              <p className="text-sm font-bold text-gray-900">{consultation?.patientDetails.name}</p>
+              <p className="text-sm font-bold text-gray-900">{patient?.personal?.name}</p>
             </div>
             <div className="flex flex-col gap-1">
               <p className="text-sm text-gray-700">Age</p>
-              <p className="text-sm font-bold text-gray-900">{consultation?.patientDetails.age}</p>
+              <p className="text-sm font-bold text-gray-900">{patient?.personal?.age}</p>
             </div>
             <div className="flex flex-col gap-1">
               <p className="text-sm text-gray-700">Gender</p>
-              <p className="text-sm font-bold text-gray-900">{consultation?.patientDetails.gender}</p>
+              <p className="text-sm font-bold text-gray-900">{patient?.personal?.gender}</p>
             </div>
             <div className="flex flex-col gap-1">
               <p className="text-sm text-gray-700">Blood Group</p>
-              <p className="text-sm font-bold text-gray-900">{consultation?.patientDetails.bloodGroup}</p>
+              <p className="text-sm font-bold text-gray-900">{patient?.personal?.bloodGroup}</p>
             </div>
           </div>
         </div>
@@ -197,23 +378,23 @@ function PatientConsultation() {
           <div className="mt-2 flex flex-wrap gap-2 justify-between items-center">
             <div className="flex flex-col gap-1">
               <p className="text-sm text-gray-700">Date</p>
-              <p className="text-sm font-bold text-gray-900">{consultation?.appointmentDetails.date}</p>
+              <p className="text-sm font-bold text-gray-900">{appointment?.date}</p>
             </div>
             <div className="flex flex-col gap-1">
               <p className="text-sm text-gray-700">Time</p>
-              <p className="text-sm font-bold text-gray-900">{consultation?.appointmentDetails.timeSlot}</p>
+              <p className="text-sm font-bold text-gray-900">{appointment?.timeSlot}</p>
             </div>
             <div className="flex flex-col gap-1">
               <p className="text-sm text-gray-700">Consultation</p>
-              <p className={`text-sm font-bold ${consultation?.consultationType === "In Person" ? "text-red-600" : "text-blue-600"}`}>{consultation?.consultationType}</p>
+              <p className={`text-sm font-bold ${appointment?.consultationType === "In-Person" ? "text-red-600" : "text-blue-600"}`}>{appointment?.consultationType}</p>
             </div>
-            <p className={`text-sm px-2 py-1 rounded-lg font-bold text-white ${getStatusClass(consultation?.consultationStatus)}`}>{consultation?.consultationStatus}</p>
+            <p className={`text-sm px-2 py-1 rounded-lg font-bold text-white ${getStatusClass(appointment?.status)}`}>{appointment?.status}</p>
           </div>
         </div>
 
         <div className="flex gap-2 mt-3 items-center">
           <p className="text-red-600 text-sm">Consultation remarks :</p>
-          <p className="text-sm text-gray-800">{consultation?.appointmentDetails.reason}</p>
+          <p className="text-sm text-gray-800">{appointment?.remarks}</p>
         </div>
 
       </div>
@@ -225,10 +406,10 @@ function PatientConsultation() {
         <div className="mb-3">
           <p className="text-fuchsia-900 text-sm font-semibold">Medical History</p>
           {
-            consultation.patientDetails.medicalHistory.length > 0 ?
+            patient?.medical?.history.length > 0 ?
             <div className="flex flex-wrap gap-3 mt-2">
               {
-                consultation.patientDetails.medicalHistory.map((item, index)=>(
+                patient?.medical?.history.map((item, index)=>(
                   <div key={index}>
                     <p className="text-sm text-gray-700 px-2 py-1 border border-gray-200">{item}</p>
                   </div>
@@ -244,10 +425,10 @@ function PatientConsultation() {
         <div className="mb-3">
           <p className="text-fuchsia-900 text-sm font-semibold">Allergies</p>
           {
-            consultation.patientDetails.allergies.length > 0 ?
+            patient?.medical?.allergies.length > 0 ?
             <div className="flex flex-wrap gap-3 mt-2">
               {
-                consultation.patientDetails.allergies.map((item, index)=>(
+                patient?.medical?.allergies.map((item, index)=>(
                   <div key={index}>
                     <p className="text-sm text-gray-700 px-2 py-1 border border-gray-200">{item}</p>
                   </div>
@@ -263,20 +444,20 @@ function PatientConsultation() {
         <div>
           <p className="text-fuchsia-900 text-sm font-semibold">Vitals</p>
           {
-            consultation?.vitals.length > 0 ?
+            patient?.vitals?.length > 0 ?
             <div className="grid grid-cols-2 items-center gap-3 mt-2">
               {
-                consultation?.vitals.map((item, index)=>(
+                patient?.vitals[0]?.vitalsData.map((item, index)=>(
                   <div 
                     key = {index}
                     className="flex flex-wrap gap-2 items-center"
                   >
-                    <p className="text-sm">{item.name} : <span className={`font-bold ${item.status === "Normal" ? "text-green-600" : "text-red-600"}`}>{item.value}</span> <span className="text-sm text-gray-600">{item.unit}</span></p>
+                    <p className="text-sm">{item?.name} : <span className={`font-bold ${item?.status === "Normal" ? "text-green-600" : "text-red-600"}`}>{item?.value}</span> <span className="text-sm text-gray-600">{item?.unit}</span></p>
                   </div>
                 ))
               }
             </div> :
-            <div className="text-sm font-medium text-gray-700">No vitals recorded</div>
+            <div className="text-sm font-medium text-gray-700 mt-2 text-center">No vitals recorded</div>
           }
         </div>
 
@@ -288,17 +469,17 @@ function PatientConsultation() {
     <div className="w-full bg-white px-3 py-3 mt-4 rounded-lg border border-gray-300">
       <p className="text-sm font-medium text-gray-600">Doctor Diagnosis and Remarks</p>
     {
-      (consultation?.diagnosis && consultation?.doctorRemarks) ?
+      (consultation?.doctor?.diagnosis && consultation?.doctor?.remarks) ?
       <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-4 items-center px-3 mt-2">
 
       <div className="flex flex-col gap-2">
         <p className="text-sm text-gray-900 font-medium">Diagnosis</p>
-        <p className="w-full px-2 py-1 border border-gray-300 rounded-lg bg-gray-200 text-sm font-semibold text-gray-900">{consultation?.diagnosis}</p>
+        <p className="w-full px-2 py-1 border border-gray-300 rounded-lg bg-gray-200 text-sm font-semibold text-gray-900">{consultation?.doctor?.diagnosis}</p>
       </div>
 
       <div className="flex flex-col gap-2">
         <p className="text-sm text-gray-900 font-medium">Remarks</p>
-        <p className="w-full px-2 py-1 border border-gray-300 rounded-lg bg-gray-200 text-sm font-semibold text-gray-900">{consultation?.doctorRemarks}</p>
+        <p className="w-full px-2 py-1 border border-gray-300 rounded-lg bg-gray-200 text-sm font-semibold text-gray-900">{consultation?.doctor?.remarks}</p>
       </div>
 
       </div> :
@@ -333,7 +514,7 @@ function PatientConsultation() {
         <div className="flex justify-start items-center">
           <button 
             onClick={handleSaveDiagnosis}
-            className="px-3 py-3 flex items-center gap-2 mt-4 cursor-pointer bg-fuchsia-800 hover:bg-fuchsia-700 text-white text-sm font-medium rounded-lg"
+            className="px-3 py-3 flex items-center gap-2 mt-4 cursor-pointer bg-fuchsia-800 hover:bg-fuchsia-700 text-white text-sm font-medium rounded-lg transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
           >
             <FaPlus size={18}/> Add Diagnosis and Remarks
           </button>
@@ -362,14 +543,14 @@ function PatientConsultation() {
               <tbody>
                 {consultation.prescriptions.map((item, index) => (
                   <tr key={index} className="text-center">
-                    <td className="p-2 border">{item.medicineName}</td>
+                    <td className="p-2 border">{item?.medicineName}</td>
                     <td className="p-2 border">
-                    {Array.isArray(item.frequency)
+                    {Array.isArray(item?.frequency)
                       ? item.frequency.join(" • ")
                       : "-"}
                     </td>
-                    <td className="p-2 border">{item.duration}</td>
-                    <td className="p-2 border">{item.instruction || "-"}</td>
+                    <td className="p-2 border">{item?.duration}</td>
+                    <td className="p-2 border">{item?.instruction || "-"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -436,14 +617,14 @@ function PatientConsultation() {
           <div className="flex gap-3 mt-4">
             <button
               onClick={handleAddMedicine}
-              className="flex gap-2 items-center px-3 py-2 bg-fuchsia-700 text-white rounded-md text-sm"
+              className="flex gap-2 items-center px-3 py-2 bg-fuchsia-700 text-white rounded-md text-sm cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
             >
               <FaPlus size={18}/> Add Medicine
             </button>
 
             <button
               onClick={handleSavePrescription}
-              className="flex gap-2 items-center px-3 py-2 bg-green-800 text-white rounded-md text-sm"
+              className="flex gap-2 items-center px-3 py-2 bg-green-800 text-white rounded-md text-sm cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
             >
              <FaSave size={18}/> Save Prescription
             </button>
@@ -486,22 +667,22 @@ function PatientConsultation() {
       <p className="text-sm font-medium text-gray-600 mb-4">Lab Reports</p>
 
       {
-        consultation?.labReports?.length > 0 && (
+        labReports?.length > 0 && (
           <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-3">
             {
-              consultation.labReports.map((item, index)=>(
+              labReports.map((item, index)=>(
                 <div 
                   key = {index}
                   className="px-3 py-2 flex items-center flex-wrap justify-between gap-3 border border-gray-300 rounded-lg"
                 >
-                  <p className="text-sm font-medium">{item.testName}</p>
-                  <p className={`text-white px-2 py-1 rounded-lg text-sm font-medium ${item.status === "Pending" ? "bg-orange-500" : item.status === "Requested" ? "bg-blue-500" : "bg-green-500"}`}>{item.status}</p>
+                  <p className="text-sm font-medium">{item?.testName}</p>
+                  <p className={`text-white px-2 py-1 rounded-lg text-sm font-medium ${item?.status === "Requested" ? "bg-blue-500" : item?.status === "Completed" ? "bg-green-600" : "bg-gray-500"}`}>{item?.status}</p>
                   {
-                    item.status === "Completed" &&
+                    item?.status === "Completed" &&
                     <FaEye 
                     size={18}
                     onClick = {()=>{
-                      navigate('/lab-reports-list');
+                      navigate(`/lab-reports-list/${item?.labReportId}`);
                       window.scroll(0,0);
                     }}
                     />
@@ -513,7 +694,7 @@ function PatientConsultation() {
         ) 
       }
 
-      {consultation.consultationStatus !== "Completed" && (
+      {appointment?.status !== "Completed" && (
       <>
         <p className="mt-3 text-gray-600 text-sm font-medium">Request Lab Reports</p>
         <div className="mt-4 flex gap-3 items-end">
@@ -530,14 +711,14 @@ function PatientConsultation() {
 
         <button
           onClick={handleAddLabTest}
-          className="flex gap-2 items-center px-3 py-2 bg-fuchsia-700 text-white rounded-md text-sm"
+          className="flex gap-2 items-center px-3 py-2 bg-fuchsia-700 text-white rounded-md text-sm cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         >
           <FaPlus size={18}/>Add Test
         </button>
 
         <button
           onClick={handleSaveLabReports}
-          className="px-3 py-2 bg-green-800 text-white rounded-md text-sm"
+          className="px-3 py-2 bg-green-800 text-white rounded-md text-sm cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         >
           Save Lab Requests
         </button>
@@ -550,10 +731,14 @@ function PatientConsultation() {
                 newLabReports.map((item, index)=>(
                   <div
                     key = {index} 
-                    className="flex flex-wrap gap-10 justify-between px-3 py-1 border border-gray-500 bg-white rounded-lg"
+                    className="flex items-center gap-4 justify-between px-3 py-2 border border-gray-500 bg-white rounded-lg"
                   >
                     <p className="text-sm text-gray-900 font-medium">{item.testName}</p>
-                    <p className="text-sm text-gray-900 font-medium">{item.status}</p>
+                    <FaTrash
+                      size={16}
+                      className="text-red-600 cursor-pointer hover:text-red-800"
+                      onClick={() => handleRemoveNewLabTest(index)}
+                    />
                   </div>
                 ))
               }
@@ -565,7 +750,7 @@ function PatientConsultation() {
       </>
       )}
 
-      {consultation.consultationStatus === "Completed" && consultation.labReports.length === 0 && (
+      {appointment?.status === "Completed" && consultation.labReports.length === 0 && (
         <p className="text-sm text-gray-600 text-center">
           No lab reports available
         </p>
@@ -575,7 +760,7 @@ function PatientConsultation() {
 
     {/* Admitted Status */}
     {
-      consultation?.admissionDetails?.admitted && (
+      consultation?.admission?.admitted && (
         <div className="w-full bg-white px-3 py-3 mt-4 rounded-lg border border-gray-300">
           <p className="text-sm font-medium text-gray-600 mb-4">Admitted Details</p>
 
@@ -583,24 +768,24 @@ function PatientConsultation() {
 
             <div className="flex flex-col gap-1">
               <p className="text-sm font-medium text-gray-600">Block</p>
-              <p className="text-sm font-bold text-gray-900">A Block</p>
+              <p className="text-sm font-bold text-gray-900">{consultation?.admission?.block}</p>
             </div>
             
             <div className="flex flex-col gap-1">
               <p className="text-sm font-medium text-gray-600">Ward</p>
-              <p className="text-sm font-bold text-gray-900">General Ward</p>
+              <p className="text-sm font-bold text-gray-900">{consultation?.admission?.ward}</p>
             </div>
 
             <div className="flex flex-col gap-1">
               <p className="text-sm font-medium text-gray-600">Bed Number</p>
-              <p className="text-sm font-bold text-gray-900">G-103</p>
+              <p className="text-sm font-bold text-gray-900">{consultation?.admission?.bedNumber}</p>
             </div>
 
             <div className="flex flex-col gap-1">
               <p className="text-sm font-medium text-gray-600">Number of days</p>
               {
                 consultation?.admissionDetails?.numberOfDays ?
-                <p className="text-sm font-bold text-gray-900">{consultation?.admissionDetails.numberOfDays} day(s)</p> :
+                <p className="text-sm font-bold text-gray-900">{consultation?.admission?.numberOfDays} day(s)</p> :
                 <p className="text-sm font-bold text-gray-900">-</p>
               }
               
@@ -608,8 +793,8 @@ function PatientConsultation() {
 
             <div className="flex flex-col gap-1">
               <p className="text-sm font-medium text-gray-600">Discharge Remarks</p>
-              {consultation?.admissionDetails.dischargeRemarks ? 
-              <p className="text-sm font-bold text-gray-900">{consultation?.admissionDetails.dischargeRemarks}</p> :
+              {consultation?.admission?.dischargeRemarks ? 
+              <p className="text-sm font-bold text-gray-900">{consultation?.admission?.dischargeRemarks}</p> :
               <p> - </p>
               }
               
@@ -621,14 +806,14 @@ function PatientConsultation() {
             <div className="bg-gray-100 rounded-lg px-3 py-2 border border-gray-300">
               <p className="text-sm font-medium text-gray-700 mb-4">Daily Notes</p>
               {
-                consultation?.admissionDetails?.dailyNotes ? 
+                consultation?.admission?.dailyNotes ? 
                 <div className="flex items-start pl-2 flex-col gap-2">
-                 { consultation?.admissionDetails.dailyNotes.map((item, index) => (
+                 { consultation?.admission?.dailyNotes.map((item, index) => (
                     <p 
                       key={index}
                       className="text-sm text-gray-800 font-medium"
                     >
-                      12 Jul 2025 - {item}
+                      {item?.date} - {item?.note}
                     </p>
                   ))
                 }
@@ -641,15 +826,15 @@ function PatientConsultation() {
               <p className="text-sm font-medium text-gray-700 mb-4">Final Vitals</p>
 
               {
-                consultation?.admissionDetails?.finalVitals ?
+                consultation?.admission?.finalVitals ?
                 <div className="flex flex-col gap-2">
                   <div className="flex gap-3">
-                    <p className="text-sm text-gray-800">Blood Pressure : <span className="font-bold">{consultation?.admissionDetails.finalVitals.bloodPressure}</span></p>
+                    <p className="text-sm text-gray-800">Blood Pressure : <span className="font-bold">{consultation?.admission?.finalVitals?.bloodPressure}</span></p>
                     <p className="text-green-700 font-semibold text-sm">Normal</p>
                   </div>
 
                   <div className="flex gap-3">
-                    <p className="text-sm text-gray-800">Heart Rate : <span className="font-bold">{consultation?.admissionDetails.finalVitals.heartRate}</span></p>
+                    <p className="text-sm text-gray-800">Heart Rate : <span className="font-bold">{consultation?.admission?.finalVitals?.heartRate}</span></p>
                     <p className="text-green-700 font-semibold text-sm">Normal</p>
                   </div>
                 </div> :
@@ -687,26 +872,36 @@ function PatientConsultation() {
     {/* Action Buttons */}
     <div className="w-full flex justify-end items-center mt-5 gap-3">
 
-    {consultation?.consultationStatus === "Scheduled" && (
-    <button
-      className="px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 text-sm font-semibold"
-    >
-      Start Consultation
-    </button>
+    {appointment?.status === "Scheduled" && (
+      <div className="flex gap-4 items-center">
+        <p className="flex gap-2 items-center text-sm text-blue-700"><FaInfoCircle size={18}/>{appointment?.status}</p>
+        <button
+          onClick={() => handleAppointmentAction("In Progress")}
+          className="px-4 py-2 rounded-lg text-white bg-red-600 hover:bg-red-700 text-sm font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
+        >
+          Start Consultation
+        </button>
+      </div>
     )}
 
-    {consultation?.consultationStatus === "In Progress" && (
+    {appointment?.status === "In Progress" && (
+    <div className="flex gap-4 items-center">
+    <p className="flex gap-2 items-center text-sm text-orange-700"><FaInfoCircle size={18}/>{appointment?.status}</p>
+
     <button
-      className="px-4 py-2 rounded-lg text-white bg-orange-700 hover:bg-orange-800 text-sm font-semibold"
+      onClick={() => handleAppointmentAction("Completed")}
+      className="px-4 py-2 rounded-lg text-white bg-fuchsia-700 hover:bg-fuchsia-800 text-sm font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
     >
       Complete Consultation
     </button>
+    
+    </div>
     )}
 
-    {consultation?.consultationStatus === "Completed" && (
+    {appointment?.status === "Completed" && (
     <button
       className={`px-4 py-2 rounded-lg text-white text-sm font-semibold ${getStatusClass(
-        consultation?.consultationStatus
+        appointment?.status
       )}`}
     >
       Completed

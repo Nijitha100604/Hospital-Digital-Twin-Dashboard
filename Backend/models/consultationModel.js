@@ -20,8 +20,8 @@ const consultationSchema = new mongoose.Schema({
     ],
     labReports: [
         {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "labReport"
+            labReportId: { type: String, required: true },
+            testName: { type: String, required: true }
         }
     ],
     admission:[
@@ -32,7 +32,10 @@ const consultationSchema = new mongoose.Schema({
             bedNumber: { type: String, default: "" },
             numberOfDays: { type: Number, default: 0 },
             dischargeRemarks: { type: String, default: "" },
-            dailyNotes: [String],
+            dailyNotes: [{
+                date: {type: Date, default: ""},
+                note: {type: String, default: ""}
+            }],
             finalVitals:{
                 bloodPressure: { type: String, default: ""},
                 heartRate: { type: String, default: "" }

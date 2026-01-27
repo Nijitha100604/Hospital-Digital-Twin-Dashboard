@@ -14,6 +14,8 @@ const PatientContextProvider = (props) =>{
     const [patientLoading, setPatientLoading] = useState(false);
     const [appLoading, setAppLoading] = useState(false);
     const [appointments, setAppointments] = useState([]);
+    const [conLoading, setConLoading] = useState(false);
+    const [consultations, setConsultations] = useState([]);
 
     const fetchPatients = async() =>{
 
@@ -62,11 +64,35 @@ const PatientContextProvider = (props) =>{
 
     }
 
+    const fetchConsultations = async() =>{
+
+        if(!token) return;
+        setConLoading(true);
+
+        try{
+
+            const {data} = await axios.get(`${backendUrl}/api/consultation/all-consultations`, {headers: {token}});
+            if(data.success){
+                setConsultations(data.data);
+            }else{
+                toast.error(data.message);
+            }
+
+        } catch(error){
+            console.log(error);
+            toast.error("Internal Server Error");
+        } finally{
+            setConLoading(false);
+        }
+
+    }
+
 
     useEffect(()=>{
         if(token){
             fetchPatients();
             fetchAppointments();
+            fetchConsultations();
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token]);
@@ -79,7 +105,11 @@ const PatientContextProvider = (props) =>{
         appointments,
         fetchAppointments,
         setAppointments,
-        appLoading
+        appLoading,
+        conLoading,
+        consultations,
+        setConsultations,
+        fetchConsultations
     }
 
     return (

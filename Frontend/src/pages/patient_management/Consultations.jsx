@@ -395,7 +395,7 @@ function Consultations() {
             <FaEye 
               size={20}
               className="text-gray-800 cursor-pointer"
-              onClick = {()=>{navigate(`/patient-consultation/${item._id}`)}}
+              onClick = {()=>{navigate(`/patient-consultation/${item?.appointmentId}`)}}
             />
           </div>
         ))

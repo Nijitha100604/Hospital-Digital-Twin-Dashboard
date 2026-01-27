@@ -113,11 +113,11 @@ const patientData = async(req, res) =>{
         if(!id){
             return res.json({success: false, message: "ID is required"});
         }
-        const patient = await patientModel.findById(id);
+        const patient = await patientModel.findOne({patientId: id});
         if(!patient){
             return res.json({success: false, message: "Patient Not Found"});
         }
-        res.json({success: true, patient});
+        res.json({success: true, data: patient});
 
     } catch(error){
         console.log(error);
