@@ -253,11 +253,18 @@ const ViewMedicineDetails = () => {
               bgColor="bg-orange-50"
             />
             <IconRow
+              icon={<FaCalendarAlt className="text-cyan-700" />}
+              label="Manufacturing Date"
+              value={medicine.manufacturingDate}
+              bgColor="bg-cyan-50"
+            />
+            <IconRow
               icon={<FaCalendarAlt className="text-red-600" />}
               label="Expiry Date"
               value={medicine.expiryDate}
               bgColor="bg-red-50"
             />
+            
           </InfoCard>
 
           {/* Medical Info */}

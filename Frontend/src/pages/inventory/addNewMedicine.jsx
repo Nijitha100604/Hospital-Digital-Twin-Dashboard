@@ -20,7 +20,6 @@ import Loading from "../Loading";
 const AddNewMedicine = () => {
   const navigate = useNavigate();
   const fileRef = useRef(null);
-  
 
   const { addMedicine } = useContext(MedicineContext);
 
@@ -36,7 +35,11 @@ const AddNewMedicine = () => {
   const [strength, setStrength] = useState("");
   const [batchNumber, setBatchNumber] = useState("");
   const [quantity, setQuantity] = useState("");
+  
+  // New State for Manufacturing Date
+  const [manufacturingDate, setManufacturingDate] = useState(""); 
   const [expiryDate, setExpiryDate] = useState("");
+  
   const [supplierName, setSupplierName] = useState("");
   const [costPerUnit, setCostPerUnit] = useState("");
 
@@ -69,7 +72,7 @@ const AddNewMedicine = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); 
+    setIsLoading(true);
 
     const formData = new FormData();
     formData.append("medicineName", medicineName);
@@ -83,7 +86,11 @@ const AddNewMedicine = () => {
     formData.append("batchNumber", batchNumber);
     formData.append("quantity", quantity);
     formData.append("minimumThreshold", minimumThreshold);
+    
+    // Append Dates
+    formData.append("manufacturingDate", manufacturingDate); // <--- Added
     formData.append("expiryDate", expiryDate);
+    
     formData.append("storageLocation", storageLocation);
     formData.append("storageConditions", storageConditions);
     formData.append("supplierName", supplierName);
@@ -95,17 +102,15 @@ const AddNewMedicine = () => {
       formData.append("medicineImage", imageFile);
     }
 
-
     const success = await addMedicine(formData);
 
     if (success) {
       navigate("/medicine-stocks");
     } else {
-      setIsLoading(false); // Stop loading on error
+      setIsLoading(false);
     }
   };
 
-  // Show Loading 
   if (isLoading) {
     return <Loading />;
   }
@@ -227,13 +232,26 @@ const AddNewMedicine = () => {
                 value={minimumThreshold}
                 onChange={setMinimumThreshold}
               />
-              <Input
-                label="Expiry Date"
-                required
-                type="date"
-                value={expiryDate}
-                onChange={setExpiryDate}
-              />
+              
+              {/* --- DATES SECTION --- */}
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Mfg Date"
+                  required
+                  type="date"
+                  value={manufacturingDate}
+                  onChange={setManufacturingDate}
+                />
+                <Input
+                  label="Expiry Date"
+                  required
+                  type="date"
+                  value={expiryDate}
+                  onChange={setExpiryDate}
+                />
+              </div>
+              {/* --------------------- */}
+
               <Input
                 label="Storage Location"
                 value={storageLocation}
