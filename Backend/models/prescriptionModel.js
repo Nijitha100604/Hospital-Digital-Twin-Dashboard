@@ -6,7 +6,9 @@ const prescriptionSchema = new mongoose.Schema({
     consultationId: { type: String, required: true },
     appointmentId: { type: String, required: true },
     doctorId: { type: String, required: true },
+    doctorName: { type: String, required: true },
     patientId: { type: String, required: true },
+    patientName: { type: String, required: true },
 
     medicines: [
         {
@@ -18,17 +20,13 @@ const prescriptionSchema = new mongoose.Schema({
             isDispensed: { type: Boolean, default: false } 
         }
     ],
+    remarks: {type: String, default: ""},
 
     status: { 
         type: String, 
         enum: ['Pending', 'Dispensed', 'Cancelled'], 
         default: 'Pending' 
     },
-
-    
-    totalAmount: { type: Number, default: 0 },
-
-    dispensedBy: { type: String, default: "" }
 
 }, { timestamps: true });
 

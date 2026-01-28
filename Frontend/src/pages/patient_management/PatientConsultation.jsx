@@ -7,6 +7,7 @@ import { AppContext } from '../../context/AppContext';
 import axios from 'axios';
 import { LabContext } from '../../context/LabContext';
 import { MedicineContext } from './../../context/MedicineContext';
+import { formatDate } from './../../utils/formatDate';
 
 function PatientConsultation() {
 
@@ -566,6 +567,7 @@ function PatientConsultation() {
             </table>
           </div>
         ) : (
+
           <div>
           <div className="grid md:grid-cols-4 gap-3 items-center">
 
@@ -811,115 +813,121 @@ function PatientConsultation() {
     </div>
 
     {/* Admitted Status */}
-    {
-      consultation?.admission?.admitted && (
-        <div className="w-full bg-white px-3 py-3 mt-4 rounded-lg border border-gray-300">
-          <p className="text-sm font-medium text-gray-600 mb-4">Admitted Details</p>
+    <div className="w-full bg-white px-3 py-3 mt-4 rounded-lg border border-gray-300">
+      <p className="text-sm font-medium text-gray-600 mb-4">
+        Admission Details
+      </p>
 
-          <div className="w-full px-3 py-2 flex gap-5 justify-between">
+      {consultation?.admission?.length > 0 ? (
+        consultation.admission.map((item, index) => (
+        <div
+          key={index}
+          className="border border-gray-300 rounded-lg p-3 mb-4 bg-gray-50"
+        >
+        
+          <div className="flex justify-between items-center mb-3">
+            <p className="text-sm font-semibold text-fuchsia-800">
+              Admission #{index + 1}
+            </p>
 
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-gray-600">Block</p>
-              <p className="text-sm font-bold text-gray-900">{consultation?.admission?.block}</p>
-            </div>
-            
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-gray-600">Ward</p>
-              <p className="text-sm font-bold text-gray-900">{consultation?.admission?.ward}</p>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-gray-600">Bed Number</p>
-              <p className="text-sm font-bold text-gray-900">{consultation?.admission?.bedNumber}</p>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-gray-600">Number of days</p>
-              {
-                consultation?.admissionDetails?.numberOfDays ?
-                <p className="text-sm font-bold text-gray-900">{consultation?.admission?.numberOfDays} day(s)</p> :
-                <p className="text-sm font-bold text-gray-900">-</p>
-              }
-              
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-gray-600">Discharge Remarks</p>
-              {consultation?.admission?.dischargeRemarks ? 
-              <p className="text-sm font-bold text-gray-900">{consultation?.admission?.dischargeRemarks}</p> :
-              <p> - </p>
-              }
-              
-            </div>
-
+            <span
+              className={`text-xs px-2 py-1 rounded-md font-semibold text-white
+                ${item.admitted ? "bg-orange-600" : "bg-green-700"}`}
+            >
+              {item.admitted ? "Under Treatment" : "Discharged"}
+            </span>
           </div>
 
-          <div className="grid md:grid-cols-3 sm:grid-cols-2 gap-4 items-top mt-4">
-            <div className="bg-gray-100 rounded-lg px-3 py-2 border border-gray-300">
-              <p className="text-sm font-medium text-gray-700 mb-4">Daily Notes</p>
-              {
-                consultation?.admission?.dailyNotes ? 
-                <div className="flex items-start pl-2 flex-col gap-2">
-                 { consultation?.admission?.dailyNotes.map((item, index) => (
-                    <p 
-                      key={index}
-                      className="text-sm text-gray-800 font-medium"
-                    >
-                      {item?.date} - {item?.note}
-                    </p>
-                  ))
-                }
-                </div> :
-                <p className="text-sm text-gray-800 font-bold text-center">Notes not available</p>
-              }
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            <div>
+              <p className="text-xs text-gray-500">Block</p>
+              <p className="text-sm font-bold">{item.block || "-"}</p>
             </div>
 
-            <div className="bg-gray-100 rounded-lg px-3 py-2 border border-gray-300">
-              <p className="text-sm font-medium text-gray-700 mb-4">Final Vitals</p>
-
-              {
-                consultation?.admission?.finalVitals ?
-                <div className="flex flex-col gap-2">
-                  <div className="flex gap-3">
-                    <p className="text-sm text-gray-800">Blood Pressure : <span className="font-bold">{consultation?.admission?.finalVitals?.bloodPressure}</span></p>
-                    <p className="text-green-700 font-semibold text-sm">Normal</p>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <p className="text-sm text-gray-800">Heart Rate : <span className="font-bold">{consultation?.admission?.finalVitals?.heartRate}</span></p>
-                    <p className="text-green-700 font-semibold text-sm">Normal</p>
-                  </div>
-                </div> :
-                <p className="text-sm text-gray-800 font-bold text-center">No Vitals Recorded</p>
-              }
+            <div>
+              <p className="text-xs text-gray-500">Ward</p>
+              <p className="text-sm font-bold">{item.ward || "-"}</p>
             </div>
 
-            <div className="bg-gray-100 rounded-lg px-3 py-2 border border-gray-300">
-              <p className="text-sm font-medium text-gray-700 mb-4">Patient Instructions</p>
-              {
-                consultation?.patientInstructions ? 
-                <div className="flex items-start pl-2 flex-col gap-2">
-                 { consultation?.patientInstructions.map((item, index) => (
-                    <p 
-                      key={index}
-                      className="flex items-center gap-2 text-sm text-gray-800 font-medium"
-                    >
-                     <FaCheckCircle 
-                      size={18} 
-                      className="text-green-600"
-                    />
-                    {item}
-                    </p>
-                  ))
-                }
-                </div> :
-                <p className="text-sm text-gray-800 font-bold text-center">Instructions not available</p>
-              }
+            <div>
+              <p className="text-xs text-gray-500">Bed No</p>
+              <p className="text-sm font-bold">{item.bedNumber || "-"}</p>
             </div>
+          </div>
+
+          <p className="text-sm text-gray-700 mb-2">
+            Duration:
+            <span className="font-semibold ml-1">
+              {item.numberOfDays || 0}
+            </span>{" "}
+            day(s)
+          </p>
+
+          {/* Duration */}
+          <div className="mb-2">
+            <p className="text-sm font-medium text-gray-700">Daily Notes</p>
+
+            {item.dailyNotes?.length > 0 ? (
+              item.dailyNotes.map((note, i) => (
+                <p key={i} className="text-xs text-gray-800">
+                  {formatDate(note.date)} - {note.note}
+                </p>
+            ))
+            ) : (
+              <p className="text-xs text-gray-500">
+                No daily notes available
+              </p>
+            )}
+          </div>
+
+          {/* Final Vitals */}
+          <div className="mb-2">
+            <p className="text-sm font-medium text-gray-700">Final Vitals</p>
+
+              {item.finalVitals?.bloodPressure ||
+              item.finalVitals?.heartRate ? (
+                <>
+                  <p className="text-xs">
+                    BP: <b>{item.finalVitals.bloodPressure}</b>
+                  </p>
+                  <p className="text-xs">
+                    HR: <b>{item.finalVitals.heartRate}</b>
+                  </p>
+                </>
+              ) : (
+                <p className="text-xs text-gray-500">
+                  No final vitals recorded
+                </p>
+              )}
+          </div>
+
+          {/* Patient Instructions */}
+          <div>
+            <p className="text-sm font-medium text-gray-700">
+              Patient Instructions
+            </p>
+
+            {item.patientInstructions?.length > 0 ? (
+            item.patientInstructions.map((ins, i) => (
+              <p key={i} className="text-xs">
+                • {ins}
+              </p>
+            ))
+            ) : (
+            <p className="text-xs text-gray-500">
+              No instructions provided
+            </p>
+            )}
           </div>
         </div>
-      )
-    }
+      ))
+    ) : (
+    <p className="text-sm text-gray-500 text-center">
+      No admission details available
+    </p>
+    )}
+    </div>
+
 
     {/* Action Buttons */}
     <div className="w-full flex justify-end items-center mt-5 gap-3">

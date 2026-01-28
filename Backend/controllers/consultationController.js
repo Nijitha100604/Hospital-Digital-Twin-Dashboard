@@ -1,6 +1,7 @@
 import appointmentModel from '../models/appointmentModel.js';
 import labReportModel from '../models/labReportModel.js';
 import patientModel from '../models/patientModel.js';
+import prescriptionModel from '../models/prescriptionModel.js';
 import staffModel from '../models/staffModel.js';
 import consultationModel from './../models/consultationModel.js';
 
@@ -67,8 +68,39 @@ const addPrescriptions = async(req, res) =>{
             return res.json({ success: false, message: "Consultation not found" });
         }
 
+        const patient = await patientModel.findOne({ patientId: consultation.patientId });
+        const doctor = await staffModel.findOne({ staffId: consultation.doctorId });
+
+        if (!patient || !doctor) {
+            return res.json({ success: false, message: "Patient or Doctor not found" });
+        }
+
         consultation.prescriptions = prescriptions;
         await consultation.save();
+
+        const existing = await prescriptionModel.findOne({ appointmentId });
+        if (existing) {
+            return res.json({ success: false, message: "Prescription already exists for this appointment" });
+        }
+
+        const newPrescription = new prescriptionModel({
+            consultationId: consultation.consultationId,
+            appointmentId,
+            doctorId: doctor.staffId,
+            doctorName: doctor.fullName,
+            patientId: patient.patientId,
+            patientName: patient.personal.name,
+            medicines: prescriptions.map(item => ({
+                medicineId: item.medicineId,
+                medicineName: item.medicineName,
+                frequency: item.frequency,
+                duration: item.duration,
+                instruction: item.instruction
+            }))
+        });
+
+        await newPrescription.save();
+
         res.json({success: true, message: "Prescriptions saved successfully"});
 
     } catch(error){
