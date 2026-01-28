@@ -51,6 +51,8 @@ const labReportSchema = new mongoose.Schema({
     default: ""
   },
 
+  completedAt:{ type: Date, default: "" },
+
   // --- SYSTEM FIELDS ---
   status: {
     type: String,

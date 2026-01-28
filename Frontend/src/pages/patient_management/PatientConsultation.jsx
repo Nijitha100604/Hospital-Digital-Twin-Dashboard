@@ -6,6 +6,7 @@ import { PatientContext } from './../../context/PatientContext';
 import { AppContext } from '../../context/AppContext';
 import axios from 'axios';
 import { LabContext } from '../../context/LabContext';
+import { MedicineContext } from './../../context/MedicineContext';
 
 function PatientConsultation() {
 
@@ -22,8 +23,11 @@ function PatientConsultation() {
     const [labTestName, setLabTestName] = useState("");
     const [labReports, setLabReports] = useState([]);
     const [newLabReports, setNewLabReports] = useState([]);
+    const [selectedMedicine, setSelectedMedicine] = useState(null);
+    const [showDropdown, setShowDropdown] = useState(false);
 
     const { fetchPatients, consultations, fetchConsultations } = useContext(PatientContext);
+    const { fetchMedicines, medicines } = useContext(MedicineContext);
     const { token, backendUrl } = useContext(AppContext);
     const { fetchLabReports, reports } = useContext(LabContext);
     const [ patient, setPatient ] = useState({});
@@ -113,6 +117,7 @@ function PatientConsultation() {
       if (!medicineName || frequency.length === 0 || !duration) return;
 
       const newMedicine = {
+        medicineId: selectedMedicine?.medicineId || null,
         medicineName,
         frequency,
         duration,
@@ -122,6 +127,7 @@ function PatientConsultation() {
       setPrescriptions(prev => [...prev, newMedicine]);
 
       setMedicineName("");
+      setSelectedMedicine(null);
       setFrequency([]);
       setDuration("");
       setInstruction("");
@@ -267,6 +273,8 @@ function PatientConsultation() {
 
     }
 
+    
+
     useEffect(()=>{
       const fetchConsultation = async() =>{
       
@@ -296,6 +304,7 @@ function PatientConsultation() {
         fetchPatients();
         fetchConsultations();
         fetchLabReports();
+        fetchMedicines();
       }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -564,10 +573,53 @@ function PatientConsultation() {
               <label className="text-sm text-gray-800 font-medium">Medicine name<span className="text-red-600">*</span></label>
               <input
                 value={medicineName}
-                onChange={e => setMedicineName(e.target.value)}
+                onChange={e => {
+                  setMedicineName(e.target.value);
+                  setSelectedMedicine(null);
+                  setShowDropdown(true);
+                }}
                 placeholder="Medicine Name"
                 className="w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
               />
+
+              {
+                showDropdown && medicineName && (
+                <div className="absolute z-10 w-56 mt-2 bg-white border border-gray-600 rounded-md max-h-40 overflow-y-auto">
+                {
+                  medicines
+                    .filter(med =>
+                    med.medicineName
+                    .toLowerCase()
+                    .includes(medicineName.toLowerCase())
+                  )
+                  .map((med, index) => (
+                <div
+                  key={index}
+                  onClick={() => {
+                    setMedicineName(med.medicineName);
+                    setSelectedMedicine(med);
+                    setShowDropdown(false);
+                  }}
+                  className="px-3 py-2 cursor-pointer hover:bg-gray-100 text-sm"
+                >
+                  {med.medicineName}
+                </div>
+                ))
+                }
+                {
+                  medicines.filter(med =>
+                    med.medicineName
+                    .toLowerCase()
+                    .includes(medicineName.toLowerCase())
+                  ).length === 0 && (
+                  <div className="px-3 py-2 text-sm text-red-600">
+                    Medicine not available
+                  </div>
+                  )
+                }
+                </div>
+                )
+              }
             </div>
 
             <div>

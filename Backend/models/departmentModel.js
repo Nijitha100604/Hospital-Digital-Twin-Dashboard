@@ -35,7 +35,7 @@ departmentSchema.pre("save", async function() {
       num = parseInt(lastDept.departmentId.replace("DEP-", "")) + 1;
     }
 
-    this.departmentId = `DEP-${num.toString().padStart(5, "0")}`;
+    this.departmentId = `DEP-${num.toString().padStart(3, "0")}`;
   }
 });
 

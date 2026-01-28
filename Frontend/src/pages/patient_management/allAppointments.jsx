@@ -431,7 +431,7 @@ function AllAppointments() {
                 size={20}
                 onClick={(e) => { 
                   e.stopPropagation();
-                  navigate(`/view-appointment/${item?._id}`); 
+                  navigate(`/view-appointment/${item?.appointmentId}`); 
                   window.scrollTo(0, 0)
                 }}
               />

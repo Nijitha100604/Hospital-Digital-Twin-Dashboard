@@ -12,6 +12,7 @@ const consultationSchema = new mongoose.Schema({
     },
     prescriptions: [
         {
+            medicineId: { type: String, required: true },
             medicineName: { type: String, required: true },
             frequency: { type: [String], required: true },
             duration: { type: String, required: true },
@@ -27,6 +28,7 @@ const consultationSchema = new mongoose.Schema({
     admission:[
         {
             admitted: { type: Boolean, default: false },
+            date: { type: Date, default: null },
             block: { type: String, default: "" },
             ward: { type: String, default: "" },
             bedNumber: { type: String, default: "" },

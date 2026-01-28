@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContext } from "./AppContext";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const StaffContext = createContext();
 
 const StaffContextProvider = (props) => {
@@ -71,6 +72,7 @@ const StaffContextProvider = (props) => {
         return null;
       }
     } catch (error) {
+      console.log(error);
       toast.error("Error fetching staff details");
       return null;
     }
@@ -93,6 +95,7 @@ const StaffContextProvider = (props) => {
         return false;
       }
     } catch (error) {
+      console.log(error);
       toast.error("Error updating staff");
       return false;
     }
@@ -102,6 +105,7 @@ const StaffContextProvider = (props) => {
     if (token) {
       fetchStaffs();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const value = {
