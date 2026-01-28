@@ -12,6 +12,7 @@ import supplierRouter from './routes/supplierRoute.js';
 import shiftRouter from './routes/shiftRoute.js';
 import consultationRouter from './routes/consultationRoute.js';
 import labReportRouter from './routes/labRoute.js';
+import purchaseRouter from './routes/purchaseRoute.js';
 
 // app config
 const app = express();
@@ -35,7 +36,8 @@ app.use('/api/reports', labReportRouter);
 
 //medicine routes
 app.use('/api/medicine', medicineRouter);
-app.use('/api/supplier', supplierRouter)
+app.use('/api/supplier', supplierRouter);
+app.use('/api/purchase', purchaseRouter)
 
 // shift routes
 app.use('/api/staff', staffRouter);
