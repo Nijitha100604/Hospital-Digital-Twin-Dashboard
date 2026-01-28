@@ -13,14 +13,14 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { SupplierContext } from "../../context/SupplierContext"; 
 import Loading from "../Loading"; 
+import { MedicineContext } from "../../context/MedicineContext";
 
 const CreateNewSupplier = () => {
   const navigate = useNavigate();
   const fileRef = useRef(null);
   
-  const { addSupplier } = useContext(SupplierContext);
+  const { addSupplier } = useContext(MedicineContext);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,7 +33,7 @@ const CreateNewSupplier = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
-  /* ===== OTHER FIELDS ===== */
+  /* Other fields */
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");

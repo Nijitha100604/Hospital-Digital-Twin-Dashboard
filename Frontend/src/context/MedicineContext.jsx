@@ -3,20 +3,22 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContext } from "./AppContext";
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const MedicineContext = createContext();
 
 const MedicineContextProvider = ({ children }) => {
   const { token, backendUrl } = useContext(AppContext);
 
   const [medicines, setMedicines] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  //Fetch All Medicines
+  
+  {/* Medicine Context */}
   const fetchMedicines = useCallback(async () => {
     if (!token) return;
     
-    setLoading(true);
+    setLoading(prev => prev || true); 
+    
     try {
       const { data } = await axios.get(
         `${backendUrl}/api/medicine/all-medicines`,
@@ -36,7 +38,6 @@ const MedicineContextProvider = ({ children }) => {
     }
   }, [token, backendUrl]);
 
-  //Fetch Single Medicine by Custom ID
   const getMedicineById = async (id) => {
     if (!token) return null;
     const cachedMedicine = medicines.find((m) => m.medicineId === id);
@@ -60,7 +61,6 @@ const MedicineContextProvider = ({ children }) => {
     }
   };
 
-  //Add Medicine
   const addMedicine = async (formData) => {
     try {
       const { data } = await axios.post(
@@ -84,7 +84,7 @@ const MedicineContextProvider = ({ children }) => {
     }
   };
 
-  // Update Medicine
+
   const updateMedicine = async (id, formData) => {
     try {
       const { data } = await axios.put(
@@ -95,7 +95,7 @@ const MedicineContextProvider = ({ children }) => {
 
       if (data.success) {
         toast.success(data.message);
-        await fetchMedicines(); // Refresh list
+        await fetchMedicines(); 
         return true;
       } else {
         toast.error(data.message);
@@ -108,20 +108,150 @@ const MedicineContextProvider = ({ children }) => {
     }
   };
 
-  // Initial Fetch
+  {/* Supplier Context */}
+  const fetchSuppliers = useCallback(async () => {
+    if (!token) return;
+    
+    setLoading(prev => prev || true);
+
+    try {
+      const { data } = await axios.get(
+        `${backendUrl}/api/supplier/all-suppliers`,
+        { headers: { token } }
+      );
+
+      if (data.success) {
+        setSuppliers(data.data);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to fetch suppliers");
+    } finally {
+      setLoading(false);
+    }
+  }, [token, backendUrl]);
+
+  const getSupplierById = async (id) => {
+    if (!token) return null;
+    
+    const cachedSupplier = suppliers.find((s) => s.supplierId === id);
+    if (cachedSupplier) return cachedSupplier;
+
+    try {
+      const { data } = await axios.get(
+        `${backendUrl}/api/supplier/supplier/${id}`,
+        { headers: { token } }
+      );
+      if (data.success) {
+        return data.data;
+      } else {
+        toast.error(data.message);
+        return null;
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Error fetching supplier details");
+      return null;
+    }
+  };
+
+  const addSupplier = async (formData) => {
+    try {
+      const { data } = await axios.post(
+        `${backendUrl}/api/supplier/add-supplier`,
+        formData,
+        { headers: { token, "Content-Type": "multipart/form-data" } }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        await fetchSuppliers(); 
+        return true;
+      } else {
+        toast.error(data.message);
+        return false;
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Error adding supplier");
+      return false;
+    }
+  };
+
+
+  const updateSupplier = async (id, formData) => {
+    try {
+      const { data } = await axios.put(
+        `${backendUrl}/api/supplier/update/${id}`,
+        formData,
+        { headers: { token, "Content-Type": "multipart/form-data" } }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        await fetchSuppliers(); 
+        return true;
+      } else {
+        toast.error(data.message);
+        return false;
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Error updating supplier");
+      return false;
+    }
+  };
+
+  
+  const deleteSupplier = async (id) => {
+    try {
+        const { data } = await axios.delete(
+            `${backendUrl}/api/supplier/delete/${id}`,
+            { headers: { token } }
+        );
+
+        if(data.success){
+            toast.success(data.message);
+            await fetchSuppliers();
+            return true;
+        } else {
+            toast.error(data.message);
+            return false;
+        }
+    } catch (error) {
+        console.error(error);
+        toast.error("Error deleting supplier");
+        return false;
+    }
+  }
+
+  // Fetch both Medicines and Suppliers when token is available
   useEffect(() => {
     if (token) {
       fetchMedicines();
+      fetchSuppliers();
     }
-  }, [token, fetchMedicines]);
+  }, [token, fetchMedicines, fetchSuppliers]);
 
   const value = {
-    medicines,
     loading,
+    
+    // Medicine State & Functions
+    medicines,
     fetchMedicines,
     getMedicineById,
     addMedicine,
     updateMedicine,
+
+    // Supplier State & Functions
+    suppliers,
+    fetchSuppliers,
+    getSupplierById,
+    addSupplier,
+    updateSupplier,
+    deleteSupplier
   };
 
   return (
