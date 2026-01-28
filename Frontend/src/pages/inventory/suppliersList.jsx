@@ -14,13 +14,13 @@ import {
   FaBoxOpen,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { SupplierContext } from "../../context/SupplierContext";
+import { MedicineContext } from "../../context/MedicineContext";
 import ViewSupplierModal from "../../components/modals/viewSupplierModal";
 import Loading from "../Loading";
 
 const SuppliersList = () => {
   const navigate = useNavigate();
-  const { suppliers, loading, fetchSuppliers } = useContext(SupplierContext);
+  const { suppliers, loading, fetchSuppliers } = useContext(MedicineContext);
 
   const [search, setSearch] = useState("");
   const [statusSort, setStatusSort] = useState("ALL");

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useContext, useEffect, useRef } from "react";
+import React, { useState, useMemo, useContext, useEffect } from "react";
 import {
   FaExclamationTriangle,
   FaCalendarAlt,
@@ -12,9 +12,9 @@ import {
   FaTimesCircle,
   FaCheckSquare,
   FaSquare,
-  FaEllipsisV,
-  FaTimes,
   FaCheck,
+  FaDownload,
+  FaListUl,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { MedicineContext } from "../../context/MedicineContext";
@@ -29,22 +29,14 @@ const StockAlerts = () => {
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("ALL");
 
-  // State for interactions
+  // Interaction State
   const [hiddenIds, setHiddenIds] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [selectionMode, setSelectionMode] = useState(null); 
-  const [activeMenu, setActiveMenu] = useState(null); 
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
 
   useEffect(() => {
     fetchMedicines();
   }, [fetchMedicines]);
-
-  // Click outside to close menus
-  useEffect(() => {
-    const handleClickOutside = () => setActiveMenu(null);
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
 
   /* ---------- Logic Helpers ---------- */
   const daysLeft = (d) => {
@@ -56,485 +48,377 @@ const StockAlerts = () => {
   };
 
   /* ---------- Data Processing ---------- */
-  const filteredData = useMemo(() => {
+  // 1. First, process all medicines into categories
+  const processedData = useMemo(() => {
     const base = medicines.filter(
-      (m) =>
-        !hiddenIds.includes(m.medicineId) &&
-        (m.medicineName.toLowerCase().includes(search.toLowerCase()) ||
-          m.medicineId.toLowerCase().includes(search.toLowerCase()) ||
-          m.category.toLowerCase().includes(search.toLowerCase())),
+      (m) => !hiddenIds.includes(m.medicineId)
     );
 
-    let expired = [],
-      lowStock = [],
-      expiringSoon = [];
+    let expired = [], lowStock = [], expiringSoon = [];
 
     base.forEach((m) => {
       const d = daysLeft(m.expiryDate);
-      if (d <= 0) expired.push(m);
-      else if (d > 0 && d <= 90) expiringSoon.push(m);
+      const isLow = m.quantity <= m.minimumThreshold;
+      
+      // Assign Status Flags for Table
+      const item = { ...m, daysRemaining: d };
 
-      if (m.quantity <= m.minimumThreshold && d > 0) lowStock.push(m);
+      if (d <= 0) {
+        expired.push({ ...item, alertType: "EXPIRED" });
+      } else if (d > 0 && d <= 90) {
+        expiringSoon.push({ ...item, alertType: "EXPIRING" });
+      }
+      
+      // Note: An item can be both Expiring AND Low Stock. 
+      // We prioritize Expired > Low Stock > Expiring for the "All" view to avoid duplicates if strictly needed,
+      // or we can just push to lowStock array.
+      if (isLow && d > 0) {
+        lowStock.push({ ...item, alertType: "LOW" });
+      }
     });
 
     return { expired, lowStock, expiringSoon };
-  }, [search, medicines, hiddenIds]);
+  }, [medicines, hiddenIds]);
 
-  const { expired, lowStock, expiringSoon } = filteredData;
+  // 2. Flatten data based on Filter Selection & Search
+  const tableData = useMemo(() => {
+    let data = [];
+    const { expired, lowStock, expiringSoon } = processedData;
+
+    if (filterType === "ALL") {
+      // Merge all, remove duplicates by ID if an item appears in multiple lists (e.g. Low + Expiring)
+      const combined = [...expired, ...lowStock, ...expiringSoon];
+      const uniqueIds = new Set();
+      data = combined.filter(item => {
+        if (!uniqueIds.has(item.medicineId)) {
+          uniqueIds.add(item.medicineId);
+          return true;
+        }
+        return false;
+      });
+    } else if (filterType === "EXPIRED") {
+      data = expired;
+    } else if (filterType === "LOW") {
+      data = lowStock;
+    } else if (filterType === "EXPIRING") {
+      data = expiringSoon;
+    }
+
+    // Apply Search
+    return data.filter(m => 
+      m.medicineName.toLowerCase().includes(search.toLowerCase()) ||
+      m.medicineId.toLowerCase().includes(search.toLowerCase()) ||
+      m.category.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [processedData, filterType, search]);
 
   /* ---------- Actions ---------- */
   const toggleSelection = (id) => {
     setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   };
 
   const handleConfirmRemove = () => {
     setHiddenIds((prev) => [...prev, ...selectedIds]);
     setSelectedIds([]);
-    setSelectionMode(null);
+    setIsSelectionMode(false);
   };
 
-  const handleDownloadPDF = (data, title) => {
+  const handleDownloadPDF = () => {
     const doc = new jsPDF();
-    doc.text(`${title} Report`, 14, 20);
+    doc.text(`Inventory Alerts Report (${filterType})`, 14, 20);
     doc.setFontSize(10);
     doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 26);
 
-    const tableRows = data.map((item) => [
+    const tableRows = tableData.map((item) => [
       item.medicineName,
       item.medicineId,
       item.batchNumber,
       item.quantity,
       item.minimumThreshold,
       item.expiryDate,
-      item.supplierName,
+      item.alertType
     ]);
 
     autoTable(doc, {
-      head: [
-        [
-          "Medicine Name",
-          "ID",
-          "Batch",
-          "Stock",
-          "Threshold",
-          "Expiry",
-          "Supplier",
-        ],
-      ],
+      head: [["Medicine Name", "ID", "Batch", "Stock", "Threshold", "Expiry", "Status"]],
       body: tableRows,
       startY: 35,
       theme: "grid",
       headStyles: { fillColor: [162, 28, 175] },
     });
-    doc.save(`${title}.pdf`);
+    doc.save(`Alerts_Report.pdf`);
   };
 
   if (loading) return <Loading />;
 
-  /* ---------- Render Helper ---------- */
-  const renderSection = (title, type, data, theme, icon) => {
-    // If filter is active, hide other sections
-    if (filterType !== "ALL" && filterType !== type) return null;
-
-    const isSelecting = selectionMode === type;
-    const isMenuOpen = activeMenu === type;
-
-    return (
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm mb-8 overflow-visible">
-        {/* Header */}
-        <div
-          className={`px-6 py-4 border-b border-gray-100 flex justify-between items-center rounded-t-xl ${theme.bg}`}
-        >
-          <div className="flex items-center gap-3">
-            <span
-              className={`p-2 rounded-lg bg-white shadow-sm ${theme.iconColor}`}
-            >
-              {icon}
-            </span>
-            <div>
-              <h2 className="font-bold text-lg text-gray-800 leading-tight">
-                {title}
-              </h2>
-              <p className="text-xs text-gray-500 font-medium">
-                {data.length} items
-              </p>
-            </div>
-          </div>
-
-          {/* Controls */}
-          <div
-            className="flex items-center gap-2 relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {isSelecting ? (
-              <div className="flex items-center gap-2 animate-fadeIn">
-                <button
-                  onClick={() => {
-                    setSelectionMode(null);
-                    setSelectedIds([]);
-                  }}
-                  className="px-3 py-1.5 cursor-pointer text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 bg-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmRemove}
-                  disabled={selectedIds.length === 0}
-                  className={`flex items-center cursor-pointer gap-1.5 px-3 py-1.5 text-xs font-bold text-white rounded-lg transition-all shadow-sm ${
-                    selectedIds.length > 0
-                      ? "bg-red-600 hover:bg-red-700"
-                      : "bg-red-300 cursor-not-allowed"
-                  }`}
-                >
-                  <FaTrashAlt /> Remove ({selectedIds.length})
-                </button>
-              </div>
-            ) : (
-              <div className="relative">
-                <button
-                  onClick={() => setActiveMenu(isMenuOpen ? null : type)}
-                  className="p-2 cursor-pointer text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                  <FaEllipsisV />
-                </button>
-
-                {/* 3-Dot Dropdown */}
-                {isMenuOpen && (
-                  <div className="absolute right-0 top-10 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-1.5 animate-fadeIn transform origin-top-right">
-                    <button
-                      disabled={data.length === 0}
-                      onClick={() => {
-                        handleDownloadPDF(data, title);
-                        setActiveMenu(null);
-                      }}
-                      className="w-full text-left cursor-pointer px-4 py-2.5 text-sm text-gray-700 hover:bg-fuchsia-50 hover:text-fuchsia-700 flex items-center gap-2 disabled:opacity-50"
-                    >
-                      <FaFilePdf className="cursor-pointer text-gray-400" /> Download List
-                    </button>
-                    <button
-                      disabled={data.length === 0}
-                      onClick={() => {
-                        setSelectionMode(type);
-                        setActiveMenu(null);
-                      }}
-                      className="w-full text-left cursor-pointer px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 disabled:opacity-50"
-                    >
-                      <FaTrashAlt className="cursor-pointer text-red-400" /> Remove Items
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-6">
-          {data.length > 0 ? (
-            <div className="grid gap-4">
-              {data.map((m) => (
-                <AlertCard
-                  key={m.medicineId}
-                  medicine={m}
-                  type={type}
-                  theme={theme}
-                  days={daysLeft(m.expiryDate)}
-                  isSelecting={isSelecting}
-                  isSelected={selectedIds.includes(m.medicineId)}
-                  onToggle={() => toggleSelection(m.medicineId)}
-                  navigate={navigate}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/50">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm">
-                <FaCheck className="text-green-500 text-xl" />
-              </div>
-              <p className="text-gray-500 font-medium">
-                No {title.toLowerCase()} right now.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen">
-      {/* Header */}
-      <div className="bg-white p-6 rounded-2xl mb-8 flex flex-col md:flex-row justify-between items-center border border-gray-200 shadow-sm gap-4">
+      
+      {/* --- HEADER --- */}
+      <div className="bg-white p-6 rounded-xl mb-6 flex flex-col md:flex-row justify-between items-center border border-gray-200 shadow-sm">
         <div className="mb-4 md:mb-0 w-full md:w-auto">
           <div className="flex gap-3 items-center">
-            <FaExclamationTriangle
-              size={24}
-              className="text-gray-500 text-xl"
-            />
-
+            <FaExclamationTriangle className="text-gray-500 text-2xl" />
             <p className="text-gray-800 font-bold text-lg">Inventory Alerts</p>
           </div>
-
           <p className="text-gray-500 text-sm mt-1">
-            Monitor expired stock, low inventory, and upcoming expirations.
+            Monitor expired stock, low inventory, and upcoming expirations
           </p>
         </div>
 
-        <div className="flex gap-3 w-full md:w-auto">
-          <div className="relative flex-1 md:w-64 group">
-            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-fuchsia-600 transition-colors" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="pl-10 pr-4 py-2.5 rounded-xl w-full border border-gray-300 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-fuchsia-100 focus:border-fuchsia-500 outline-none transition-all text-sm"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <div className="relative w-40">
-            <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <select
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-fuchsia-100 focus:border-fuchsia-500 outline-none appearance-none cursor-pointer hover:border-gray-400 transition-colors"
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-            >
-              <option value="ALL">All Alerts</option>
-              <option value="EXPIRED">Expired</option>
-              <option value="LOW">Low Stock</option>
-              <option value="EXPIRING">Expiring</option>
-            </select>
-          </div>
+        <div className="flex gap-3 items-center w-full md:w-auto">
+          <button
+            onClick={handleDownloadPDF}
+            className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
+          >
+            <FaDownload /> Download Report
+          </button>
+          <button
+            onClick={() => {
+              setIsSelectionMode(!isSelectionMode);
+              setSelectedIds([]);
+            }}
+            className={`flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto ${
+              isSelectionMode 
+                ? "bg-gray-200 text-gray-800" 
+                : "bg-fuchsia-800 hover:bg-fuchsia-900 text-white"
+            }`}
+          >
+            <FaListUl /> {isSelectionMode ? "Cancel Selection" : "Manage Items"}
+          </button>
         </div>
       </div>
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* --- SUMMARY CARDS --- */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <SummaryCard
           title="Expired Items"
-          value={expired.length}
-          icon={<FaTimesCircle />}
-          color="rose"
+          value={processedData.expired.length}
+          icon={<FaTimesCircle className="text-red-600" />}
+          bg="bg-red-100"
+          border="border-red-200"
         />
         <SummaryCard
           title="Low Stock"
-          value={lowStock.length}
-          icon={<FaExclamationTriangle />}
-          color="amber"
+          value={processedData.lowStock.length}
+          icon={<FaExclamationTriangle className="text-yellow-600" />}
+          bg="bg-yellow-100"
+          border="border-yellow-200"
         />
         <SummaryCard
           title="Expiring Soon"
-          value={expiringSoon.length}
-          icon={<FaCalendarAlt />}
-          color="blue"
+          value={processedData.expiringSoon.length}
+          icon={<FaCalendarAlt className="text-blue-600" />}
+          bg="bg-blue-100"
+          border="border-blue-200"
         />
       </div>
 
-      {/* Render Sections */}
-      {renderSection(
-        "Expired Medicines",
-        "EXPIRED",
-        expired,
-        {
-          bg: "bg-rose-100",
-          iconColor: "text-rose-600",
-          border: "border-rose-200",
-          badge: "bg-rose-100 text-rose-700",
-        },
-        <FaTimesCircle />,
-      )}
+      {/* --- MAIN CONTENT CONTAINER --- */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-8 overflow-hidden">
+        
+        {/* Toolbar (Search & Filter) */}
+        <div className="p-4 border-b border-gray-100 bg-white">
+          <div className="flex flex-col md:flex-row gap-4 justify-between">
+            
+            {/* Search */}
+            <div className="relative w-full md:w-96">
+              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by medicine, ID or category..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 pr-3 py-2.5 rounded-lg w-full border border-gray-300 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent outline-none transition-all text-sm"
+              />
+            </div>
 
-      {renderSection(
-        "Low Stock Alerts",
-        "LOW",
-        lowStock,
-        {
-          bg: "bg-amber-100",
-          iconColor: "text-amber-600",
-          border: "border-amber-200",
-          badge: "bg-amber-100 text-amber-800",
-        },
-        <FaExclamationTriangle />,
-      )}
+            {/* Filter & Actions */}
+            <div className="flex gap-4 items-center w-full md:w-auto">
+              {isSelectionMode && selectedIds.length > 0 && (
+                <button
+                  onClick={handleConfirmRemove}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 rounded-lg text-sm font-medium transition-colors"
+                >
+                  <FaTrashAlt /> Remove ({selectedIds.length})
+                </button>
+              )}
 
-      {renderSection(
-        "Expiring Soon",
-        "EXPIRING",
-        expiringSoon,
-        {
-          bg: "bg-blue-100",
-          iconColor: "text-blue-600",
-          border: "border-blue-200",
-          badge: "bg-blue-100 text-blue-700",
-        },
-        <FaCalendarAlt />,
-      )}
+              <div className="relative w-full md:w-48">
+                <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="w-full pl-9 h-10 pr-8 rounded-lg outline-none border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-fuchsia-500 cursor-pointer appearance-none"
+                >
+                  <option value="ALL">All Alerts</option>
+                  <option value="EXPIRED">Expired</option>
+                  <option value="LOW">Low Stock</option>
+                  <option value="EXPIRING">Expiring</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* --- TABLE --- */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-fuchsia-50 text-gray-500 font-medium border-b border-gray-200">
+              <tr>
+                {isSelectionMode && <th className="px-6 py-4 w-10"></th>}
+                <th className="px-6 py-4">Medicine Name</th>
+                <th className="px-6 py-4">Stock Level</th>
+                <th className="px-6 py-4">Expiry Date</th>
+                <th className="px-6 py-4">Supplier</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {tableData.length > 0 ? (
+                tableData.map((m) => (
+                  <tr 
+                    key={m.medicineId} 
+                    className={`hover:bg-gray-50 transition-colors group ${selectedIds.includes(m.medicineId) ? 'bg-fuchsia-50/50' : ''}`}
+                  >
+                    {/* Checkbox Column */}
+                    {isSelectionMode && (
+                      <td className="px-6 py-4">
+                        <button 
+                          onClick={() => toggleSelection(m.medicineId)} 
+                          className="text-lg text-gray-400 hover:text-fuchsia-600 transition-colors"
+                        >
+                          {selectedIds.includes(m.medicineId) ? (
+                            <FaCheckSquare className="text-fuchsia-600" />
+                          ) : (
+                            <FaSquare />
+                          )}
+                        </button>
+                      </td>
+                    )}
+
+                    {/* Data Columns */}
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-gray-800 text-base">{m.medicineName}</span>
+                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                          ID: {m.medicineId} <span className="text-gray-300">•</span> {m.strength}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className={`font-bold ${m.alertType === 'LOW' ? 'text-amber-600' : 'text-gray-700'}`}>
+                          {m.quantity}
+                        </span>
+                        <span className="text-xs text-gray-400">/ {m.minimumThreshold}</span>
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className={`font-medium ${m.alertType !== 'LOW' ? 'text-red-600' : 'text-gray-700'}`}>
+                          {m.expiryDate}
+                        </span>
+                        <span className="text-[10px] text-gray-500 font-medium">
+                          {m.alertType === 'EXPIRED' && `${Math.abs(Math.floor(m.daysRemaining))} days ago`}
+                          {m.alertType === 'EXPIRING' && `In ${Math.ceil(m.daysRemaining)} days`}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-4 text-gray-600 max-w-37.5 truncate">
+                      {m.supplierName}
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <StatusBadge type={m.alertType} />
+                    </td>
+
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => navigate("/create-purchase-order", { state: { medicineId: m.medicineId } })}
+                          className="p-2 text-gray-400 hover:text-fuchsia-700 hover:bg-fuchsia-50 rounded-full transition-colors"
+                          title="Order Stock"
+                        >
+                          <FaShoppingCart />
+                        </button>
+                        <button
+                          onClick={() => navigate(`/medicine-details/${m.medicineId}`)}
+                          className="p-2 text-gray-400 hover:text-blue-700 hover:bg-blue-50 rounded-full transition-colors"
+                          title="View Details"
+                        >
+                          <FaEye />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={isSelectionMode ? 7 : 6} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center">
+                        <FaBoxOpen className="text-gray-300 text-2xl" />
+                      </div>
+                      <p className="text-gray-500 font-medium">No alerts found matching your filters.</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer / Info (Simulating Pagination Look) */}
+        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/30 flex justify-between items-center">
+          <p className="text-xs text-gray-500">
+            Showing <span className="font-bold text-gray-800">{tableData.length}</span> critical items requiring attention.
+          </p>
+        </div>
+
+      </div>
     </div>
   );
 };
 
 export default StockAlerts;
 
-/* ================= SUB-COMPONENTS ================= */
+/* ================= HELPER COMPONENTS ================= */
 
-const AlertCard = ({
-  medicine,
-  type,
-  theme,
-  days,
-  isSelecting,
-  isSelected,
-  onToggle,
-  navigate,
-}) => {
-  return (
-    <div
-      className={`
-        bg-white border rounded-xl p-4 transition-all duration-200 group
-        ${isSelected ? "border-fuchsia-500 bg-fuchsia-50/20 ring-1 ring-fuchsia-500" : "border-gray-200 hover:border-fuchsia-300 hover:shadow-md"}
-      `}
-    >
-      <div className="flex flex-col md:flex-row gap-4 items-start">
-        {/* Conditional Selection Checkbox */}
-        {isSelecting && (
-          <div className="flex items-center justify-center pt-1 animate-fadeIn">
-            <button
-              onClick={onToggle}
-              className="text-2xl transition-transform active:scale-90 text-gray-300 hover:text-fuchsia-600"
-            >
-              {isSelected ? (
-                <FaCheckSquare className="text-fuchsia-600" />
-              ) : (
-                <FaSquare />
-              )}
-            </button>
-          </div>
-        )}
-
-        <div className="flex-1 w-full">
-          {/* Card Header */}
-          <div className="flex justify-between items-start mb-3">
-            <div>
-              <h3 className="font-bold text-gray-800 text-base flex items-center gap-2">
-                {medicine.medicineName}
-                <span className="text-[10px] uppercase font-bold text-gray-500 border border-gray-200 px-1.5 py-0.5 rounded bg-gray-50">
-                  {medicine.strength}
-                </span>
-              </h3>
-              <p className="text-xs text-gray-400  mt-1 flex items-center gap-2">
-                <span>ID: {medicine.medicineId}</span>
-                <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                <span>Batch: {medicine.batchNumber}</span>
-              </p>
-            </div>
-
-            {/* Status Badge */}
-            <div className="text-right">
-              {type === "EXPIRED" && (
-                <span className="inline-flex items-center gap-1 bg-rose-100 text-rose-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                  Expired {Math.abs(Math.floor(days))} days ago
-                </span>
-              )}
-              {type === "EXPIRING" && (
-                <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                  Expires in {Math.ceil(days)} days
-                </span>
-              )}
-              {type === "LOW" && (
-                <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full">
-                  Low Stock
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Info Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs bg-gray-50 p-3 rounded-lg border border-gray-200">
-            <div>
-              <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
-                Stock
-              </p>
-              <p
-                className={`font-bold text-sm ${type === "LOW" ? "text-amber-600" : "text-gray-700"}`}
-              >
-                {medicine.quantity}{" "}
-                <span className="text-gray-400 text-[10px] font-normal">
-                  / {medicine.minimumThreshold}
-                </span>
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
-                Expiry
-              </p>
-              <p
-                className={`font-bold text-sm ${type !== "LOW" ? "text-rose-600" : "text-gray-700"}`}
-              >
-                {medicine.expiryDate}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
-                Category
-              </p>
-              <p className="text-gray-700 font-medium">{medicine.category}</p>
-            </div>
-            <div>
-              <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
-                Supplier
-              </p>
-              <p className="text-gray-700 font-medium truncate">
-                {medicine.supplierName}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex flex-row md:flex-col gap-2 w-full md:w-auto">
-          <button
-            onClick={() =>
-              navigate("/create-purchase-order", {
-                state: { medicineId: medicine.medicineId },
-              })
-            }
-            className="flex-1 cursor-pointer md:flex-none flex items-center justify-center gap-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-3 py-2 rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow active:scale-95"
-          >
-            <FaShoppingCart /> Order
-          </button>
-          <button
-            onClick={() => navigate(`/medicine-details/${medicine.medicineId}`)}
-            className="flex-1 cursor-pointer md:flex-none flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-600 hover:border-fuchsia-300 hover:text-fuchsia-700 px-3 py-2 rounded-lg text-xs font-bold transition-all"
-          >
-            <FaEye /> Details
-          </button>
-        </div>
-      </div>
+const SummaryCard = ({ title, value, icon, bg, border }) => (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex justify-between items-center hover:shadow-md transition-shadow">
+    <div>
+      <p className="text-sm font-medium text-gray-500">{title}</p>
+      <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
     </div>
-  );
-};
+    <div className={`p-3.5 rounded-xl text-xl ${bg} ${border} border`}>
+      {icon}
+    </div>
+  </div>
+);
 
-const SummaryCard = ({ title, value, icon, color }) => {
+const StatusBadge = ({ type }) => {
   const styles = {
-    rose: "bg-rose-50 text-rose-600 border-rose-100",
-    amber: "bg-amber-50 text-amber-600 border-amber-100",
-    blue: "bg-blue-50 text-blue-600 border-blue-100",
+    EXPIRED: "bg-red-50 text-red-700 border-red-200",
+    LOW: "bg-amber-50 text-amber-700 border-amber-200",
+    EXPIRING: "bg-blue-50 text-blue-700 border-blue-200"
+  };
+
+  const labels = {
+    EXPIRED: "Expired",
+    LOW: "Low Stock",
+    EXPIRING: "Expiring Soon"
   };
 
   return (
-    <div
-      className={`bg-white rounded-2xl border border-gray-200 p-5 flex justify-between items-center shadow-sm hover:shadow-md transition-shadow`}
-    >
-      <div>
-        <p className="text-sm font-medium text-gray-500">
-          {title}
-        </p>
-        <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
-      </div>
-      <div className={`p-3 rounded-xl text-xl border ${styles[color]}`}>
-        {icon}
-      </div>
-    </div>
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[type]}`}>
+      {labels[type]}
+    </span>
   );
 };

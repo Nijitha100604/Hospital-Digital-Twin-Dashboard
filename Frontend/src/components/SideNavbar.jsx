@@ -248,6 +248,19 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
           </NavLink>
 
           <NavLink
+            to="/prescription-list"
+            onClick={() => window.scrollTo(0, 0)}
+            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
+          ${
+            isActive
+              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
+              : "text-gray-800 hover:font-semibold"
+          }`}
+          >
+            Prescription
+          </NavLink>
+
+          <NavLink
             to="/suppliers-list"
             onClick={() => window.scrollTo(0, 0)}
             className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
