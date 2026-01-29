@@ -28,8 +28,6 @@ const to24Hour = (time12, period) => {
   return `${hours.toString().padStart(2, '0')}:${m}`;
 };
 
-// --- CRITICAL FIX: Use Local Date instead of UTC ---
-// Prevents shifts from saving on the "previous day" due to timezone differences
 const getLocalYYYYMMDD = (date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -39,7 +37,8 @@ const getLocalYYYYMMDD = (date) => {
 
 function ShiftPlanner() {
   const navigate = useNavigate();
-  const { staffs, fetchStaffs } = useContext(StaffContext);
+  // Using Combined StaffContext
+  const { staffs, fetchStaffs, shifts, fetchShifts, leaves, fetchLeaves } = useContext(StaffContext);
   const { token, backendUrl } = useContext(AppContext);
 
   /* -------------------- STATES -------------------- */
@@ -48,11 +47,7 @@ function ShiftPlanner() {
   const [searchTerm, setSearchTerm] = useState("");
   const [daysToDisplay, setDaysToDisplay] = useState([]);
   
-  // Data States
-  const [dbShifts, setDbShifts] = useState([]); 
   const [loading, setLoading] = useState(false);
-
-  // Modal States
   const [selectedCell, setSelectedCell] = useState(null); 
   const [editData, setEditData] = useState({ 
     type: "Morning", 
@@ -65,49 +60,26 @@ function ShiftPlanner() {
     Evening: { label: "Evening", defaultTime: "16:00 - 00:00", style: "bg-orange-50 text-orange-600 border-orange-100" },
     Night: { label: "Night", defaultTime: "00:00 - 08:00", style: "bg-purple-50 text-purple-600 border-purple-100" },
     Available: { label: "Available", defaultTime: "", style: "bg-green-50 text-green-700 border-green-100" },
-    Leave: { label: "Leave", defaultTime: "", style: "bg-gray-100 text-gray-500 border-gray-200" },
+    Leave: { label: "On Leave", defaultTime: "", style: "bg-red-50 text-red-600 border-red-200 font-bold" }, // Visual Style for Leave
   };
 
   const shiftKeys = Object.keys(shiftTypes);
 
-  /* -------------------- API CALLS -------------------- */
-  
+  // --- INITIAL DATA LOAD ---
   useEffect(() => {
-    if (token && staffs.length === 0) {
-        fetchStaffs();
-    }
-  }, [token, staffs]);
-
-  const fetchShifts = async () => {
-    try {
-        setLoading(true);
-        const { data } = await axios.get(`${backendUrl}/api/shift/all-shifts`, { headers: { token } });
-        if(data.success) {
-            setDbShifts(data.data);
-        } else {
-            toast.error(data.message);
-        }
-    } catch (error) {
-        toast.error("Failed to load shifts");
-    } finally {
-        setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if(token) {
-        fetchShifts();
+    if (token) {
+        if(staffs.length === 0) fetchStaffs();
+        fetchShifts(); 
+        fetchLeaves(); // Load leaves to show on grid
     }
   }, [token]);
 
-  // --- 3. Save OR Update Shift ---
+  // --- SAVE / UPDATE SHIFT ---
   const handleSaveShift = async () => {
     if(!selectedCell) return;
 
     const start24 = to24Hour(editData.startVal, editData.startAmpm);
     const end24 = to24Hour(editData.endVal, editData.endAmpm);
-
-    // Use Local Date Helper
     const dateString = getLocalYYYYMMDD(selectedCell.dateObj);
 
     const payload = {
@@ -121,57 +93,79 @@ function ShiftPlanner() {
         notified: true
     };
 
+    setLoading(true);
     try {
         let response;
-        
-        // CHECK: If editing an existing shift, use PUT (Update)
         if (selectedCell.existingShiftId) {
             response = await axios.put(`${backendUrl}/api/shift/update/${selectedCell.existingShiftId}`, payload, { headers: { token } });
         } else {
-            // If new shift, use POST (Add)
             response = await axios.post(`${backendUrl}/api/shift/add-shift`, { ...payload, isExtraDuty: false }, { headers: { token } });
         }
         
         if (response.data.success) {
-            toast.success(selectedCell.existingShiftId ? "Shift updated successfully" : "Shift assigned successfully");
-            fetchShifts(); 
+            toast.success("Schedule Updated");
+            await fetchShifts();
             setSelectedCell(null);
         } else {
             toast.error(response.data.message);
         }
     } catch (error) {
         toast.error(error.response?.data?.message || "Error saving shift");
+    } finally {
+        setLoading(false);
     }
   };
 
-  // 4. Remove Shift
+  // --- REMOVE SHIFT ---
   const handleRemoveShift = async () => {
     if(!selectedCell || !selectedCell.existingShiftId) return;
+    if(!window.confirm("Remove this shift?")) return;
 
-    if(!window.confirm("Are you sure you want to remove this shift?")) return;
-
+    setLoading(true);
     try {
         const { data } = await axios.delete(`${backendUrl}/api/shift/delete/${selectedCell.existingShiftId}`, { headers: { token } });
         if(data.success) {
             toast.success("Shift removed");
-            fetchShifts();
+            await fetchShifts();
             setSelectedCell(null);
         } else {
             toast.error(data.message);
         }
     } catch (error) {
         toast.error("Error removing shift");
+    } finally {
+        setLoading(false);
     }
   };
 
   /* -------------------- LOGIC -------------------- */
-  
   const getShiftDetails = (staffId, dateObj) => {
-    // Use Local Date Helper
     const dateStr = getLocalYYYYMMDD(dateObj);
     
-    // Find matching shift in DB data
-    const foundShift = dbShifts.find(s => s.staffId === staffId && s.date === dateStr);
+    // 1. Check for Approved Leave FIRST
+    const approvedLeave = leaves.find(l => {
+        if(l.staffId !== staffId || l.status !== 'Approved') return false;
+        
+        // Simple string comparison for dates (assuming dates are saved as ISO strings in DB)
+        // Adjust logic if date formats differ. 
+        const from = new Date(l.fromDate).toISOString().split('T')[0];
+        const to = new Date(l.toDate).toISOString().split('T')[0];
+        return dateStr >= from && dateStr <= to;
+    });
+
+    if (approvedLeave) {
+        return {
+            id: null, // Leave is managed separately, no shift ID usually
+            key: "Leave",
+            label: "On Leave",
+            time: approvedLeave.leaveType, // Show "Sick Leave", "Vacation" etc.
+            style: shiftTypes["Leave"].style,
+            isLeave: true
+        };
+    }
+
+    // 2. Check for Shift
+    const foundShift = shifts.find(s => s.staffId === staffId && s.date === dateStr);
 
     if (foundShift) {
         const config = shiftTypes[foundShift.shiftType] || shiftTypes["Morning"];
@@ -189,15 +183,21 @@ function ShiftPlanner() {
   const handleCellClick = (staff, dateObj) => {
     const details = getShiftDetails(staff.staffId, dateObj);
     
+    // Optional: Prevent editing if it's an approved leave
+    if(details.isLeave) {
+        toast.info(`Staff is on ${details.time}`);
+        return;
+    }
+
     let sTime = { time: "09:00", period: "AM" };
     let eTime = { time: "05:00", period: "PM" };
 
     if (details.key !== 'Available' && details.time) {
         const [start, end] = details.time.split(' - ');
-        const s = to12Hour(start);
-        const e = to12Hour(end);
-        sTime = s;
-        eTime = e;
+        if(start && end) {
+            sTime = to12Hour(start);
+            eTime = to12Hour(end);
+        }
     }
 
     setSelectedCell({ staff, dateObj, existingShiftId: details.id });
@@ -208,7 +208,6 @@ function ShiftPlanner() {
     });
   };
 
-  /* -------------------- DATE ENGINE -------------------- */
   const formatDateDisplay = (date) => {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     return { day: days[date.getDay()], date: date.getDate() };
@@ -241,10 +240,8 @@ function ShiftPlanner() {
 
   const filteredStaff = staffs.filter((s) => s.fullName.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  /* -------------------- RENDER -------------------- */
   return (
     <div className="flex flex-col h-dvh w-full bg-gray-50 overflow-hidden font-sans text-slate-900">
-
       {/* HEADER */}
       <div className="flex-none bg-gray-50 z-30">
         <div className="px-4 py-4 md:px-6">
@@ -252,7 +249,6 @@ function ShiftPlanner() {
                 <Calendar className="text-purple-600" size={24}/> Shift Planner
             </h2>
         </div>
-        
         <div className="px-4 pb-4 md:px-6">
           <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-200 flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">

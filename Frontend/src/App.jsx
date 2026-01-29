@@ -44,7 +44,7 @@ import AddStaff from "./pages/staff_management/AddStaff";
 import AssignShift from "./pages/staff_management/AssignShift";
 import Attendance from "./pages/staff_management/attendance";
 import LeaveManagement from "./pages/staff_management/leaveManagement";
-import ShiftPlanner from "./pages/staff_management/ShiftPlanner";
+import ShiftPlanner from "./pages/staff_management/shiftPlanner";
 import StaffList from "./pages/staff_management/staffList";
 import StaffPerformance from "./pages/staff_management/StaffPerformance";
 import StaffProfile from "./pages/staff_management/staffProfile";
