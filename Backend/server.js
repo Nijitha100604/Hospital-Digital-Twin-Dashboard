@@ -11,6 +11,7 @@ import medicineRouter from './routes/medicineRoute.js';
 import supplierRouter from './routes/supplierRoute.js';
 import shiftRouter from './routes/shiftRoute.js';
 import leaveRouter from './routes/leaveRoute.js';
+import attendanceRouter from './routes/attendanceRoute.js';
 import consultationRouter from './routes/consultationRoute.js';
 import labReportRouter from './routes/labRoute.js';
 import purchaseRouter from './routes/purchaseRoute.js';
@@ -56,6 +57,9 @@ app.use('/api/shift', shiftRouter);
 
 //leave
 app.use('/api/leave', leaveRouter);
+
+//attendence
+app.use('/api/attendance', attendanceRouter);
 
 app.get('/',(req,res)=>{
     res.send('API WORKING');
