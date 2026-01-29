@@ -11,6 +11,10 @@ import medicineRouter from './routes/medicineRoute.js';
 import supplierRouter from './routes/supplierRoute.js';
 import shiftRouter from './routes/shiftRoute.js';
 import leaveRouter from './routes/leaveRoute.js';
+import consultationRouter from './routes/consultationRoute.js';
+import labReportRouter from './routes/labRoute.js';
+import purchaseRouter from './routes/purchaseRoute.js';
+import deptRouter from './routes/departmentRoute.js';
 
 // app config
 const app = express();
@@ -24,15 +28,27 @@ app.use(cors());
 
 //  api endpoints
 
-// staff routes
+
 app.use('/api', adminRouter);
+
+// staff routes
 app.use('/api/staff', staffRouter);
+
+// patient routes
 app.use('/api/patient', patientRouter);
 app.use('/api/appointment', appointmentRouter);
+app.use('/api/consultation', consultationRouter);
+
+// departments routes
+app.use('/api/dept', deptRouter);
+
+// laboratory routes
+app.use('/api/reports', labReportRouter);
 
 //medicine routes
 app.use('/api/medicine', medicineRouter);
-app.use('/api/supplier', supplierRouter)
+app.use('/api/supplier', supplierRouter);
+app.use('/api/purchase', purchaseRouter)
 
 // shift routes
 app.use('/api/staff', staffRouter);

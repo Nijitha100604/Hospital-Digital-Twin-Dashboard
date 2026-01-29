@@ -13,22 +13,22 @@ import {
 } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { SupplierContext } from "../../context/SupplierContext"; // Import Context
-import Loading from "../Loading"; // Import Loading
+import { MedicineContext } from "../../context/MedicineContext"; 
+import Loading from "../Loading"; 
 
 const EditSupplierDetails = () => {
-  const { id } = useParams(); // Get Supplier ID from URL
+  const { id } = useParams(); 
   const navigate = useNavigate();
   const fileRef = useRef(null);
 
-  // Use Context functions
-  const { getSupplierById, updateSupplier } = useContext(SupplierContext);
+ 
+  const { getSupplierById, updateSupplier } = useContext(MedicineContext);
 
   const [loading, setLoading] = useState(true);
   const [fileName, setFileName] = useState("");
   const [file, setFile] = useState(null);
 
-  /* ===== STATES ===== */
+ 
   const [supplierName, setSupplierName] = useState("");
   const [contactPerson, setContactPerson] = useState("");
   const [email, setEmail] = useState("");
@@ -56,7 +56,7 @@ const EditSupplierDetails = () => {
   const [totalSupplies, setTotalSupplies] = useState(""); // Added Total Supplies
   const [notes, setNotes] = useState("");
 
-  /* ===== FETCH DATA ON LOAD ===== */
+  
   useEffect(() => {
     const fetchSupplier = async () => {
       const data = await getSupplierById(id);
@@ -85,7 +85,7 @@ const EditSupplierDetails = () => {
         setAccountNumber(data.bankDetails?.accountNumber || "");
         setIfsc(data.bankDetails?.ifsc || "");
 
-        // Convert array back to comma-separated string for display
+        
         setSupplies(data.itemsSupplied ? data.itemsSupplied.join(", ") : "");
         setTotalSupplies(data.totalSupplies || 0);
         setNotes(data.notes || "");
@@ -94,7 +94,7 @@ const EditSupplierDetails = () => {
           setFileName(data.documentName);
         }
       } else {
-        // If not found, redirect back
+        
         navigate("/suppliers-list");
       }
       setLoading(false);
@@ -103,7 +103,7 @@ const EditSupplierDetails = () => {
     fetchSupplier();
   }, [id, getSupplierById, navigate]);
 
-  /* ===== HANDLERS ===== */
+  
   const handleFileChange = (e) => {
     if (e.target.files[0]) {
       setFileName(e.target.files[0].name);

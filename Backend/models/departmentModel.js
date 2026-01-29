@@ -2,11 +2,12 @@ import mongoose from 'mongoose';
 
 const departmentSchema = new mongoose.Schema({
 
-    departmentId : { type: String, unique: true },
-    departmentName: { type: String, unique: true, required: true },
-    departmentType : { type: String, required: true },
+    deptId : { type: String, unique: true },
+    deptName: { type: String, required: true },
+    deptType : { type: String, required: true },
     specialityLevel : { type: String, required: true },
     hod: { type: String, required: true },
+    contact: { type: String, required: true },
     floor: { type: String, required: true },
     block : { type: String, required: true },
     status: { type: String, default: "Active" },
@@ -24,18 +25,18 @@ const departmentSchema = new mongoose.Schema({
 },  { timestamps: true })
 
 departmentSchema.pre("save", async function() {
-  if (!this.departmentId) {
+  if (!this.deptId) {
     const lastDept = await mongoose
       .model("department")
       .findOne({}, {}, { sort: { createdAt: -1 } });
 
     let num = 1;
 
-    if (lastDept?.departmentId) {
-      num = parseInt(lastDept.departmentId.replace("DEP-", "")) + 1;
+    if (lastDept?.deptId) {
+      num = parseInt(lastDept.deptId.replace("DEP-", "")) + 1;
     }
 
-    this.departmentId = `DEP-${num.toString().padStart(5, "0")}`;
+    this.deptId = `DEP-${num.toString().padStart(3, "0")}`;
   }
 });
 

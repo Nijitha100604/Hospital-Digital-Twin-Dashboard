@@ -334,7 +334,7 @@ function PatientList() {
                     <td className="px-4 py-3">
                       <button 
                         className="text-gray-600 hover:text-gray-900 cursor-pointer"
-                        onClick={()=> {navigate(`/patient-profile/${item._id}`); window.scrollTo(0, 0) }}
+                        onClick={()=> {navigate(`/patient-profile/${item.patientId}`); window.scrollTo(0, 0) }}
                       >
                         <FaEye size={20} />
                       </button>

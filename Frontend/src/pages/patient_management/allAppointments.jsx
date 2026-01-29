@@ -30,8 +30,8 @@ function AllAppointments() {
   const cancelledAppointments = appointments?.filter(
     item => item.status === "Cancelled"
   ).length;
-  const rescheduledAppointments = appointments?.filter(
-    item => item.status === "Rescheduled"
+  const inProgressAppointments = appointments?.filter(
+    item => item.status === "In Progress"
   ).length;
    const completedAppointments = appointments?.filter(
     item => item.status === "Completed"
@@ -44,7 +44,7 @@ function AllAppointments() {
         return "bg-blue-500 border border-blue-700"
       case "completed":
         return "bg-green-600 border border-green-700"
-      case "rescheduled":
+      case "in progress":
         return "bg-yellow-600 border border-yellow-700"
       case "cancelled":
         return "bg-red-600 border border-red-700"
@@ -191,8 +191,8 @@ function AllAppointments() {
 
         <div className="flex justify-between items-center px-3 py-2 border border-gray-300 rounded-lg">
           <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium text-gray-600">Rescheduled</p>
-            <p className="text-xl font-bold text-gray-900">{rescheduledAppointments}</p>
+            <p className="text-sm font-medium text-gray-600">In Progress</p>
+            <p className="text-xl font-bold text-gray-900">{inProgressAppointments}</p>
           </div>
           <div className="bg-yellow-200 px-3 py-3 rounded-lg border border-yellow-300">
             <FaRedo size={20} className="text-yellow-700"/>
@@ -317,7 +317,7 @@ function AllAppointments() {
               {openFilter === "status" && (
                 <ul className="mt-2 absolute top-full left-0 bg-white border rounded-md shadow-sm w-32 z-10">
                   {
-                    ["All","Completed", "Rescheduled", "Scheduled", "Cancelled"].map((item, index) => (
+                    ["All","Completed", "In Progress", "Scheduled", "Cancelled"].map((item, index) => (
                       <li 
                         key={index}
                         onClick={()=>handleFilterSelect("status", item === "All" ? null : item)}
@@ -431,7 +431,7 @@ function AllAppointments() {
                 size={20}
                 onClick={(e) => { 
                   e.stopPropagation();
-                  navigate(`/view-appointment/${item?._id}`); 
+                  navigate(`/view-appointment/${item?.appointmentId}`); 
                   window.scrollTo(0, 0)
                 }}
               />

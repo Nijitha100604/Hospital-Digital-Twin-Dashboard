@@ -110,7 +110,7 @@ function Consultations() {
       <div className="flex flex-col items-center justify-center h-75 gap-4">
         <div className="w-12 h-12 border-4 border-gray-300 border-t-fuchsia-700 rounded-full animate-spin"></div>
         <p className="text-gray-600 text-sm font-medium tracking-wide">
-          Fetching onsultations...
+          Fetching consultations...
         </p>
       </div>
       </div>
@@ -395,7 +395,7 @@ function Consultations() {
             <FaEye 
               size={20}
               className="text-gray-800 cursor-pointer"
-              onClick = {()=>{navigate(`/patient-consultation/${item._id}`)}}
+              onClick = {()=>{navigate(`/patient-consultation/${item?.appointmentId}`)}}
             />
           </div>
         ))

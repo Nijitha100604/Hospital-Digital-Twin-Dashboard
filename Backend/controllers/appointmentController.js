@@ -126,8 +126,56 @@ const allAppointments = async(req, res)=>{
     }
 }
 
+// Get a appointment
+const appointment = async(req, res)=>{
+
+    try{
+
+        const {id} = req.params;
+        const foundAppointment = await appointmentModel.findOne({appointmentId: id});
+        if(!foundAppointment){
+            return res.json({success: false, message: "Appointment Not Found"});
+        } 
+        res.json({success: true, data: foundAppointment});
+
+    } catch(error){
+        console.log(error);
+        res.json({success: false, message: error.message});
+    }
+
+}
+
+// Update status
+const updateAppStatus = async(req, res)=>{
+
+    try{
+
+        const {appointmentId, status} = req.body;
+        if(!appointmentId || !status){
+            return res.json({success: false, message: "Status required"});
+        }
+
+        const appointment = await appointmentModel.findOne({appointmentId});
+        if(!appointment){
+            return res.json({success: false, message: "Appointment not found"});
+        }
+
+        appointment.status = status;
+        await appointment.save();
+
+        res.json({success: true, message: "Consultation Status Updated"});
+
+    } catch(error){
+        console.log(error);
+        res.json({success: false, message: error.message})
+    }
+
+}
+
 
 export {
     createAppointment,
     allAppointments,
+    appointment,
+    updateAppStatus
 }

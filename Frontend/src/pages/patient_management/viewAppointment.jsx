@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { allAppointments } from '../../data/patient';
 import { 
   FaEye, 
   FaClipboardList,
@@ -12,16 +11,25 @@ import {
   FaList,
   FaFlask,
   FaHospital,
-  FaNotesMedical,
-  FaProcedures
 } from "react-icons/fa";
 import { assets } from '../../assets/assets';
+import { PatientContext } from '../../context/PatientContext';
+import { AppContext } from '../../context/AppContext';
+import { LabContext } from './../../context/LabContext';
+import { formatDate } from '../../utils/formatDate';
 
 function ViewAppointment() {
 
-  const[patientData, setPatientData] = useState(null);
+  const [appData, setAppData] = useState(null);
+  const [conData, setConData] = useState(null);
+  const [patientData, setPatientData] = useState(null);
+  const [vitals, setVitals] = useState({});
   const {id} = useParams();
   const navigate = useNavigate();
+
+  const {appointments, fetchAppointments, patients, fetchPatients, consultations, fetchConsultations} = useContext(PatientContext);
+  const {reports, fetchLabReports} = useContext(LabContext);
+  const {token} = useContext(AppContext);
 
   const getStatusClass = (status) =>{
     switch(status?.toLowerCase()){
@@ -29,7 +37,7 @@ function ViewAppointment() {
         return "bg-blue-500 border border-blue-700"
       case "completed":
         return "bg-green-600 border border-green-700"
-      case "rescheduled":
+      case "in progress":
         return "bg-yellow-600 border border-yellow-700"
       case "cancelled":
         return "bg-red-600 border border-red-700"
@@ -69,23 +77,60 @@ function ViewAppointment() {
     }
   }
 
+  const getVitals = () =>{
+    if(patientData){
+      const foundVital = patientData?.vitals?.find(
+        (item) => item.appointmentId === id
+      )
+      if(foundVital){
+        setVitals(foundVital);
+      }
+    }
+  }
+
+  const getReportById = (labReportId) => {
+    return reports.find(r => r.labReportId === labReportId);
+  };
+
+  const getReportStatus = (id) =>{
+    const report = getReportById(id);
+    return report?.status || "Requested";
+  } 
+
   useEffect(()=>{
     
-    const fetchAppointment = async() =>{
-      console.log(id);
-      await new Promise(resolve => setTimeout(resolve, 200));
-
-      const foundAppointment = allAppointments.find(
-        (item) => item.patientId === id
+    const fetchDetails = () =>{
+      if (!id || appointments.length === 0) return;
+      const foundAppointment = appointments.find(
+        (item) => item.appointmentId === id
       );
-      setPatientData(foundAppointment ?? null);
+      setAppData(foundAppointment || null);
+      const foundPatient = patients.find(
+        (item) => item.patientId === foundAppointment?.patientId
+      )
+      setPatientData(foundPatient || null)
+      const foundConsultation = consultations.find(
+        (item) => item.appointmentId === foundAppointment?.appointmentId
+      );
+      setConData(foundConsultation || null);
+      getVitals();
     }
-    fetchAppointment();
+    fetchDetails();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[id])
+  },[id]);
 
-  return patientData ? (
+  useEffect(()=>{
+    if(token){
+      fetchAppointments();
+      fetchPatients();
+      fetchConsultations();
+      fetchLabReports();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  return appData ? (
     <>
 
     <div className="bg-gray-50 rounded-lg px-3 py-4 border border-gray-300">
@@ -135,7 +180,7 @@ function ViewAppointment() {
           <div className="px-8 flex flex-col gap-2 items-center">
 
             {
-              patientData.patient.gender === "Male" ?
+              appData?.gender === "Male" ?
               <img 
               src={assets.patient_profile_male} 
               alt="male_profile"
@@ -147,29 +192,29 @@ function ViewAppointment() {
               className="w-22 h-22 rounded-full border border-gray-600"
               />
             }
-            <p className="font-bold text-gray-900 font-md">{patientData.patient.name}</p>
+            <p className="font-bold text-gray-900 font-md">{appData?.name}</p>
           </div>
 
           <div className="pr-8 flex-1 flex flex-col gap-1 ">
 
             <div className="flex justify-between px-4 py-1">
               <p className="text-gray-600 text-sm font-medium">Patient ID:</p>
-              <p className="text-sm font-medium text-gray-900">{patientData.patientId}</p>
+              <p className="text-sm font-medium text-gray-900">{appData?.patientId}</p>
             </div>
 
             <div className="flex justify-between px-4 py-1">
               <p className="text-gray-600 text-sm font-medium">Age:</p>
-              <p className="text-sm font-medium text-gray-900">{patientData.patient.age}</p>
+              <p className="text-sm font-medium text-gray-900">{appData?.age}</p>
             </div>
 
             <div className="flex justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Gender:</p>
-              <p className="text-sm font-medium text-gray-900">{patientData.patient.gender}</p>
+              <p className="text-sm font-medium text-gray-900">{appData?.gender}</p>
             </div>
 
             <div className="flex justify-between px-4 py-1">
               <p className="text-gray-600 text-sm font-medium">Contact:</p>
-              <p className="text-sm font-medium text-gray-900">{patientData.patient.contact}</p>
+              <p className="text-sm font-medium text-gray-900">{appData?.contact}</p>
             </div>
           </div>
 
@@ -187,39 +232,39 @@ function ViewAppointment() {
           />
           <p className="text-md text-gray-700 font-medium">Appointment Details</p>
         </div>
-        <p className="text-sm font-medium text-fuchsia-700">{patientData.appointmentNumber}</p>
+        <p className="text-sm font-medium text-fuchsia-700">{appData?.appointmentId}</p>
         </div>
 
-        <div className=" mt-5 grid grid-cols-2 gap-3">
+        <div className=" mt-5 grid grid-cols-2 gap-3 px-2">
 
-          <div className="flex justify-between px-4 py-1 ">
+          <div className="flex justify-between py-1 ">
             <p className="text-gray-600 text-sm font-medium">Doctor:</p>
-            <p className="text-sm font-medium text-gray-900">{patientData.doctorName}</p>
+            <p className="text-sm font-medium text-gray-900">{appData?.doctorName}</p>
           </div>
 
-          <div className="flex justify-between px-4 py-1 ">
+          <div className="flex justify-between py-1 ">
             <p className="text-gray-600 text-sm font-medium">Department:</p>
-            <p className="text-sm font-medium text-gray-900">{patientData.doctorCategory}</p>
+            <p className="text-sm font-medium text-gray-900">{appData?.department}</p>
           </div>
 
-          <div className="flex justify-between px-4 py-1 ">
+          <div className="flex justify-between py-1 ">
             <p className="text-gray-600 text-sm font-medium">Date</p>
-            <p className="text-sm font-medium text-gray-900">{patientData.date}</p>
+            <p className="text-sm font-medium text-gray-900">{appData?.date}</p>
           </div>
 
-          <div className="flex justify-between px-4 py-1 ">
+          <div className="flex justify-between py-1 ">
             <p className="text-gray-600 text-sm font-medium">Time Slot:</p>
-            <p className="text-sm font-medium text-gray-900">{patientData.timeSlot}</p>
+            <p className="text-sm font-medium text-gray-900">{appData?.timeSlot}</p>
           </div>
 
-          <div className="flex justify-between px-4 py-1 ">
+          <div className="flex justify-between py-1 ">
             <p className="text-gray-600 text-sm font-medium">Consultation:</p>
-            <p className={`text-sm font-semibold ${patientData.consultationType === "In-Person" ? "text-red-600" : "text-blue-600"}`}>{patientData.consultationType}</p>
+            <p className={`text-sm font-semibold ${appData?.consultationType === "In-Person" ? "text-red-600" : "text-blue-600"}`}>{appData?.consultationType}</p>
           </div>
           
-          <div className="flex justify-between px-4 py-1 items-center">
+          <div className="flex justify-between py-1 items-center">
             <p className="text-gray-600 text-sm font-medium">Status:</p>
-            <p className={`text-sm font-semibold px-2 py-1 text-white rounded-lg cursor-pointer ${getStatusClass(patientData.status)}`}>{patientData.status}</p>
+            <p className={`text-sm font-semibold px-2 py-1 text-white rounded-lg cursor-pointer ${getStatusClass(appData?.status)}`}>{appData?.status}</p>
           </div>         
 
         </div>
@@ -231,7 +276,7 @@ function ViewAppointment() {
     {/* Consultation remarks */}
     <div className="mt-3 px-2 w-full flex gap-3 items-center">
       <p className="text-red-600 text-sm">Consultation Remarks : </p>
-      <p className="text-gray-900 font-medium text-sm">{patientData.patient.reasonForAppointment}</p>
+      <p className="text-gray-900 font-medium text-sm">{appData?.remarks}</p>
     </div>
 
     {/* Vital Parameters */}
@@ -248,24 +293,24 @@ function ViewAppointment() {
 
       <div>
         {
-          patientData.vitals.length > 0 ? 
+          vitals?.vitalsData?.length > 0 ? 
           <div className="flex flex-wrap gap-2 items-center">
             {
-              patientData.vitals.map((item, index)=>(
+              vitals?.vitalsData?.map((item, index)=>(
                 <div 
                   key={index}
                   className="flex flex-col items-start gap-1 border border-gray-300 bg-gray-50 px-3 py-2 rounded-lg"
                 >
                   <div className="flex gap-4 items-center">
-                    <p className="text-sm font-medium text-gray-600">{item.name}</p>
+                    <p className="text-sm font-medium text-gray-600">{item?.name}</p>
                     <div className="flex gap-2 items-center">
-                      <p className="font-medium text-md text-gray-900">{item.value}</p>
-                      <p className="text-sm text-gray-500">{item.unit}</p>
+                      <p className="font-medium text-md text-gray-900">{item?.value}</p>
+                      <p className="text-sm text-gray-500">{item?.unit}</p>
                     </div>
                   </div>
                   <div className="flex gap-2 items-center">
-                    <div className={`p-1 w-1 h-1 rounded-full ${getStatusDivClass(item.status)}`}></div>
-                    <p className={`text-sm font-bold ${getStatusClass(item.status)}`}>{item.status}</p>
+                    <div className={`p-1 w-1 h-1 rounded-full ${getStatusDivClass(item?.status)}`}></div>
+                    <p className={`text-sm font-bold ${getStatusClass(item?.status)}`}>{item?.status}</p>
                   </div>
                 </div>
               ))
@@ -295,11 +340,11 @@ function ViewAppointment() {
       </div>
 
       {
-      (patientData.diagnosis || patientData.remarks) ? 
+      (conData?.doctor?.diagnosis || conData?.doctor?.remarks) ? 
        
         <div className="flex gap-4">
-        <p className="px-3 py-1 border border-gray-100 bg-gray-200 rounded-lg text-sm text-gray-900"><span className="font-medium">Diagnosis :</span> {patientData.diagnosis}</p>
-        <p className="px-3 py-1 border border-gray-100 bg-gray-200 rounded-lg text-sm text-gray-900"><span className="font-medium">Remarks :</span> {patientData.remarks}</p>
+        <p className="px-3 py-1 border border-gray-100 bg-gray-200 rounded-lg text-sm text-gray-900"><span className="font-medium">Diagnosis :</span> {conData?.doctor?.diagnosis}</p>
+        <p className="px-3 py-1 border border-gray-100 bg-gray-200 rounded-lg text-sm text-gray-900"><span className="font-medium">Remarks :</span> {conData?.doctor?.remarks}</p>
         </div>
       :
       <div className="flex mt-2 gap-3 px-6 items-center">
@@ -323,11 +368,11 @@ function ViewAppointment() {
       </div>
 
       {
-        patientData.prescriptions.length > 0 ? 
+        conData?.prescriptions?.length > 0 ? 
         <div className="mt-4 overflow-x-auto">
         <div className="flex flex-col gap-2">
           {
-            patientData.prescriptions.map((item, index)=>(
+            conData?.prescriptions?.map((item, index)=>(
               <div key={index}
                 className = "w-full grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-[1fr_2fr_2fr_1fr_1.5fr] px-4 py-2 border-b border-gray-300"
               >
@@ -340,13 +385,13 @@ function ViewAppointment() {
                 </div>
                 <div className="flex flex-col gap-2">
                   <p className="text-sm text-gray-500">Medicine Name</p>
-                  <p className="text-md font-medium text-gray-900">{item.medicineName}</p>
+                  <p className="text-md font-medium text-gray-900">{item?.medicineName}</p>
                 </div>
                 <div className="flex flex-col gap-2">
                   <p className="text-sm text-gray-500">Frequency</p>
                   <div className="flex gap-2">
                   {
-                    item.frequency.map((freqItem, freqIndex)=>(
+                    item?.frequency.map((freqItem, freqIndex)=>(
                       <p 
                         key={freqIndex}
                         className="px-2 py-1 text-sm text-gray-900 font-medium bg-emerald-100 border border-emerald-700 rounded-xl"
@@ -357,11 +402,11 @@ function ViewAppointment() {
                 </div>
                 <div className="flex flex-col gap-2">
                   <p className="text-sm text-gray-500">Duration</p>
-                  <p className="text-md font-medium text-gray-900">{item.duration}</p>
+                  <p className="text-md font-medium text-gray-900">{item?.duration}</p>
                 </div>
                 <div className="flex flex-col gap-2">
                   <p className="text-sm text-gray-500">Instruction</p>
-                  <p className="text-md font-medium text-gray-900">{item.instructions}</p>
+                  <p className="text-md font-medium text-gray-900">{item?.instruction}</p>
                 </div>
               </div>
             ))
@@ -377,7 +422,7 @@ function ViewAppointment() {
 
     {/* Lab Reports */}
     {
-      patientData.labReports.length > 0 ?
+      conData?.labReports?.length > 0 ?
       <div className="w-full mt-4 bg-white rounded-lg px-3 py-3 border border-gray-200">
         <div className="flex gap-2 items-center">
           <FaFlask
@@ -388,15 +433,15 @@ function ViewAppointment() {
         </div>
         <div className="w-full mt-4 grid sm:grid-cols-1 md:grid-cols-2 gap-5">
           {
-            patientData.labReports.map((item, index)=>(
+            conData?.labReports?.map((item, index)=>(
               <div 
                 key={index}
                 className="flex justify-between items-center border border-gray-300 bg-gray-50 px-3 py-2 rounded-lg hover:bg-gray-300 cursor-pointer"
               >
                 <p className="text-sm font-semibold text-gray-900">{item.testName}</p>
-                <p className={`px-3 py-2 text-sm text-white font-medium rounded-lg ${item.status === "Completed" ? "bg-green-600": "bg-yellow-600"}`}>{item.status}</p>
+                <p className={`px-3 py-2 text-sm text-white font-medium rounded-lg ${getReportStatus(item.labReportId) === "Completed" ? "bg-green-600": "bg-yellow-600"}`}>{getReportStatus(item.labReportId)}</p>
                 {
-                  item.status === "Completed" &&
+                  getReportStatus(item.labReportId) === "Completed" &&
                   <div>
                     <FaEye size={20}/>
                   </div>
@@ -411,77 +456,74 @@ function ViewAppointment() {
     }
 
     {/* Admitted Status */}
+    <div className="w-full mt-4 bg-white rounded-lg px-3 py-3 border border-gray-200">
+
+    {/* HEADER */}
+    <div className="flex gap-2 items-center mb-4">
+      <FaHospital size={18} className="text-yellow-600" />
+      <p className="font-medium text-gray-700 text-md">
+        Admission Details
+      </p>
+    </div>
+
     {
-      patientData.admitted.isAdmitted &&
-      <div className="w-full mt-4 bg-white rounded-lg px-3 py-3 border border-gray-200">
-        <div className="flex gap-2 items-center">
-          <FaHospital 
-            size={18}
-            className="text-yellow-600"
-          />
-          <p className="font-medium text-gray-700 text-md">Admission Details</p>
-        </div>
-        <div className="mt-4 grid grid-cols-2 gap-5">
+      conData?.admission?.length > 0 &&
+      conData.admission.some(adm => adm.admitted) ? (
 
-          {/* Bed details */}
-          <div className="flex flex-col gap-4 border border-gray-300 rounded-lg px-4 py-3 items-center">
+      conData.admission
+        .filter(adm => adm.admitted)
+        .map((adm, index) => (
+          <div
+            key={index}
+            className="grid grid-cols-2 gap-5 border-b border-gray-300 pb-4 mb-4"
+          >
 
-            <div className="flex gap-2 items-center">
-              <FaProcedures 
-                size={18}
-                className="text-gray-700"
-              />
-              <p className="font-medium text-gray-700 text-sm">Bed Details</p>
+            {/* Bed Details */}
+            <div className="flex flex-col gap-4 border border-gray-300 rounded-lg px-4 py-3 items-center">
+              <p className="text-sm font-medium">Block: {adm.block || "—"}</p>
+              <p className="text-sm font-medium">Ward: {adm.ward || "—"}</p>
+              <p className="text-sm font-medium">Bed: {adm.bedNumber || "—"}</p>
+              <p className="text-sm font-medium">
+                Days: {adm.numberOfDays}
+              </p>
             </div>
 
-            <div className="flex flex-wrap gap-8 items-center">
-              <p className="px-2 py-1 text-sm font-bold bg-gray-50 border border-gray-500 rounded-lg">{patientData.admitted.block}</p>
-              <p className="px-2 py-1 text-sm font-bold bg-gray-50 border border-gray-500 rounded-lg">{patientData.admitted.ward}</p>
-              <p className="px-2 py-1 text-sm font-bold bg-gray-50 border border-gray-500 rounded-lg">{patientData.admitted.bedNo}</p>
-            </div>
+            {/* Daily Notes */}
+            <div className="flex flex-col gap-2 border border-gray-300 rounded-lg px-4 py-3">
+              <p className="text-sm font-medium text-gray-700">
+                Daily Notes
+              </p>
 
-            <div className="flex items-center gap-3 justify-between">
-              <p className={`text-sm font-medium text-white px-3 py-2 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 ${patientData.admitted.dischargeStatus === "Under Treatment" ? "bg-orange-500" : "bg-cyan-900"}`}>{patientData.admitted.dischargeStatus}</p>
               {
-                patientData.admitted.dischargeStatus === "Discharged" &&
-                <button 
-                  className="px-3 py-2 bg-fuchsia-900 text-white text-sm font-medium rounded-lg cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
-                  onClick={()=>navigate(`/discharge-summary/${patientData.patientId}`)}
-                >View Discharge Summary</button>
+                adm.dailyNotes?.length > 0 ? (
+                  adm.dailyNotes.map((note, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span>{formatDate(note.date)}</span>
+                      <span>{note.note}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    No daily notes available
+                  </p>
+                )
               }
             </div>
 
           </div>
+        ))
 
-          {/* Doctor Notes */}
-          <div className="flex flex-col gap-3 border border-gray-300 rounded-lg px-4 py-3 items-center">
-            <div className="flex gap-2 items-center">
-              <FaNotesMedical 
-                size={18}
-                className="text-gray-700"
-              />
-              <p className="font-medium text-gray-700 text-sm">Daily Notes</p>
-            </div>
-            <div className="flex flex-col gap-2">
-              {
-                patientData.admitted.dailyNotes.map((item, index)=>(
-                  <div 
-                    key={index}
-                    className="flex justify-between items-center gap-6 border-b border-gray-300 px-2 py-1"
-                  >
-                    <p className="text-sm font-semibold text-gray-800">{item.date}</p>
-                    <p className="text-sm font-bold text-gray-900">{item.note}</p>
-                  </div>
-                ))
-              }
-            </div>
-          </div>
-        </div>
-      </div> 
-    }
+      ) : (
 
+      <p className="text-center text-gray-500 text-sm py-4">
+        No Admission Details Available
+      </p>
+    )
+  }
 
     </div>
+
+  </div>
     
     </>
   ) : (
