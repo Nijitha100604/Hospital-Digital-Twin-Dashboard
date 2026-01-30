@@ -84,6 +84,7 @@ const addMedicine = async (req, res) => {
       batchNumber,
       quantity,
       minimumThreshold,
+      manufacturingDate,
       expiryDate,
       storageLocation,
       storageConditions,
