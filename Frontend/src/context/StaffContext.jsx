@@ -1,12 +1,9 @@
-<<<<<<< HEAD
-import { createContext, useContext, useState } from "react";
-=======
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
->>>>>>> eac17c00959e08e1d83f6cced999f730fb387193
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContext } from "./AppContext";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const StaffContext = createContext();
 
 const StaffContextProvider = (props) => {
@@ -26,7 +23,7 @@ const StaffContextProvider = (props) => {
       const { data } = await axios.get(`${backendUrl}/api/staff/all-staff`, { headers: { token } });
       if (data.success) setStaffs(data.data);
       else toast.error(data.message);
-    } catch (error) { toast.error("Error fetching staff"); }
+    } catch (error) { console.log(error); toast.error("Error fetching staff"); }
   }, [token, backendUrl]);
 
   const addStaff = async (formData) => {
@@ -34,7 +31,7 @@ const StaffContextProvider = (props) => {
       const { data } = await axios.post(`${backendUrl}/api/staff/add-staff`, formData, { headers: { token } });
       if (data.success) { toast.success(data.message); fetchStaffs(); return true; }
       else { toast.error(data.message); return false; }
-    } catch (error) { toast.error("Error adding staff"); return false; }
+    } catch (error) { console.log(error); toast.error("Error adding staff"); return false; }
   };
 
   const getStaffById = async (id) => {
@@ -43,7 +40,7 @@ const StaffContextProvider = (props) => {
     try {
       const { data } = await axios.get(`${backendUrl}/api/staff/staff/${id}`, { headers: { token } });
       return data.success ? data.data : null;
-    } catch (error) { return null; }
+    } catch (error) { console.log(error); return null; }
   };
 
   const updateStaff = async (id, formData) => {
@@ -51,18 +48,16 @@ const StaffContextProvider = (props) => {
       const { data } = await axios.put(`${backendUrl}/api/staff/update/${id}`, formData, { headers: { token } });
       if (data.success) { toast.success(data.message); fetchStaffs(); return true; }
       else { toast.error(data.message); return false; }
-    } catch (error) { toast.error("Error updating staff"); return false; }
+    } catch (error) { console.log(error); toast.error("Error updating staff"); return false; }
   };
 
-<<<<<<< HEAD
-=======
   // --- 2. SHIFTS ---
   const fetchShifts = useCallback(async () => {
     if (!token) return;
     try {
       const { data } = await axios.get(`${backendUrl}/api/shift/all-shifts`, { headers: { token } });
       if (data.success) setShifts(data.data);
-    } catch (error) { toast.error("Error fetching shifts"); }
+    } catch (error) { console.log(error); toast.error("Error fetching shifts"); }
   }, [token, backendUrl]);
 
   const addShift = async (shiftData) => {
@@ -70,7 +65,7 @@ const StaffContextProvider = (props) => {
       const { data } = await axios.post(`${backendUrl}/api/shift/add-shift`, shiftData, { headers: { token } });
       if (data.success) { toast.success(data.message); await fetchShifts(); return true; }
       else { toast.error(data.message); return false; }
-    } catch (error) { toast.error("Error adding shift"); return false; }
+    } catch (error) { console.log(error); toast.error("Error adding shift"); return false; }
   };
 
   const updateShift = async (id, shiftData) => {
@@ -78,7 +73,7 @@ const StaffContextProvider = (props) => {
       const { data } = await axios.put(`${backendUrl}/api/shift/update/${id}`, shiftData, { headers: { token } });
       if (data.success) { toast.success(data.message); await fetchShifts(); return true; }
       else { toast.error(data.message); return false; }
-    } catch (error) { toast.error("Error updating shift"); return false; }
+    } catch (error) { console.log(error); toast.error("Error updating shift"); return false; }
   };
 
   const deleteShift = async (id) => {
@@ -86,7 +81,7 @@ const StaffContextProvider = (props) => {
       const { data } = await axios.delete(`${backendUrl}/api/shift/delete/${id}`, { headers: { token } });
       if (data.success) { toast.success(data.message); await fetchShifts(); return true; }
       else { toast.error(data.message); return false; }
-    } catch (error) { toast.error("Error deleting shift"); return false; }
+    } catch (error) { console.log(error); toast.error("Error deleting shift"); return false; }
   };
 
   // --- 3. LEAVES ---
@@ -95,7 +90,7 @@ const StaffContextProvider = (props) => {
     try {
       const { data } = await axios.get(`${backendUrl}/api/leave/all-leaves`, { headers: { token } });
       if (data.success) setLeaves(data.data);
-    } catch (error) { toast.error("Error fetching leaves"); }
+    } catch (error) { console.log(error); toast.error("Error fetching leaves"); }
   }, [token, backendUrl]);
 
   const applyForLeave = async (leaveData) => {
@@ -103,14 +98,14 @@ const StaffContextProvider = (props) => {
       const { data } = await axios.post(`${backendUrl}/api/leave/apply`, leaveData, { headers: { token } });
       if (data.success) { toast.success(data.message); await fetchLeaves(); return true; }
       else { toast.error(data.message); return false; }
-    } catch (error) { toast.error("Error applying leave"); return false; }
+    } catch (error) { console.log(error); toast.error("Error applying leave"); return false; }
   };
 
   const updateLeaveStatus = async (id, status) => {
     try {
       const { data } = await axios.put(`${backendUrl}/api/leave/update-status/${id}`, { status }, { headers: { token } });
       if (data.success) { toast.success(data.message); await fetchLeaves(); return true; }
-    } catch (error) { toast.error("Error updating status"); }
+    } catch (error) { console.log(error); toast.error("Error updating status"); }
   };
 
   // --- 4. ATTENDANCE (NEW) ---
@@ -120,7 +115,7 @@ const StaffContextProvider = (props) => {
       // date format: YYYY-MM-DD
       const { data } = await axios.get(`${backendUrl}/api/attendance/daily?date=${date}`, { headers: { token } });
       if (data.success) setAttendance(data.data);
-    } catch (error) { console.error("Error fetching attendance"); }
+    } catch (error) { console.log(error); console.error("Error fetching attendance"); }
   }, [token, backendUrl]);
 
   const markAttendance = async (payload) => {
@@ -132,7 +127,7 @@ const StaffContextProvider = (props) => {
         } else {
             toast.error(data.message);
         }
-    } catch (error) { toast.error("Failed to mark attendance"); }
+    } catch (error) { console.log(error); toast.error("Failed to mark attendance"); }
   };
 
   // --- INIT ---
@@ -143,7 +138,6 @@ const StaffContextProvider = (props) => {
     }
   }, [token, fetchStaffs, fetchShifts, fetchLeaves]);
 
->>>>>>> eac17c00959e08e1d83f6cced999f730fb387193
   const value = {
     loading,
     staffs, fetchStaffs, addStaff, updateStaff, getStaffById,
