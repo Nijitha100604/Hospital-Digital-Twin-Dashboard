@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContext } from "./AppContext";
@@ -100,13 +100,6 @@ const StaffContextProvider = (props) => {
       return false;
     }
   };
-
-  useEffect(() => {
-    if (token) {
-      fetchStaffs();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
 
   const value = {
     loading,

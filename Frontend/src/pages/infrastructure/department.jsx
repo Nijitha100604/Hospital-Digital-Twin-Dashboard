@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { hospitalDepartments } from './../../data/infrastructure';
 import {
   FaBed,
   FaProcedures,
@@ -12,33 +11,84 @@ import {
   FaArrowLeft
 } from "react-icons/fa";
 import { assets } from '../../assets/assets';
+import { useContext } from 'react';
+import { DeptContext } from '../../context/DeptContext';
+import { AppContext } from '../../context/AppContext';
+import { StaffContext } from './../../context/StaffContext';
 
 
 function Department() {
 
   const {id} = useParams();
+
+  const { getDepartment, updateStatus } = useContext(DeptContext);
+  const { token } = useContext(AppContext);
+  const { staffs, fetchStaffs } = useContext(StaffContext);
+
   const navigate = useNavigate();
-  const [dept, setDept] = useState("");
-  const [totEquipment, setTotEquipment] = useState("");
+  const [dept, setDept] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [totEquipment, setTotEquipment] = useState(0);
+
+  const doctorsInDept = staffs?.filter(
+    staff => staff.designation === "Doctor" && staff.department === dept?.deptName
+  )
+
+  const handleDeptStatus = async() =>{
+    if(!dept?.deptId) return;
+    const success = await updateStatus(dept.deptId);
+    if(success){
+      const updated = await getDepartment(dept.deptId);
+      setDept(updated);
+    }
+  };
 
   useEffect(()=>{
   
     const fetchDepartment = async() =>{
       console.log(id);
-      await new Promise(resolve => setTimeout(resolve, 200));
-
-      const foundDepartment = hospitalDepartments.find(
-        item => item.departmentId === id
-      );
-      setDept(foundDepartment ?? null);
-      setTotEquipment(foundDepartment?.equipments?.length);
-      console.log(dept);
-    }
+      setLoading(true);
+      const data = await getDepartment(id);
+      if(data){
+        setDept(data);
+        setTotEquipment(data?.equipments?.length);
+      }
+      setLoading(false);
+    };
 
     fetchDepartment();
 
+  }, [id, getDepartment])
+
+  useEffect(()=>{
+
+    if(token){
+      fetchStaffs();
+    }
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+  }, [token])
+
+  if(loading){
+    return(
+      <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
+      <div className="flex flex-col items-center justify-center h-75 gap-4">
+        <div className="w-12 h-12 border-4 border-gray-300 border-t-fuchsia-700 rounded-full animate-spin"></div>
+        <p className="text-gray-600 text-sm font-medium tracking-wide">
+          Fetching Department...
+        </p>
+      </div>
+      </div>
+    )
+  };
+
+  if (!loading && !dept) {
+  return (
+    <div className="text-center text-gray-500 font-medium py-10">
+      Department data not available
+    </div>
+  );
+  }
 
   return (
     <>
@@ -49,10 +99,10 @@ function Department() {
 
       {/* Department heading */}
       <div className="flex flex-col gap-1">
-        <p className="text-gray-800 font-bold text-lg">{dept?.departmentName} Department</p>
+        <p className="text-gray-800 font-bold text-lg">{dept?.deptName} Department</p>
         <div className="flex gap-3 items-center"> 
-          <p className="text-sm text-blue-600 bg-blue-200 border border-blue-900 px-3 py-1 rounded-lg">{dept?.departmentType}</p>
-          <p className={`text-sm px-3 py-1 rounded-lg ${dept.status === "Active" ? "text-green-700 bg-green-200 border border-green-700" : "text-red-700 bg-red-200 border border-red-700"}`}>{dept?.status}</p>
+          <p className="text-sm text-blue-600 bg-blue-200 border border-blue-900 px-3 py-1 rounded-lg">{dept?.deptType}</p>
+          <p className={`text-sm px-3 py-1 rounded-lg ${dept?.status === "Active" ? "text-green-700 bg-green-200 border border-green-700" : "text-red-700 bg-red-200 border border-red-700"}`}>{dept?.status}</p>
           <p className="text-sm text-red-600 bg-red-200 border border-red-900 px-3 py-1 rounded-lg">24 X 7</p>
         </div>
       </div>
@@ -61,10 +111,16 @@ function Department() {
       <div className="flex gap-3 items-center">
       {
         dept?.status === "Active" ?
-        <button className="text-sm font-bold text-white bg-red-600 px-3 py-2 rounded-lg cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95">
+        <button 
+          onClick={handleDeptStatus}
+          className="text-sm font-bold text-white bg-red-600 px-3 py-2 rounded-lg cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
+        >
           Deactivate Department
         </button> :
-        <button className="text-sm font-bold text-white bg-green-600 px-3 py-2 rounded-lg cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95">
+        <button 
+          onClick={handleDeptStatus}
+          className="text-sm font-bold text-white bg-green-600 px-3 py-2 rounded-lg cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
+        >
           Activate Department
         </button>
       }
@@ -94,7 +150,7 @@ function Department() {
         </div>
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium text-gray-600">Total Beds</p>
-          <p className="text-xl font-bold text-gray-900">{dept?.beds?.totalBeds}</p>
+          <p className="text-xl font-bold text-gray-900">{dept?.beds?.total}</p>
         </div>  
       </div>
 
@@ -105,7 +161,7 @@ function Department() {
         </div>
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium text-gray-600">OT Beds</p>
-          <p className="text-xl font-bold text-gray-900">{dept?.beds?.otBeds}</p>
+          <p className="text-xl font-bold text-gray-900">{dept?.beds?.ot}</p>
         </div>  
       </div>
 
@@ -116,7 +172,7 @@ function Department() {
         </div>
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium text-gray-600">ICU Beds</p>
-          <p className="text-xl font-bold text-gray-900">{dept?.beds?.icuBeds}</p>
+          <p className="text-xl font-bold text-gray-900">{dept?.beds?.icu}</p>
         </div>  
       </div>
 
@@ -126,8 +182,8 @@ function Department() {
           <FaUsers size={20} className="text-violet-800"/>
         </div>
         <div className="flex flex-col gap-2">
-          <p className="text-sm font-medium text-gray-600">Total Staffs</p>
-          <p className="text-xl font-bold text-gray-900">20</p>
+          <p className="text-sm font-medium text-gray-600">Total Doctors</p>
+          <p className="text-xl font-bold text-gray-900">{doctorsInDept?.length || 0}</p>
         </div>  
       </div>
 
@@ -166,13 +222,13 @@ function Department() {
             className="w-18 border border-gray-400"
           />
           <div className="flex flex-col gap-2">
-            <p className="text-md font-semibold text-gray-900">{dept?.departmentHead}</p>
+            <p className="text-md font-semibold text-gray-900">{dept?.hod}</p>
             <div className="flex gap-2 items-center">
               <FaPhone 
                 size={14}
                 className="text-gray-500 text-sm"
               />
-              <p className="text-gray-500 text-sm">9876543210</p>
+              <p className="text-gray-500 text-sm">{dept?.contact}</p>
             </div>
           </div>
         </div>
@@ -195,29 +251,36 @@ function Department() {
       {/* Heading */}
       <div className="flex gap-4 items-center">
         <div className="bg-blue-200 p-1 rounded-lg border border-blue-300">
-          <FaUserTie size={20} className="text-blue-800"/>
+          <FaUsers size={20} className="text-cyan-800"/>
         </div>
-        <p className="text-md text-gray-700 font-medium">Staffs Allocated</p>
+        <p className="text-md text-gray-700 font-medium">Doctors Allocated</p>
       </div>
 
       {/* Content */}
-      <div className="px-8 py-2 m-2 mt-5 flex flex-col gap-4 border border-gray-600 rounded-lg">
-        <div className="flex justify-between items-center">
-          <p className="text-sm text-gray-600">Number of Doctors</p>
-          <p className="text-sm font-semibold text-gray-900">{dept?.staffDetails?.doctors}</p>
-        </div>
-        <div className="flex justify-between items-center">
-          <p className="text-sm text-gray-600">Number of Nurses</p>
-          <p className="text-sm font-semibold text-gray-900">{dept?.staffDetails?.nurses}</p>
-        </div>
-        <div className="flex justify-between items-center">
-          <p className="text-sm text-gray-600">Number of Technicians</p>
-          <p className="text-sm font-semibold text-gray-900">{dept?.staffDetails?.technicians}</p>
-        </div>
-        <div className="flex justify-between items-center">
-          <p className="text-sm text-gray-600">Number of Supporting Staffs</p>
-          <p className="text-sm font-semibold text-gray-900">{dept?.staffDetails?.supportingStaff}</p>
-        </div>
+      <div className="px-4 py-3 m-2 mt-5 border border-gray-600 rounded-lg h-56 overflow-y-auto flex flex-col gap-3">
+      {
+        doctorsInDept?.length > 0 ? (
+          doctorsInDept.map((doc, index)=>(
+          <div 
+            key={index}
+            className="flex justify-between items-center bg-gray-100 px-3 py-2 rounded-md"
+          >
+            <div className="flex flex-col">
+              <p className="text-sm font-semibold text-gray-900">{doc.fullName}</p>
+              <p className="text-xs text-gray-500">{doc.contactNumber}</p>
+            </div>
+            <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
+              Doctor
+            </span>
+          </div>
+          ))
+          
+        ) : (
+          <p className="text-sm text-gray-500 text-center mt-6">
+            No doctors allocated
+          </p>
+        )
+      }
       </div>
 
       </div>
@@ -254,19 +317,25 @@ function Department() {
 
       <div className="flex flex-wrap gap-4 px-3 mt-4 items-center">
       {
-        dept?.utilities &&
-        Object.entries(dept.utilities)
-          // eslint-disable-next-line no-unused-vars
-          .filter(([_, value]) => value === "Available")
-          .map(([key], index) => (
-          <div
-            key={index}
-            className="flex gap-2 items-center"
-          >
-            <div className="p-1 rounded-full bg-green-600"></div>
-            <p className="text-sm font-medium text-gray-800">{key}</p>
-          </div>
-      ))
+        dept?.powerbackup &&
+        <div className="flex gap-2 items-center">
+          <div className="p-1 rounded-full bg-green-600"></div>
+          <p className="text-sm font-medium text-gray-800">Power Backup</p>
+        </div>
+      }
+      {
+        dept?.fireExtinguisher &&
+        <div className="flex gap-2 items-center">
+          <div className="p-1 rounded-full bg-green-600"></div>
+          <p className="text-sm font-medium text-gray-800">Fire Extinguisher</p>
+        </div>
+      }
+      {
+        dept?.oxygenSupply &&
+        <div className="flex gap-2 items-center">
+          <div className="p-1 rounded-full bg-green-600"></div>
+          <p className="text-sm font-medium text-gray-800">Oxygen Supply</p>
+        </div>
       }
       </div>
 

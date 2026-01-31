@@ -75,6 +75,56 @@ const addDepartment = async(req, res) =>{
     }
 }
 
+// all departments
+const allDepartments = async(req, res) =>{
+    try{
+        const departments = await departmentModel.find().sort({ createdAt: -1 });
+        return res.json({success: true, data: departments});
+    } catch(error){
+        console.log(error);
+        return res.json({success: false, message: error.message});
+    }
+}
+
+// department by id
+const department = async(req, res) =>{
+    try{
+
+        const {id} = req.params;
+        const dept = await departmentModel.findOne({deptId: id});
+        if(!dept){
+            return res.json({success: false, message: "Department not found"});
+        }
+        return res.json({success: true, data: dept});
+
+    } catch(error){
+        console.log(error);
+        return res.json({success: false, message: error.message});
+    }
+}
+
+// Activate or deactive a department
+const updateDeptStatus = async(req, res) =>{
+    try{
+
+        const {id} = req.params;
+        const dept = await departmentModel.findOne({deptId: id});
+        if(!dept){
+            return res.json({success: false, message: "Department not found"});
+        }
+        dept.status = dept.status === "Active" ? "Inactive" : "Active";
+        await dept.save();
+        return res.json({success: true, message: "Department Status Modified"});
+
+    } catch(error){
+        console.log(error);
+        return res.json({success: false, message: error.message});
+    }
+}
+
 export {
-    addDepartment
+    addDepartment,
+    allDepartments,
+    department,
+    updateDeptStatus
 }

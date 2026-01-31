@@ -1,31 +1,38 @@
-import React, { useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
-import { hospitalDepartments } from '../../data/infrastructure';
 import { 
   FaEye,
   FaBuilding, 
   FaCheckCircle, 
   FaFilter, 
-  FaFlask, 
-  FaHeartbeat, 
+  FaFlask,  
   FaHospital, 
   FaPlus,
   FaSearch,
-  FaTimes
+  FaTimes,
+  FaAngleDoubleLeft,
+  FaAngleDoubleRight,
+  FaCalendarTimes,
+  FaTimesCircle
 } from 'react-icons/fa';
+import { DeptContext } from '../../context/DeptContext';
+import { AppContext } from '../../context/AppContext';
 
 function DepartmentsList() {
 
   const navigate = useNavigate(); 
-  const totalDept = hospitalDepartments.length;
-  const activeDept = hospitalDepartments.filter(
+  const { departments, fetchDepartments, loading } = useContext(DeptContext);
+  const { token } = useContext(AppContext);
+
+  const totalDept = departments?.length;
+  const activeDept = departments?.filter(
     item => item.status === "Active"
   ).length;
-  const criticalCareUnits = hospitalDepartments.filter(
-    item => item.departmentType === "Critical"
+  const inactiveDept = departments?.filter(
+    item => item.status === "Inactive"
   ).length;
-  const labUnits = hospitalDepartments.filter(
-    item => item.departmentType === "Laboratory"
+  const labUnits = departments?.filter(
+    item => item.deptType === "Laboratory"
   ).length;
 
 
@@ -48,11 +55,11 @@ function DepartmentsList() {
     setOpenFilter(null)
   }
 
-  const filteredData = hospitalDepartments.filter((item)=>{
+  const filteredData = departments?.filter((item)=>{
             
-    const searchMatch = searchTerm.trim() === "" || item.departmentName?.toLowerCase().includes(searchTerm.toLowerCase()) || item.departmentId?.toLowerCase().includes(searchTerm.toLowerCase());
-    const statusMatch = !filters.status || item.status === filters.status;
-    const floorMatch = !filters.floor || item.floor === filters.floor;
+    const searchMatch = searchTerm.trim() === "" || item.deptName?.toLowerCase().includes(searchTerm.toLowerCase()) || item.deptId?.toLowerCase().includes(searchTerm.toLowerCase());
+    const statusMatch = !filters.status || item?.status === filters.status;
+    const floorMatch = !filters.floor || item?.floor === filters.floor;
             
     return searchMatch && statusMatch && floorMatch ;
         
@@ -69,7 +76,26 @@ function DepartmentsList() {
   );
   const totalPages = Math.ceil(filteredData.length / records_per_page);
   
+  useEffect(()=>{
+    if(token){
+      fetchDepartments();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
 
+
+  if(loading){
+    return(
+      <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
+      <div className="flex flex-col items-center justify-center h-75 gap-4">
+        <div className="w-12 h-12 border-4 border-gray-300 border-t-fuchsia-700 rounded-full animate-spin"></div>
+        <p className="text-gray-600 text-sm font-medium tracking-wide">
+          Fetching Departments...
+        </p>
+      </div>
+      </div>
+    )
+  };
 
   return (
     <>
@@ -125,14 +151,14 @@ function DepartmentsList() {
         </div>
       </div>
 
-      {/* Critical */}
+      {/* Inactive */}
       <div className="flex justify-between items-center px-3 py-2 border border-gray-300 rounded-lg">
         <div className="flex flex-col gap-2">
-          <p className="text-sm font-medium text-gray-600">Critical Units</p>
-          <p className="text-xl font-bold text-gray-900">{criticalCareUnits}</p>
+          <p className="text-sm font-medium text-gray-600">Inactive Departments</p>
+          <p className="text-xl font-bold text-gray-900">{inactiveDept}</p>
         </div>
         <div className="bg-red-200 px-3 py-3 rounded-lg border border-red-300">
-          <FaHeartbeat size={20} className="text-red-800"/>
+          <FaTimesCircle size={20} className="text-red-800"/>
         </div>
       </div>
 
@@ -205,7 +231,7 @@ function DepartmentsList() {
     
           {openFilter === "floor" && (
             <ul className="mt-2 absolute top-full left-0 bg-white border rounded-md shadow-sm w-32 z-10">
-              {["All", "Ground Floor", "2nd Floor", "1st Floor", "3rd Floor"].map((item, i) => (
+              {["All", "Ground Floor", "Second Floor", "First Floor", "Third Floor"].map((item, i) => (
                 <li
                   key={i}
                   onClick={() =>
@@ -282,64 +308,101 @@ function DepartmentsList() {
           <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Department ID</th>
           <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Department Name</th>
           <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Head of Department</th>
+          <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Block</th>
           <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Floor</th>
-          <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Staff Count</th>
           <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">Status</th>
           <th className="px-4 py-3 text-left text-sm text-gray-900 font-semibold">View</th>
         </tr>
       </thead>
     
       <tbody className="text-sm text-gray-700">
-      {
-        paginatedData.map((item)=>(
-          <tr key={item.departmentId} className="border-b hover:bg-gray-200 hover:border-2 hover:font-semibold cursor-pointer">
-            <td className="px-4 py-3">{item.departmentId}</td>
-            <td className="px-4 py-3">{item.departmentName}</td>
-            <td className="px-4 py-3">{item.departmentHead}</td>
-            <td className="px-4 py-3">{item.floor}</td>
-            <td className="px-4 py-3">{item.staffCount}</td>
-            <td className={`px-4 py-3 ${item.status === "Active" ? "text-green-700 font-semibold" : "text-red-700 font-semibold"}`}>{item.status}</td>
-            <td className="px-4 py-3">
-              <button 
-                className="text-gray-600 hover:text-gray-900 cursor-pointer"
-                onClick={()=> {navigate(`/department/${item.departmentId}`); window.scrollTo(0, 0) }}
-              >
-                <FaEye size={20} />
-              </button>
-            </td>
-    
-          </tr>
-        ))
-      }
+
+      {!loading && paginatedData.length === 0 ? (
+      <tr>
+      <td colSpan={7}>
+        <div className="flex flex-col items-center justify-center h-64 gap-4 text-center">
+          <div className="bg-gray-200 p-4 rounded-full">
+            <FaCalendarTimes className="text-gray-600 text-3xl" />
+          </div>
+          <p className="text-gray-800 text-lg font-semibold">
+            No Departments found
+          </p>
+          <p className="text-gray-500 text-sm max-w-sm">
+            There are currently no departments available.
+          </p>
+        </div>
+      </td>
+      </tr>
+      ) : (
+      paginatedData.map((item) => (
+      <tr
+        key={item.deptId}
+        className="border-b hover:bg-gray-200 hover:border-2 hover:font-semibold cursor-pointer"
+      >
+        <td className="px-4 py-3">{item?.deptId}</td>
+        <td className="px-4 py-3">{item?.deptName}</td>
+        <td className="px-4 py-3">{item?.hod}</td>
+        <td className="px-4 py-3">{item?.block}</td>
+        <td className="px-4 py-3">{item?.floor}</td>
+        <td
+          className={`px-4 py-3 font-semibold ${
+            item?.status === "Active"
+              ? "text-green-700"
+              : "text-red-700"
+          }`}
+        >
+          {item.status}
+        </td>
+        <td className="px-4 py-3">
+          <button
+            className="text-gray-600 hover:text-gray-900 cursor-pointer"
+            onClick={() => {
+              navigate(`/department/${item.deptId}`);
+              window.scrollTo(0, 0);
+            }}
+          >
+            <FaEye size={20} />
+          </button>
+        </td>
+      </tr>
+      ))
+      )}
       </tbody>
-    
-    </table>
+ 
+    </table> 
 
     </div>
 
     {/* Bottom of the table */}
 
-    <div className="flex justify-end gap-2 mt-4">
-      <button 
-        disabled={currentPage === 1}
-        className="px-3 py-1 text-sm border rounded disabled:opacity-50" 
-        onClick={()=>setCurrentPage((p)=>p-1)}
-      >
-        Prev
-      </button>
-
-      <span className = "text-sm px-2 py-1">
-        Page {currentPage} of {totalPages}
-      </span>
-
-      <button 
-        disabled={currentPage === totalPages}
-        className="px-3 py-1 text-sm border rounded disabled:opacity-50" 
-        onClick={()=>setCurrentPage((p)=>p+1)}
-      >
-        Next
-      </button>
-
+    <div className="flex justify-between items-center mt-4">
+        
+      <div className="text-gray-600 text-sm">
+        Showing {paginatedData.length} of {filteredData.length} records
+      </div>
+        
+      <div className="flex gap-2 items-center">
+        <button 
+          disabled={currentPage === 1}
+          className="px-2 py-2 text-sm text-fuchsia-800 border rounded-full disabled:opacity-50 cursor-pointer" 
+          onClick={()=>setCurrentPage((p)=>p-1)}
+        >
+          <FaAngleDoubleLeft size={18}/>
+        </button>
+        
+        <span className = "text-sm px-2 py-1">
+          Page {currentPage} of {totalPages}
+        </span>
+        
+        <button 
+          disabled={currentPage === totalPages}
+          className="px-2 py-2 text-sm text-fuchsia-800 border rounded-full disabled:opacity-50 cursor-pointer" 
+          onClick={()=>setCurrentPage((p)=>p+1)}
+        >
+          <FaAngleDoubleRight size={18}/>
+        </button>
+      </div>
+        
     </div>
 
     </div>

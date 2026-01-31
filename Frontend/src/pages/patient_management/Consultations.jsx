@@ -10,7 +10,9 @@ import {
   FaTimes,
   FaPhone,
   FaEye,
-  FaCalendarTimes
+  FaCalendarTimes,
+  FaAngleDoubleLeft,
+  FaAngleDoubleRight
 } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
@@ -404,27 +406,34 @@ function Consultations() {
     ) }
 
     {/* Bottom of the page */}
-    <div className="flex justify-end gap-2 mt-4">
-        <button 
-        disabled={currentPage === 1}
-        className="px-3 py-1 text-sm border rounded disabled:opacity-50 cursor-pointer" 
-        onClick={()=>setCurrentPage((p)=>p-1)}
-        >
-          Prev
-        </button>
-
-        <span className = "text-sm px-2 py-1">
-          Page {currentPage} of {totalPages}
-        </span>
-
-        <button 
-        disabled={currentPage === totalPages}
-        className="px-3 py-1 text-sm border rounded disabled:opacity-50 cursor-pointer" 
-        onClick={()=>setCurrentPage((p)=>p+1)}
-        >
-          Next
-        </button>
-
+    <div className="flex justify-between items-center mt-4">
+        
+          <div className="text-gray-600 text-sm">
+            Showing {paginatedData.length} of {filteredData.length} records
+          </div>
+        
+          <div className="flex gap-2 items-center">
+            <button 
+              disabled={currentPage === 1}
+              className="px-2 py-2 text-sm text-fuchsia-800 border rounded-full disabled:opacity-50 cursor-pointer" 
+              onClick={()=>setCurrentPage((p)=>p-1)}
+            >
+              <FaAngleDoubleLeft size={18}/>
+            </button>
+        
+            <span className = "text-sm px-2 py-1">
+              Page {currentPage} of {totalPages}
+            </span>
+        
+            <button 
+              disabled={currentPage === totalPages}
+              className="px-2 py-2 text-sm text-fuchsia-800 border rounded-full disabled:opacity-50 cursor-pointer" 
+              onClick={()=>setCurrentPage((p)=>p+1)}
+            >
+              <FaAngleDoubleRight size={18}/>
+            </button>
+          </div>
+        
     </div>
 
     </div>

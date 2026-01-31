@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContext } from "./AppContext";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const MedicineContext = createContext();
 
 const MedicineContextProvider = ({ children }) => {

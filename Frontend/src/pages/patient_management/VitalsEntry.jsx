@@ -9,7 +9,9 @@ import {
     FaPhone,
     FaEdit,
     FaEye,
-    FaTimes
+    FaTimes,
+    FaAngleDoubleRight,
+    FaAngleDoubleLeft
  } from "react-icons/fa";
 import VitalModal from './../../components/modals/VitalModal';
 import { useContext } from 'react';
@@ -339,27 +341,34 @@ function VitalsEntry() {
     </div>
 
     {/* Bottom of the page */}
-    <div className="flex justify-end gap-2 mt-4">
+    <div className="flex justify-between items-center mt-4">
+    
+      <div className="text-gray-600 text-sm">
+        Showing {paginatedData.length} of {filteredData.length} records
+      </div>
+    
+      <div className="flex gap-2 items-center">
         <button 
-        disabled={currentPage === 1}
-        className="px-3 py-1 text-sm border rounded disabled:opacity-50 cursor-pointer" 
-        onClick={()=>setCurrentPage((p)=>p-1)}
+          disabled={currentPage === 1}
+          className="px-2 py-2 text-sm text-fuchsia-800 border rounded-full disabled:opacity-50 cursor-pointer" 
+          onClick={()=>setCurrentPage((p)=>p-1)}
         >
-          Prev
+          <FaAngleDoubleLeft size={18}/>
         </button>
-
+    
         <span className = "text-sm px-2 py-1">
           Page {currentPage} of {totalPages}
         </span>
-
+    
         <button 
-        disabled={currentPage === totalPages}
-        className="px-3 py-1 text-sm border rounded disabled:opacity-50 cursor-pointer" 
-        onClick={()=>setCurrentPage((p)=>p+1)}
+          disabled={currentPage === totalPages}
+          className="px-2 py-2 text-sm text-fuchsia-800 border rounded-full disabled:opacity-50 cursor-pointer" 
+          onClick={()=>setCurrentPage((p)=>p+1)}
         >
-          Next
+          <FaAngleDoubleRight size={18}/>
         </button>
-
+      </div>
+    
     </div>
 
     </div>
