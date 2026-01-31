@@ -30,8 +30,27 @@ function Department() {
   const [loading, setLoading] = useState(false);
   const [totEquipment, setTotEquipment] = useState(0);
 
+  const deptStaffMap = {
+  "Laboratory Services": [
+    "Biochemistry",
+    "Pathology",
+    "Microbiology"
+  ],
+  "Radiology": [
+    "X-Ray",
+    "CT-Scan"
+  ]
+  };
+
   const doctorsInDept = staffs?.filter(
-    staff => staff.designation === "Doctor" && staff.department === dept?.deptName
+    (staff) => {
+
+      if(deptStaffMap[dept?.deptName]){
+        return deptStaffMap[dept.deptName].includes(staff.department);
+      }else{
+        return staff.designation === "Doctor" && staff.department === dept?.deptName
+      }
+    }
   )
 
   const handleDeptStatus = async() =>{
@@ -182,7 +201,7 @@ function Department() {
           <FaUsers size={20} className="text-violet-800"/>
         </div>
         <div className="flex flex-col gap-2">
-          <p className="text-sm font-medium text-gray-600">Total Doctors</p>
+          <p className="text-sm font-medium text-gray-600">Total Staffs</p>
           <p className="text-xl font-bold text-gray-900">{doctorsInDept?.length || 0}</p>
         </div>  
       </div>
@@ -253,7 +272,7 @@ function Department() {
         <div className="bg-blue-200 p-1 rounded-lg border border-blue-300">
           <FaUsers size={20} className="text-cyan-800"/>
         </div>
-        <p className="text-md text-gray-700 font-medium">Doctors Allocated</p>
+        <p className="text-md text-gray-700 font-medium">Staffs Allocated</p>
       </div>
 
       {/* Content */}
@@ -270,7 +289,7 @@ function Department() {
               <p className="text-xs text-gray-500">{doc.contactNumber}</p>
             </div>
             <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
-              Doctor
+              {doc.designation}
             </span>
           </div>
           ))

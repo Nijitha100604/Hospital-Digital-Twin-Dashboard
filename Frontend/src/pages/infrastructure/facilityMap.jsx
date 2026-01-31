@@ -1,58 +1,111 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FaHeartbeat,
-  FaBed,
-  FaStethoscope,
   FaExclamationTriangle,
   FaUsers,
-  FaArrowUp
+  FaArrowUp,
+  FaChild,
+  FaBone,
+  FaFemale,
+  FaFlask,
+  FaAllergies,
+  FaUserMd,
+  FaXRay,
+  FaBrain
 } from "react-icons/fa";
-import { hospitalDepartments } from "../../data/infrastructure";
+import { DeptContext } from './../../context/DeptContext';
+import { AppContext } from "../../context/AppContext";
 
 export default function FacilityMap() {
+
   const navigate = useNavigate();
+  const { departments, fetchDepartments } = useContext(DeptContext);
+  const { token } = useContext(AppContext);
   const [selectedDept, setSelectedDept] = useState(null);
+
+  const mappedDepartments = departments?.map((dept) => ({
+    departmentId: dept.deptId,
+    departmentName: dept.deptName,
+    departmentType: dept.deptType,
+    floor: dept.floor,
+    block: dept.block,
+    status: dept.status,
+  }));
 
   // Style by Department Type
   const getDeptStyle = (type) => {
     switch (type) {
-      case "Critical":
+      case "Critical Care":
         return "bg-red-100 border-red-300 text-red-600";
-      case "Super Speciality":
-        return "bg-blue-100 border-blue-300 text-blue-600";
+      case "Emergency":
+        return "bg-orange-100 border-orange-400 text-orange-700";
+      case "Laboratory":
+        return "bg-blue-100 border-blue-400 text-blue-700";
       case "General":
-        return "bg-purple-100 border-purple-300 text-purple-600";
+        return "bg-green-100 border-green-400 text-green-700";
       default:
-        return "bg-green-100 border-green-300 text-green-600";
+        return "bg-gray-100 border-gray-300 text-gray-600";
     }
   };
 
   // Icon by Department Name 
   const getIcon = (name) => {
-    switch (name) {
-      case "ICU":
-        return <FaHeartbeat />;
-      case "Emergency":
-        return <FaExclamationTriangle />;
-      case "Operation Theatre":
-        return <FaStethoscope />;
-      case "General Ward":
-      case "Ward A":
-      case "Ward B":
-        return <FaBed />;
-      case "OPD":
-        return <FaUsers />;
-      default:
-        return <FaUsers />;
-    }
+  switch (name) {
+    case "Cardiology":
+      return <FaHeartbeat />;
+
+    case "Pediatrics":
+      return <FaChild />;
+
+    case "Orthopedics":
+      return <FaBone />;
+
+    case "Gynecology":
+      return <FaFemale />;
+
+    case "Emergency":
+      return <FaExclamationTriangle />;
+
+    case "Laboratory Services":
+      return <FaFlask />;
+
+    case "Dermatology":
+      return <FaAllergies />;
+
+    case "General Medicine":
+      return <FaUserMd />;
+
+    case "Radiology":
+      return <FaXRay />;
+
+    case "Neurology":
+      return <FaBrain />;
+
+    case "Lobby":
+      return <FaUsers />;
+
+    case "Elevator":
+      return <FaArrowUp />;
+
+    default:
+      return <FaUserMd />;
+  }
   };
 
+
   // Pick departments manually
-  const topRow = hospitalDepartments.slice(0, 4);
-  const middleLeft = hospitalDepartments[4];
-  const middleRight = hospitalDepartments[5];
-  const bottomRow = hospitalDepartments.slice(6, 10);
+  const topRow = mappedDepartments?.slice(0, 4);
+  const middleLeft = mappedDepartments?.[4];
+  const middleRight = mappedDepartments?.[5];
+  const bottomRow = mappedDepartments?.slice(6, 10);
+
+  useEffect(()=>{
+    if(token){
+      fetchDepartments();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
 
   return (
     <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
@@ -132,9 +185,9 @@ export default function FacilityMap() {
             <h4 className="text-sm font-semibold text-gray-800 mb-3">Legend</h4>
 
             <LegendItem color="bg-red-400" label="Critical Department" />
-            <LegendItem color="bg-blue-400" label="Super Speciality" />
-            <LegendItem color="bg-purple-400" label="General Ward" />
-            <LegendItem color="bg-green-400" label="OPD" />
+            <LegendItem color="bg-blue-400" label="Laboratory" />
+            <LegendItem color="bg-orange-400" label="Emergency" />
+            <LegendItem color="bg-green-400" label="General" />
 
             <p className="text-xs font-medium text-gray-500 mt-4 mb-2">
               Facilities
@@ -159,10 +212,9 @@ export default function FacilityMap() {
                 <Detail label="Block" value={selectedDept.block} />
                 <Detail label="Floor" value={selectedDept.floor} />
                 <Detail label="Type" value={selectedDept.departmentType} />
-                <Detail label="Staff Count" value={selectedDept.staffCount} />
 
-                <span className="inline-block mt-2 px-2 py-1 bg-green-100 text-green-700 rounded">
-                  Active
+                <span className={`inline-block mt-2 px-2 py-1 rounded font-medium ${selectedDept.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                  {selectedDept.status}
                 </span>
                 <button
                   className="mt-3 w-full bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-md text-sm font-medium

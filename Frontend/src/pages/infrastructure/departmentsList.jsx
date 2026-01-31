@@ -337,7 +337,7 @@ function DepartmentsList() {
       paginatedData.map((item) => (
       <tr
         key={item.deptId}
-        className="border-b hover:bg-gray-200 hover:border-2 hover:font-semibold cursor-pointer"
+        className="border-b hover:bg-gray-100 hover:border-2 hover:font-semibold cursor-pointer"
       >
         <td className="px-4 py-3">{item?.deptId}</td>
         <td className="px-4 py-3">{item?.deptName}</td>
