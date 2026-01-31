@@ -11,21 +11,19 @@ const MedicineContextProvider = ({ children }) => {
 
   const [medicines, setMedicines] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [purchaseOrders, setPurchaseOrders] = useState([]);
+  const [prescriptionQueue, setPrescriptionQueue] = useState([]); // New: Prescription Queue
   const [loading, setLoading] = useState(false);
 
-  
   {/* Medicine Context */}
+
   const fetchMedicines = useCallback(async () => {
     if (!token) return;
-    
-    setLoading(prev => prev || true); 
-    
     try {
       const { data } = await axios.get(
         `${backendUrl}/api/medicine/all-medicines`,
         { headers: { token } }
       );
-
       if (data.success) {
         setMedicines(data.data);
       } else {
@@ -34,8 +32,6 @@ const MedicineContextProvider = ({ children }) => {
     } catch (error) {
       console.error(error);
       toast.error("Failed to fetch medicines");
-    } finally {
-      setLoading(false);
     }
   }, [token, backendUrl]);
 
@@ -49,12 +45,9 @@ const MedicineContextProvider = ({ children }) => {
         `${backendUrl}/api/medicine/medicine/${id}`,
         { headers: { token } }
       );
-      if (data.success) {
-        return data.data;
-      } else {
-        toast.error(data.message);
-        return null;
-      }
+      if (data.success) return data.data;
+      toast.error(data.message);
+      return null;
     } catch (error) {
       console.error(error);
       toast.error("Error fetching medicine details");
@@ -69,22 +62,19 @@ const MedicineContextProvider = ({ children }) => {
         formData,
         { headers: { token, "Content-Type": "multipart/form-data" } }
       );
-
       if (data.success) {
         toast.success(data.message);
-        await fetchMedicines(); // Refresh list
+        await fetchMedicines();
         return true;
-      } else {
-        toast.error(data.message);
-        return false;
       }
+      toast.error(data.message);
+      return false;
     } catch (error) {
       console.error(error);
       toast.error("Error adding medicine");
       return false;
     }
   };
-
 
   const updateMedicine = async (id, formData) => {
     try {
@@ -93,15 +83,13 @@ const MedicineContextProvider = ({ children }) => {
         formData,
         { headers: { token, "Content-Type": "multipart/form-data" } }
       );
-
       if (data.success) {
         toast.success(data.message);
-        await fetchMedicines(); 
+        await fetchMedicines();
         return true;
-      } else {
-        toast.error(data.message);
-        return false;
       }
+      toast.error(data.message);
+      return false;
     } catch (error) {
       console.error(error);
       toast.error("Error updating medicine");
@@ -110,17 +98,14 @@ const MedicineContextProvider = ({ children }) => {
   };
 
   {/* Supplier Context */}
+
   const fetchSuppliers = useCallback(async () => {
     if (!token) return;
-    
-    setLoading(prev => prev || true);
-
     try {
       const { data } = await axios.get(
         `${backendUrl}/api/supplier/all-suppliers`,
         { headers: { token } }
       );
-
       if (data.success) {
         setSuppliers(data.data);
       } else {
@@ -129,14 +114,11 @@ const MedicineContextProvider = ({ children }) => {
     } catch (error) {
       console.error(error);
       toast.error("Failed to fetch suppliers");
-    } finally {
-      setLoading(false);
     }
   }, [token, backendUrl]);
 
   const getSupplierById = async (id) => {
     if (!token) return null;
-    
     const cachedSupplier = suppliers.find((s) => s.supplierId === id);
     if (cachedSupplier) return cachedSupplier;
 
@@ -145,12 +127,9 @@ const MedicineContextProvider = ({ children }) => {
         `${backendUrl}/api/supplier/supplier/${id}`,
         { headers: { token } }
       );
-      if (data.success) {
-        return data.data;
-      } else {
-        toast.error(data.message);
-        return null;
-      }
+      if (data.success) return data.data;
+      toast.error(data.message);
+      return null;
     } catch (error) {
       console.error(error);
       toast.error("Error fetching supplier details");
@@ -165,22 +144,19 @@ const MedicineContextProvider = ({ children }) => {
         formData,
         { headers: { token, "Content-Type": "multipart/form-data" } }
       );
-
       if (data.success) {
         toast.success(data.message);
-        await fetchSuppliers(); 
+        await fetchSuppliers();
         return true;
-      } else {
-        toast.error(data.message);
-        return false;
       }
+      toast.error(data.message);
+      return false;
     } catch (error) {
       console.error(error);
       toast.error("Error adding supplier");
       return false;
     }
   };
-
 
   const updateSupplier = async (id, formData) => {
     try {
@@ -189,15 +165,13 @@ const MedicineContextProvider = ({ children }) => {
         formData,
         { headers: { token, "Content-Type": "multipart/form-data" } }
       );
-
       if (data.success) {
         toast.success(data.message);
-        await fetchSuppliers(); 
+        await fetchSuppliers();
         return true;
-      } else {
-        toast.error(data.message);
-        return false;
       }
+      toast.error(data.message);
+      return false;
     } catch (error) {
       console.error(error);
       toast.error("Error updating supplier");
@@ -205,54 +179,205 @@ const MedicineContextProvider = ({ children }) => {
     }
   };
 
-  
   const deleteSupplier = async (id) => {
     try {
-        const { data } = await axios.delete(
-            `${backendUrl}/api/supplier/delete/${id}`,
-            { headers: { token } }
-        );
-
-        if(data.success){
-            toast.success(data.message);
-            await fetchSuppliers();
-            return true;
-        } else {
-            toast.error(data.message);
-            return false;
-        }
+      const { data } = await axios.delete(
+        `${backendUrl}/api/supplier/delete/${id}`,
+        { headers: { token } }
+      );
+      if (data.success) {
+        toast.success(data.message);
+        await fetchSuppliers();
+        return true;
+      }
+      toast.error(data.message);
+      return false;
     } catch (error) {
-        console.error(error);
-        toast.error("Error deleting supplier");
-        return false;
+      console.error(error);
+      toast.error("Error deleting supplier");
+      return false;
     }
-  }
+  };
 
-  // Fetch both Medicines and Suppliers when token is available
+  {/* Purchase Order */}
+
+  const fetchPurchaseOrders = useCallback(async () => {
+    if (!token) return;
+    try {
+      const { data } = await axios.get(
+        `${backendUrl}/api/purchase/all-orders`,
+        { headers: { token } }
+      );
+      if (data.success) {
+        setPurchaseOrders(data.data);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to load purchase orders");
+    }
+  }, [token, backendUrl]);
+
+  const createPurchaseOrder = async (orderData) => {
+    try {
+      const { data } = await axios.post(
+        `${backendUrl}/api/purchase/create`,
+        orderData,
+        { headers: { token } }
+      );
+      if (data.success) {
+        toast.success(data.message);
+        await fetchPurchaseOrders();
+        return true;
+      }
+      toast.error(data.message);
+      return false;
+    } catch (error) {
+      console.error(error);
+      toast.error("Error creating purchase order");
+      return false;
+    }
+  };
+
+  const updatePurchaseOrder = async (orderId, updateData) => {
+    try {
+      const { data } = await axios.put(
+        `${backendUrl}/api/purchase/update/${orderId}`,
+        updateData,
+        { headers: { token } }
+      );
+      if (data.success) {
+        toast.success(data.message);
+        await fetchPurchaseOrders();
+        if (updateData.status === "Received") {
+          await fetchMedicines(); 
+        }
+        return true;
+      }
+      toast.error(data.message);
+      return false;
+    } catch (error) {
+      console.error(error);
+      toast.error("Error updating order");
+      return false;
+    }
+  };
+
+  const deletePurchaseOrder = async (orderId) => {
+    try {
+      const { data } = await axios.delete(
+        `${backendUrl}/api/purchase/delete/${orderId}`,
+        { headers: { token } }
+      );
+      if (data.success) {
+        toast.success(data.message);
+        await fetchPurchaseOrders();
+        return true;
+      }
+      toast.error(data.message);
+      return false;
+    } catch (error) {
+      console.error(error);
+      toast.error("Error deleting order");
+      return false;
+    }
+  };
+
+  {/* Prescription */}
+
+  const fetchPrescriptionQueue = useCallback(async () => {
+    if (!token) return;
+    try {
+      // Updated URL
+      const { data } = await axios.get(
+        `${backendUrl}/api/prescription/queue`, 
+        { headers: { token } }
+      );
+      if (data.success) {
+        setPrescriptionQueue(data.data);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to load prescription queue");
+    }
+  }, [token, backendUrl]);
+
+  const checkoutPrescription = async (payload) => {
+    try {
+      // Updated URL
+      const { data } = await axios.post(
+        `${backendUrl}/api/prescription/checkout`,
+        payload,
+        { headers: { token } }
+      );
+
+      if (data.success) {
+        toast.success("Prescription dispensed successfully!");
+        await fetchPrescriptionQueue();
+        await fetchMedicines(); // Refresh stock
+        return true;
+      } else {
+        toast.error(data.message);
+        return false;
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Checkout failed");
+      return false;
+    }
+  };
+
+  {/* Initialization */}
+
+  const fetchAllData = useCallback(async () => {
+    setLoading(true);
+    await Promise.all([
+      fetchMedicines(), 
+      fetchSuppliers(), 
+      fetchPurchaseOrders(),
+      fetchPrescriptionQueue() 
+    ]);
+    setLoading(false);
+  }, [fetchMedicines, fetchSuppliers, fetchPurchaseOrders, fetchPrescriptionQueue]);
+
   useEffect(() => {
     if (token) {
-      fetchMedicines();
-      fetchSuppliers();
+      fetchAllData();
     }
-  }, [token, fetchMedicines, fetchSuppliers]);
+  }, [token, fetchAllData]);
 
   const value = {
     loading,
     
-    // Medicine State & Functions
+    // Medicines
     medicines,
     fetchMedicines,
     getMedicineById,
     addMedicine,
     updateMedicine,
 
-    // Supplier State & Functions
+    // Suppliers
     suppliers,
     fetchSuppliers,
     getSupplierById,
     addSupplier,
     updateSupplier,
-    deleteSupplier
+    deleteSupplier,
+
+    // Purchase Orders
+    purchaseOrders,
+    fetchPurchaseOrders,
+    createPurchaseOrder,
+    updatePurchaseOrder,
+    deletePurchaseOrder,
+
+    // Prescriptions 
+    prescriptionQueue,
+    fetchPrescriptionQueue,
+    checkoutPrescription
   };
 
   return (

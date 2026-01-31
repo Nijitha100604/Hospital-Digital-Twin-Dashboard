@@ -10,10 +10,13 @@ import appointmentRouter from './routes/appointmentRoute.js';
 import medicineRouter from './routes/medicineRoute.js';
 import supplierRouter from './routes/supplierRoute.js';
 import shiftRouter from './routes/shiftRoute.js';
+import leaveRouter from './routes/leaveRoute.js';
+import attendanceRouter from './routes/attendanceRoute.js';
 import consultationRouter from './routes/consultationRoute.js';
 import labReportRouter from './routes/labRoute.js';
 import purchaseRouter from './routes/purchaseRoute.js';
 import deptRouter from './routes/departmentRoute.js';
+import prescriptionRouter from './routes/prescriptionRoute.js';
 
 // app config
 const app = express();
@@ -47,11 +50,18 @@ app.use('/api/reports', labReportRouter);
 //medicine routes
 app.use('/api/medicine', medicineRouter);
 app.use('/api/supplier', supplierRouter);
-app.use('/api/purchase', purchaseRouter)
+app.use('/api/purchase', purchaseRouter);
+app.use('/api/prescription', prescriptionRouter);
 
 // shift routes
 app.use('/api/staff', staffRouter);
 app.use('/api/shift', shiftRouter);
+
+//leave
+app.use('/api/leave', leaveRouter);
+
+//attendence
+app.use('/api/attendance', attendanceRouter);
 
 app.get('/',(req,res)=>{
     res.send('API WORKING');

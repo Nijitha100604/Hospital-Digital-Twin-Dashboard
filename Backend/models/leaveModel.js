@@ -43,11 +43,10 @@ const leaveSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Optional: Add a method to check if the leave dates are valid (e.g., fromDate <= toDate)
-leaveSchema.pre('save', function(next) {
+leaveSchema.pre('save', function() {
   if (this.fromDate > this.toDate) {
     next(new Error('From Date must be before or equal to To Date'));
   } else {
-    next();
   }
 });
 
