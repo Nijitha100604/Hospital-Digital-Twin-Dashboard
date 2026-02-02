@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useContext } from 'react';
 import { 
   FaExclamationCircle,
   FaArrowLeft, 
@@ -6,7 +7,7 @@ import {
   FaSave
 } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { DeptContext } from '../../context/DeptContext';
 
 function IssueReport() {
 
@@ -17,26 +18,29 @@ function IssueReport() {
   const [block, setBlock] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) =>{
+  const { createIssue } = useContext(DeptContext);
+
+  const handleSubmit = async(e) =>{
 
     e.preventDefault();
+    setLoading(true);
 
-    const formattedData = {
-      "Issue Type": issueType,
-      "Priority Level": priorityLevel,
-      "Location": location,
-      "Block": block,
-      "Description": description
+    const issueData = {
+      issueType,
+      priorityLevel,
+      location,
+      block,
+      description
     };
-    console.log(formattedData);
-    toast.success("Issue Reported !");
-    setIssueType("");
-    setPriorityLevel("");
-    setBlock("");
-    setLocation("");
-    setDescription("");
-    navigate('/issues-list');
+
+    const check = await createIssue(issueData);
+    setLoading(false);
+    if(check){
+      navigate('/issues-list');
+    }
+
   }
 
   const handleCancel = () =>{
@@ -53,6 +57,18 @@ function IssueReport() {
     <>
 
     <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
+
+    {loading && (
+        <div className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-white/40 backdrop-blur-md">
+          <div className="flex flex-col items-center gap-4 bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
+            <div className="w-14 h-14 border-4 border-gray-200 border-t-fuchsia-700 rounded-full animate-spin"></div>
+            <div className="text-center">
+              <p className="text-lg font-semibold text-gray-900">Adding Department...</p>
+              <p className="text-xs text-gray-500 mt-1">Uploading department details</p>
+            </div>
+          </div>
+        </div>
+    )}
 
     {/* Heading and Back button */}
     <div className="flex flex-wrap gap-4 justify-between items-center mb-4">

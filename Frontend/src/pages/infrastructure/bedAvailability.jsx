@@ -1,5 +1,4 @@
-import React, { useState } from 'react'
-import { departmentBedData } from '../../data/infrastructure';
+import React, { useState } from 'react';
 import {
   FaBed,
   FaMinusCircle,
@@ -10,18 +9,25 @@ import {
 import { MdOutlineBed } from "react-icons/md";
 import AvailableBedModal from '../../components/modals/AvailableBedModal';
 import OccupiedBedModal from '../../components/modals/OccupiedBedModal';
+import { useContext } from 'react';
+import { AppContext } from '../../context/AppContext';
+import { DeptContext } from '../../context/DeptContext';
+import { useEffect } from 'react';
 
 function BedAvailability() {
 
-  const totalBeds = departmentBedData.reduce(
+  const { token } = useContext(AppContext);
+  const { fetchBeds, beds, bedLoading } = useContext(DeptContext);
+
+  const totalBeds = beds?.reduce(
     (sum, dept) => sum + dept.beds.length, 0
   );
-  const occupiedBeds = departmentBedData.reduce(
+  const occupiedBeds = beds?.reduce(
     (sum, dept) => sum + dept.beds.filter(b => b.status === "Occupied").length, 0
   );
 
   const availableBeds = totalBeds - occupiedBeds;
-  const occupancyRate = totalBeds ? ((occupiedBeds / totalBeds) * 100).toFixed(1) : 0;
+  const occupancyRate = totalBeds ? ((occupiedBeds / totalBeds) * 100) : 0;
 
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -29,11 +35,11 @@ function BedAvailability() {
   const [modalType, setModalType] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  const filteredDepartments = departmentBedData
-    .map(dept => {
+  const filteredDepartments = beds
+    ?.map(dept => {
     const filteredBeds = dept.beds.filter(bed =>
       bed.bedId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      bed.type?.toLowerCase().includes(searchTerm.toLowerCase())
+      bed.bedType?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const deptMatch = dept.departmentName
@@ -45,6 +51,44 @@ function BedAvailability() {
       beds: deptMatch ? dept.beds : filteredBeds
     };
   }).filter(dept => dept.beds.length > 0);
+
+  const getBedStyle = (bedType, status) => {
+  if (status === "Occupied") {
+    return "bg-red-100 border-red-400 text-red-700";
+  }
+
+  switch (bedType) {
+    case "ICU":
+      return "bg-violet-100 border-violet-400 text-violet-700";
+    case "OT":
+      return "bg-amber-100 border-amber-500 text-amber-800";
+    case "General":
+    default:
+      return "bg-green-100 border-green-400 text-green-700";
+  }
+  };
+
+  useEffect(()=>{
+
+    if(token){
+      fetchBeds();
+    }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
+
+  if(bedLoading){
+    return(
+      <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
+      <div className="flex flex-col items-center justify-center h-75 gap-4">
+        <div className="w-12 h-12 border-4 border-gray-300 border-t-fuchsia-700 rounded-full animate-spin"></div>
+        <p className="text-gray-600 text-sm font-medium tracking-wide">
+          Fetching Beds...
+        </p>
+      </div>
+      </div>
+    )
+  };
 
 
   return (
@@ -107,6 +151,31 @@ function BedAvailability() {
 
     </div>
 
+    {/* Legend */}
+    <div className="flex flex-wrap gap-4 mt-3 mb-3 text-xs">
+  
+      <div className="flex items-center gap-2">
+        <span className="w-3 h-3 bg-green-500 rounded-sm"></span>
+        <p>General Bed</p>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <span className="w-3 h-3 bg-violet-500 rounded-sm"></span>
+        <p>ICU Bed</p>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <span className="w-3 h-3 bg-amber-500 rounded-sm"></span>
+        <p>OT Bed</p>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <span className="w-3 h-3 bg-red-500 rounded-sm"></span>
+        <p>Occupied</p>
+      </div>
+
+    </div>
+
     {/* Search button */}
     <div className="relative flex-1">
       <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none text-gray-500"/>
@@ -140,7 +209,7 @@ function BedAvailability() {
             {/* Header */}
             <div className="mb-4">
               <p className="text-lg font-semibold text-gray-800">{dept.departmentName}</p>
-              <p className="text-sm text-gray-500">{dept.floor}</p>
+              <p className="text-sm text-gray-500">{dept.floor} • {dept.block}</p>
             </div>
 
             {/* Bed Grid */}
@@ -162,16 +231,13 @@ function BedAvailability() {
                       setShowModal(true);
                     }}
 
-                    className={`flex flex-col items-center justify-center gap-1 p-3 rounded-lg border cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95
-                    ${ bed.status === "Available"
-                    ? "bg-green-50 border-green-400 text-green-600"
-                    : "bg-red-50 border-red-400 text-red-600"
-                    }`}
+                    className={`flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-md border cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95
+                    ${getBedStyle(bed.bedType, bed.status)}`}
                   >
                     <MdOutlineBed 
-                      size={24} 
+                      size={18} 
                     />
-                    <p className="text-xs">{bed.bedId}</p>
+                    <p className="text-[10px] font-medium">{bed.bedId}</p>
                   </div>
                 ))
               }
@@ -193,9 +259,9 @@ function BedAvailability() {
             </div>
 
             {/* Occupancy Rate */}
-            <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 text-center">
-              <p className="text-sm text-yellow-700">Occupancy</p>
-              <p className="text-lg font-bold text-yellow-800">
+            <div className="bg-gray-50 border border-gray-300 rounded-lg p-3 text-center">
+              <p className="text-sm text-gray-700">Occupancy</p>
+              <p className="text-lg font-bold text-gray-800">
                 {rate}%
               </p>
             </div>

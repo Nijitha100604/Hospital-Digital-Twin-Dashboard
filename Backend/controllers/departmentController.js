@@ -1,4 +1,9 @@
+import bedAvailabilityModel from "../models/bedAvailabilityModel.js";
 import departmentModel from "../models/departmentModel.js";
+
+// Dept code
+
+const getDeptCode = (deptName) => deptName.split(" ").map(w => w[0]).join("").toUpperCase();
 
 // Add department
 const addDepartment = async(req, res) =>{
@@ -23,6 +28,16 @@ const addDepartment = async(req, res) =>{
             oxygenSupply
         } = req.body;
 
+        const existingDept = await departmentModel.findOne({
+            deptName: deptName.trim(),
+            block: block.trim(),
+            floor: floor.trim()
+        });
+
+        if(existingDept){
+            return res.json({success: false, message: "Department already exists in this block and floor"})
+        }
+
         if( 
             !deptName ||
             !deptType ||
@@ -43,6 +58,7 @@ const addDepartment = async(req, res) =>{
         ){
             return res.json({success: false, message: "Missing Details"});
         }
+
 
         const deptData = {
             deptName, 
@@ -67,6 +83,27 @@ const addDepartment = async(req, res) =>{
 
         const newDept = new departmentModel(deptData);
         await newDept.save();
+
+        const deptCode = getDeptCode(deptName);
+        const bedsToInsert = [];
+        const createBeds = (count, type, code) => {
+            for (let i = 1; i <= count; i++) {
+                bedsToInsert.push({
+                    bedId: `${deptCode}-${code}-${i.toString().padStart(2, "0")}`,
+                    departmentId: newDept.deptId,
+                    departmentName: deptName,
+                    floor,
+                    bedType: type
+                });
+            }
+        };
+
+        createBeds(genBeds, "General", "GEN");
+        createBeds(icuBeds, "ICU", "ICU");
+        createBeds(otBeds, "OT", "OT");
+
+        await bedAvailabilityModel.insertMany(bedsToInsert);
+        
         res.json({success: true, message: "Department Added Successfully"});
 
     } catch(error){
@@ -122,9 +159,10 @@ const updateDeptStatus = async(req, res) =>{
     }
 }
 
+
 export {
     addDepartment,
     allDepartments,
     department,
-    updateDeptStatus
+    updateDeptStatus,
 }

@@ -27,22 +27,32 @@ const consultationSchema = new mongoose.Schema({
     ],
     admission:[
         {
-            admitted: { type: Boolean, default: false },
-            date: { type: Date, default: null },
-            block: { type: String, default: "" },
-            ward: { type: String, default: "" },
-            bedNumber: { type: String, default: "" },
-            numberOfDays: { type: Number, default: 0 },
-            dischargeRemarks: { type: String, default: "" },
-            dailyNotes: [{
-                date: {type: Date, default: ""},
-                note: {type: String, default: ""}
-            }],
-            finalVitals:{
-                bloodPressure: { type: String, default: ""},
-                heartRate: { type: String, default: "" }
+            request: {
+                requested: { type: Boolean, default: false },
+                requestDate: { type: Date, default: null },
+                requestStatus: { type: String, enum: ["Pending", "Assigned", "Cancelled"], default: "Pending"}
             },
-            patientInstructions: { type: [String], default: [] }
+            allocation:{
+                admitted: { type: Boolean, default: false },
+                admissionDate: { type: Date, default: null },
+                block: { type: String, default: "" },
+                department: { type: String, default: "" },
+                bedId: { type: String, default: "" }
+            },
+            dailyNotes: [{
+                date: { type: Date },
+                note: { type: String }
+            }],
+            discharge:{
+                dischargeDate: { type: Date, default: null },
+                dischargeRemarks: { type: String, default: "" },
+                numberOfDays: { type: Number, default: 0 },
+                finalVitals:{
+                    bloodPressure: { type: String, default: ""},
+                    heartRate: { type: String, default: "" }
+                },
+                patientInstructions: { type: [String], default: [] }
+            } 
         }
     ]
 

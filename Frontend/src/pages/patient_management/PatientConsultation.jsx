@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { FaCheckCircle, FaEye, FaInfoCircle, FaPlus, FaSave, FaTrash, FaUserMd } from 'react-icons/fa';
+import { FaEye, FaInfoCircle, FaPlus, FaSave, FaTrash, FaUserMd } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { PatientContext } from './../../context/PatientContext';
 import { AppContext } from '../../context/AppContext';
@@ -26,6 +26,7 @@ function PatientConsultation() {
     const [newLabReports, setNewLabReports] = useState([]);
     const [selectedMedicine, setSelectedMedicine] = useState(null);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [bedType, setBedType] = useState("");
 
     const { fetchPatients, consultations, fetchConsultations } = useContext(PatientContext);
     const { fetchMedicines, medicines } = useContext(MedicineContext);
@@ -274,7 +275,37 @@ function PatientConsultation() {
 
     }
 
-    
+    const handleRequestAdmission = async() =>{
+      if(!bedType){
+        toast.error("Select bed type");
+        return;
+      }
+
+      try {
+        const {data} = await axios.post(`${backendUrl}/api/consultation/request-admission`,{
+          consultationId: consultation.consultationId,
+          appointmentId: consultation.appointmentId,
+          patientId: consultation.patientId,
+          patientName: patient?.personal?.name,
+          doctorId: consultation.doctorId,
+          bedType
+        },
+        {headers: {token}}
+        );
+
+        if(data.success){
+          toast.success("Admission requested successfully");
+          setBedType("");
+          await fetchConsultations();
+        } else{
+          toast.error(data.message);
+        }
+
+      } catch (error) {
+        console.log(error);
+        toast.error("Internal Server Error");
+      }
+    }
 
     useEffect(()=>{
       const fetchConsultation = async() =>{
@@ -818,114 +849,138 @@ function PatientConsultation() {
         Admission Details
       </p>
 
-      {consultation?.admission?.length > 0 ? (
-        consultation.admission.map((item, index) => (
-        <div
-          key={index}
-          className="border border-gray-300 rounded-lg p-3 mb-4 bg-gray-50"
-        >
-        
-          <div className="flex justify-between items-center mb-3">
-            <p className="text-sm font-semibold text-fuchsia-800">
-              Admission #{index + 1}
-            </p>
-
-            <span
-              className={`text-xs px-2 py-1 rounded-md font-semibold text-white
-                ${item.admitted ? "bg-orange-600" : "bg-green-700"}`}
-            >
-              {item.admitted ? "Under Treatment" : "Discharged"}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3 mb-3">
-            <div>
-              <p className="text-xs text-gray-500">Block</p>
-              <p className="text-sm font-bold">{item.block || "-"}</p>
-            </div>
-
-            <div>
-              <p className="text-xs text-gray-500">Ward</p>
-              <p className="text-sm font-bold">{item.ward || "-"}</p>
-            </div>
-
-            <div>
-              <p className="text-xs text-gray-500">Bed No</p>
-              <p className="text-sm font-bold">{item.bedNumber || "-"}</p>
-            </div>
-          </div>
-
-          <p className="text-sm text-gray-700 mb-2">
-            Duration:
-            <span className="font-semibold ml-1">
-              {item.numberOfDays || 0}
-            </span>{" "}
-            day(s)
-          </p>
-
-          {/* Duration */}
-          <div className="mb-2">
-            <p className="text-sm font-medium text-gray-700">Daily Notes</p>
-
-            {item.dailyNotes?.length > 0 ? (
-              item.dailyNotes.map((note, i) => (
-                <p key={i} className="text-xs text-gray-800">
-                  {formatDate(note.date)} - {note.note}
-                </p>
-            ))
-            ) : (
-              <p className="text-xs text-gray-500">
-                No daily notes available
-              </p>
-            )}
-          </div>
-
-          {/* Final Vitals */}
-          <div className="mb-2">
-            <p className="text-sm font-medium text-gray-700">Final Vitals</p>
-
-              {item.finalVitals?.bloodPressure ||
-              item.finalVitals?.heartRate ? (
-                <>
-                  <p className="text-xs">
-                    BP: <b>{item.finalVitals.bloodPressure}</b>
-                  </p>
-                  <p className="text-xs">
-                    HR: <b>{item.finalVitals.heartRate}</b>
-                  </p>
-                </>
-              ) : (
-                <p className="text-xs text-gray-500">
-                  No final vitals recorded
-                </p>
-              )}
-          </div>
-
-          {/* Patient Instructions */}
+      {
+        appointment?.status !== "Completed" && (
           <div>
-            <p className="text-sm font-medium text-gray-700">
-              Patient Instructions
-            </p>
+            <p className="text-sm font-semibold text-gray-700 mb-3">Request Admission</p>
+            <div className="flex flex-wrap items-center gap-3">
 
-            {item.patientInstructions?.length > 0 ? (
-            item.patientInstructions.map((ins, i) => (
-              <p key={i} className="text-xs">
-                • {ins}
-              </p>
-            ))
-            ) : (
-            <p className="text-xs text-gray-500">
-              No instructions provided
-            </p>
-            )}
+              <div className="flex gap-3 items-center">
+                <label className="text-sm font-medium text-gray-700">Bed Type <span className="text-red-600">*</span></label>
+                <select
+                  value = {bedType}
+                  onChange={(e)=>setBedType(e.target.value)}
+                  className = {`w-xs bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${bedType === "" ? "text-gray-500" : "text-gray-900"}`}
+                >
+                  <option value="">Select</option>
+                  <option value="General">General</option>
+                  <option value="ICU">ICU</option>
+                  <option value="OT">OT</option>
+                </select>
+              </div>
+
+              <button
+                onClick={handleRequestAdmission}
+                className="text-sm px-3 py-2 bg-fuchsia-700 text-white rounded-md cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
+              >
+                Request Admission
+              </button>
+            </div>
           </div>
-        </div>
-      ))
-    ) : (
-    <p className="text-sm text-gray-500 text-center">
-      No admission details available
-    </p>
-    )}
+        )
+      }
+
+      {
+        consultation?.admission?.length > 0 ? (
+          consultation.admission.map((item, index)=>{
+            const isRequested = item.request?.requested && item.request?.requestStatus === "Pending";
+            const isAdmitted = item.allocation?.admitted && !item.discharge?.dischargeDate;
+            const isDischarged = !!item.discharge?.dischargeDate;
+
+            return (
+              <div
+                key={index}
+                className="border border-gray-300 rounded-lg mb-4 mt-5 pb-3 bg-gray-50" 
+              >
+                <div className="flex justify-between items-center p-3">
+                  <p className="text-sm font-semibold text-fuchsia-800">Admission #{index+1}</p>
+                  <span className={`text-xs px-2 py-1 rounded-md font-semibold text-white ${ isRequested ? "bg-blue-600" : isAdmitted ? "bg-orange-600" : "bg-green-700" }`}>
+                    {isRequested
+                      ? "Requested"
+                      : isAdmitted
+                      ? "Admitted"
+                      : "Discharged"}
+                  </span>
+                </div>
+
+                {
+                  isRequested && (
+                    <p className="text-sm text-gray-700 px-3">Requested on <span className="font-semibold">{formatDate(item.request.requestDate)}</span></p>
+                  )
+                }
+
+                {
+                  (isAdmitted || isDischarged) && (
+                    <div className="grid grid-cols-3 gap-3 mb-3">
+                      <div>
+                        <p className="text-xs text-gray-500">Block</p>
+                        <p className="text-sm font-bold">{item.allocation.block || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Department</p>
+                        <p className="text-sm font-bold">{item.allocation.department || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Bed ID</p>
+                        <p className="text-sm font-bold">{item.allocation.bedId || "-"}</p>
+                      </div>
+                    </div>
+                  )
+                }
+
+                {
+                  isAdmitted && (
+                    <div className="mb-2">
+                      <p className="text-sm font-medium text-gray-700">Daily Notes</p>
+                      {
+                        item.dailyNotes?.length > 0 ? (
+                          item.dailyNotes.map((note, i)=>(
+                            <p key={i}>{formatDate(note.date)} - {note.note}</p>
+                          ))
+                        ) : (
+                          <p className="text-xs text-gray-500">No daily notes available</p>
+                        )
+                      }
+                    </div>
+                  )
+                }
+
+                {
+                  isDischarged && (
+                    <>
+                      <p className="text-sm text-gray-700 mb-1">Duration: <span className="font-semibold ml-1">{item.discharge.numberOfDays}</span>day(s) </p>
+                      <div className="mb-2">
+                        <p className="text-sm font-medium text-gray-700">Final Vitals</p>
+                        <p className="text-xs">BP: <b>{item.discharge.finalVitals?.bloodPressure || "-"}</b></p>
+                        <p className="text-xs">HR: <b>{item.discharge.finalVitals?.heartRate || "-"}</b></p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Patient Instructions</p>
+                        {item.discharge.patientInstructions?.length > 0 ? (
+                          item.discharge.patientInstructions.map((ins, i) => (
+                          <p key={i} className="text-xs">
+                            • {ins}
+                          </p>
+                          ))
+                        ) : (
+                          <p className="text-xs text-gray-500">
+                            No instructions provided
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  )
+                }
+              </div>
+            )
+          })
+        ) : (
+          <p className="text-sm text-gray-500 text-center mt-4">
+            No admission details available
+          </p>
+        )
+      }
+      
     </div>
 
 

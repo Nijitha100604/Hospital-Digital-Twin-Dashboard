@@ -10,26 +10,35 @@ import {
   FaSearch,
   FaFilter,
   FaTimes,
-  FaMapMarkerAlt
+  FaMapMarkerAlt,
+  FaAngleDoubleLeft,
+  FaAngleDoubleRight
 } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
-import { infrastructureIssues } from '../../data/infrastructure';
+import { useContext } from 'react';
+import { DeptContext } from '../../context/DeptContext';
+import { useEffect } from 'react';
+import { AppContext } from '../../context/AppContext';
+import { formatDate } from './../../utils/formatDate';
 
 function IssuesList() {
 
   const navigate = useNavigate();
 
-  const totalIssues = infrastructureIssues.length;
-  const completed = infrastructureIssues.filter(
+  const { token } = useContext(AppContext);
+  const { fetchIssues, issues, issueLoading, updateIssueStatus } = useContext(DeptContext);
+
+  const totalIssues = issues?.length;
+  const completed = issues?.filter(
     item => item.status === "Resolved"
   ).length;
-  const pending = infrastructureIssues.filter(
+  const pending = issues?.filter(
     item => item.status === "Pending"
   ).length;
-  const inProgress = infrastructureIssues.filter(
+  const inProgress = issues?.filter(
     item => item.status === "In Progress"
   ).length;
-  const onHold = infrastructureIssues.filter(
+  const onHold = issues?.filter(
     item => item.status === "On Hold"
   ).length;
 
@@ -43,8 +52,6 @@ function IssuesList() {
       priority: null
   })
 
-  // eslint-disable-next-line no-unused-vars
-  const isActive = (name) => openFilter === name;
 
   const handleFilterSelect = (type, value) =>{
     setFilters((prev)=>(
@@ -57,7 +64,7 @@ function IssuesList() {
     setOpenFilter(null)
   }
 
-  const filteredData = infrastructureIssues.filter((item)=>{
+  const filteredData = issues?.filter((item)=>{
               
     const searchMatch = searchTerm.trim() === "" || item.issueType?.toLowerCase().includes(searchTerm.toLowerCase());
     const statusMatch = !filters.status || item.status === filters.status;
@@ -97,7 +104,7 @@ function IssuesList() {
       return "bg-gray-500 border border-gray-700 text-white";
 
     case "in progress":
-      return "bg-purple-600 border border-purple-700 text-white";
+      return "bg-blue-600 border border-blue-700 text-white";
 
     case "on hold":
       return "bg-amber-600 border border-amber-800 text-white";
@@ -116,9 +123,37 @@ function IssuesList() {
 
   const [activeStatusIssue, setActiveStatusIssue] = useState(null);
 
-  const handleStatusUpdate = (issueId, newStatus) => {
-    console.log(`Issue ${issueId} updated to ${newStatus}`);
-    setActiveStatusIssue(null);
+  const handleStatusUpdate = async(issueId, newStatus) => {
+    const updateData = {
+      id: issueId,
+      status: newStatus
+    }
+    const check = await updateIssueStatus(updateData);
+    if (check) {
+      setActiveStatusIssue(null);
+    }
+  };
+
+  useEffect(()=>{
+
+    if(token){
+      fetchIssues();
+    }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
+
+  if(issueLoading){
+    return(
+      <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
+      <div className="flex flex-col items-center justify-center h-75 gap-4">
+        <div className="w-12 h-12 border-4 border-gray-300 border-t-fuchsia-700 rounded-full animate-spin"></div>
+        <p className="text-gray-600 text-sm font-medium tracking-wide">
+          Fetching Issues...
+        </p>
+      </div>
+      </div>
+    )
   };
 
 
@@ -345,40 +380,44 @@ function IssuesList() {
               <div className="w-full flex flex-wrap justify-between items-center gap-4 px-3 border-b border-gray-400 pb-3">
                 
                 <div className="flex flex-col gap-2 items-start">
-                  <p className="text-gray-900 font-semibold">{item.issueType}</p>
+                  <p className="text-gray-900 font-semibold">{item?.issueType}</p>
                   <div className="flex gap-2 items-center">
                     <FaMapMarkerAlt 
                       size={16}
                       className="text-gray-800"
                     />
-                    <p className="text-sm text-gray-800 font-medium">{item.location}</p>
+                    <p className="text-sm text-gray-800 font-medium">{item?.location}</p>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-1 items-start">
                   <p className="text-sm text-gray-700">Reported By</p>
-                  <p className="text-gray-900 font-semibold text-sm">{item.reportedBy}</p>
+                  <p className="text-gray-900 font-semibold text-sm">{item?.reportedBy}</p>
                 </div>
 
                 <div className="flex flex-col gap-1 items-start">
                   <p className="text-sm text-gray-700">Reported Date</p>
-                  <p className="text-gray-900 font-semibold text-sm">{item.reportedDate}</p>
+                  <p className="text-gray-900 font-semibold text-sm">{formatDate(item?.createdAt)}</p>
                 </div>
 
                 <div className="flex flex-col gap-1 items-start">
                   <p className="text-sm text-gray-700">Status</p>
-                  <p className={`text-sm px-3 py-1 rounded-lg ${getStatusClass(item.status)}`}>{item.status}</p>
+                  <p className={`text-sm px-3 py-1 rounded-lg ${getStatusClass(item?.status)}`}>{item?.status}</p>
                 </div>
 
                 <div className="flex flex-col gap-1 items-start">
                   <p className="text-sm text-gray-700">Priority Level</p>
-                  <p className={`text-sm font-bold ${getStatusClass(item.priorityLevel)}`}>{item.priorityLevel}</p>
+                  <p className={`text-sm font-bold ${getStatusClass(item.priorityLevel)}`}>{item?.priorityLevel}</p>
                 </div>
 
               </div>
 
               <div className="w-full px-3 flex justify-between flex-wrap items-center mb-1 mt-2">
-                <p className="text-sm font-medium text-gray-700">{item.issueDescription}</p>
+
+                <div className="flex gap-2 items-center">
+                  <p className="text-sm px-2 py-1 bg-cyan-200 text-gray-900 rounded-md">{item?.block}</p>
+                  <p className="text-sm font-medium text-gray-700">{item?.description}</p>
+                </div>
 
                 
                 {
@@ -426,28 +465,35 @@ function IssuesList() {
 
 
     {/* Bottom */}
-    <div className="flex justify-end gap-2 mt-4">
+    <div className="flex justify-between items-center mt-4">
+        
+      <div className="text-gray-600 text-sm">
+        Showing {paginatedData.length} of {filteredData.length} records
+      </div>
+        
+      <div className="flex gap-2 items-center">
         <button 
           disabled={currentPage === 1}
-          className="px-3 py-1 text-sm border rounded disabled:opacity-50 cursor-pointer" 
+          className="px-2 py-2 text-sm text-fuchsia-800 border rounded-full disabled:opacity-50 cursor-pointer" 
           onClick={()=>setCurrentPage((p)=>p-1)}
         >
-          Prev
+          <FaAngleDoubleLeft size={18}/>
         </button>
-
+        
         <span className = "text-sm px-2 py-1">
           Page {currentPage} of {totalPages}
         </span>
-
+        
         <button 
           disabled={currentPage === totalPages}
-          className="px-3 py-1 text-sm border rounded disabled:opacity-50 cursor-pointer" 
+          className="px-2 py-2 text-sm text-fuchsia-800 border rounded-full disabled:opacity-50 cursor-pointer" 
           onClick={()=>setCurrentPage((p)=>p+1)}
         >
-          Next
+          <FaAngleDoubleRight size={18}/>
         </button>
-
       </div>
+        
+    </div>
 
     </div>
 

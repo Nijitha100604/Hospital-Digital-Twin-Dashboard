@@ -11,7 +11,11 @@ const DeptContextProvider = (props) => {
 
     const { backendUrl, token } = useContext(AppContext);
     const [ departments, setDepartments ] = useState([]);
+    const [ issues, setIssues ] = useState([]);
+    const [ issueLoading, setIssueLoading ] = useState(false);
     const [ loading, setLoading ] = useState(false);
+    const [ beds, setBeds ] = useState([]);
+    const [ bedLoading, setBedLoading ] = useState(false);
 
     // add department
     const addDepartment = async(formData) =>{
@@ -110,13 +114,124 @@ const DeptContextProvider = (props) => {
         }
     }
 
+    // Create Issue
+    const createIssue = async(issueData) =>{
+        if(!token) return;
+
+        try{
+            const {data} = await axios.post(
+                `${backendUrl}/api/issue/create-issue`,
+                issueData,
+                {headers: {token}}
+            );
+            if(data.success){
+                toast.success(data.message);
+                return true;
+            } else{
+                toast.error(data.message);
+                return false;
+            }
+        }catch(error){
+            console.log(error);
+            toast.error("Internal Server Error");
+            return false;
+        }
+    }
+
+    // all issues
+    const fetchIssues = async() =>{
+
+        if(!token) return;
+        setIssueLoading(true);
+
+        try{
+            const {data} = await axios.get(
+                `${backendUrl}/api/issue/all-issues`,
+                {headers: {token}}
+            );
+            if(data.success){
+                setIssues(data.data);
+            }else{
+                toast.error(data.message);
+            }
+        }catch(error){
+            console.log(error);
+            toast.error("Internal Server Error");
+        }finally{
+            setIssueLoading(false);
+        }
+    }
+
+    // update issue status
+    const updateIssueStatus = async(updateData) =>{
+
+        if(!token) return;
+
+        try{
+
+            const {data} = await axios.put(
+                `${backendUrl}/api/issue/update-status`,
+                updateData,
+                {headers: {token}}
+            );
+            if(data.success){
+                toast.success(data.message);
+                await fetchIssues();
+                return true;
+            } else{
+                toast.error(data.message);
+                return false;
+            }
+
+        }catch(error){
+            console.log(error);
+            return toast.error("Internal Server Error");
+        }
+
+    }
+
+    // all beds
+    const fetchBeds = async() =>{
+
+        if(!token) return;
+        setBedLoading(true);
+
+        try{
+
+            const {data} = await axios.get(
+                `${backendUrl}/api/bed/all-beds`, 
+                {headers: {token}}
+            );
+            if(data.success){
+                setBeds(data.data);
+            }else{
+                toast.error(data.message);
+            }
+
+        } catch(error){
+            console.log(error);
+            return toast.error("Internal Server Error");
+        } finally{
+            setBedLoading(false);
+        }
+
+    }
+
     const value = {
         addDepartment,
         fetchDepartments,
         departments,
         loading,
         getDepartment,
-        updateStatus
+        updateStatus,
+        createIssue,
+        fetchIssues,
+        issues,
+        issueLoading,
+        updateIssueStatus,
+        fetchBeds,
+        beds,
+        bedLoading
     }
 
     return(

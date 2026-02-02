@@ -17,7 +17,12 @@ const appointmentSchema = new mongoose.Schema({
     date: { type: String, required: true},
     timeSlot: { type: String, required: true},
     remarks: { type: String, required: true},
-    status: { type: String, default: "Scheduled" }
+    status: { type: String, default: "Scheduled" },
+    admissionStatus: {
+        type: String,
+        enum: ["Not Required", "Requested", "Admitted", "Discharged"],
+        default: "Not Required"
+    }
 
 }, { timestamps: true });
 

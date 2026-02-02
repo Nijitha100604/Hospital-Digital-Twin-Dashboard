@@ -4,7 +4,7 @@ import {
     addDepartment, 
     allDepartments, 
     department,
-    updateDeptStatus 
+    updateDeptStatus,
 } from '../controllers/departmentController.js';
 
 const deptRouter = express.Router();

@@ -7,12 +7,15 @@ const bedAvailabilitySchema = new mongoose.Schema({
     departmentName: { type: String, required: true },
     floor: { type: String, required: true },
     bedType: { type: String, enum: ["ICU", "OT", "General"], required: true },
-    status: { type: String, default: "Available" },
+    status: { type: String, enum: ["Available", "Occupied"], default: "Available" },
     occupiedDetails: {
         patientId: { type: String, default: "" },
         patientName: { type: String, default: "" },
         admittedDate: { type: Date },
-        consultationId: { type: String, default: "" }
+        admissionId: { type: String, default: "" },
+        consultationId: { type: String, default: "" },
+        doctorId: { type: String, default: "" },
+        bedRequestId: { type: String, default: "" }
     },
 
 }, { timestamps: true })

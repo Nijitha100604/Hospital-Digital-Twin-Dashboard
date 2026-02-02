@@ -17,6 +17,8 @@ import labReportRouter from './routes/labRoute.js';
 import purchaseRouter from './routes/purchaseRoute.js';
 import deptRouter from './routes/departmentRoute.js';
 import prescriptionRouter from './routes/prescriptionRoute.js';
+import issueRouter from './routes/issueRoute.js';
+import bedRouter from './routes/bedRoute.js';
 
 // app config
 const app = express();
@@ -43,6 +45,10 @@ app.use('/api/consultation', consultationRouter);
 
 // departments routes
 app.use('/api/dept', deptRouter);
+app.use('/api/issue', issueRouter);
+
+// bed routes
+app.use('/api/bed', bedRouter);
 
 // laboratory routes
 app.use('/api/reports', labReportRouter);
