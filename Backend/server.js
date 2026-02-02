@@ -19,6 +19,7 @@ import deptRouter from './routes/departmentRoute.js';
 import prescriptionRouter from './routes/prescriptionRoute.js';
 import issueRouter from './routes/issueRoute.js';
 import bedRouter from './routes/bedRoute.js';
+import equipmentRouter from './routes/equipmentRoute.js';
 
 // app config
 const app = express();
@@ -58,6 +59,9 @@ app.use('/api/medicine', medicineRouter);
 app.use('/api/supplier', supplierRouter);
 app.use('/api/purchase', purchaseRouter);
 app.use('/api/prescription', prescriptionRouter);
+
+//equipment routes
+app.use('/api/equipment', equipmentRouter);
 
 // shift routes
 app.use('/api/staff', staffRouter);

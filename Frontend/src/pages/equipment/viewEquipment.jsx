@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { equipment_records } from "../../data/equipment";
+import { EquipmentContext } from "../../context/EquipmentContext";
+import Loading from "../Loading";
 import { assets } from "../../assets/assets";
 
 import {
@@ -24,7 +25,21 @@ const ViewEquipmentDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const equipment = equipment_records.find((e) => e.equipmentId === id);
+  const { getEquipmentById } = useContext(EquipmentContext);
+  const [equipment, setEquipment] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDetails = async () => {
+      setLoading(true);
+      const data = await getEquipmentById(id);
+      setEquipment(data);
+      setLoading(false);
+    };
+    fetchDetails();
+  }, [id, getEquipmentById]);
+
+  if (loading) return <Loading />;
 
   if (!equipment) {
     return (
@@ -45,7 +60,13 @@ const ViewEquipmentDetails = () => {
     );
   }
 
-  // Helper for status colors
+  const {
+    basicInfo,
+    technicalSpecifications,
+    serviceSchedule,
+    purchaseInfo,
+    supplier,
+  } = equipment;
   const getStatusColor = (status) => {
     switch (status) {
       case "Working":
@@ -82,14 +103,14 @@ const ViewEquipmentDetails = () => {
               <FaMicroscope className="text-xl" />
             </div>
             <h1 className="font-bold text-2xl text-gray-800">
-              {equipment.equipmentName}
+              {basicInfo?.equipmentName}
             </h1>
             <span className="px-2.5 py-0.5 rounded-full bg-gray-100 border border-gray-200 text-gray-600 text-xs font-bold uppercase tracking-wide">
               {equipment.equipmentId}
             </span>
           </div>
           <p className="text-sm text-gray-500 mt-1 ml-12">
-            Complete information about {equipment.modelName}
+            Complete information about {basicInfo?.modelName}
           </p>
         </div>
 
@@ -120,38 +141,43 @@ const ViewEquipmentDetails = () => {
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
             <div className="bg-gray-50 rounded-lg p-6 mb-4 flex items-center justify-center border border-gray-100">
               <img
-                src={assets[equipment.equipmentImage]}
-                alt={equipment.equipmentName}
+                src={
+                  equipment.equipmentImage ||
+                  "https://via.placeholder.com/300?text=No+Image"
+                }
+                alt={basicInfo?.equipmentName}
+                crossOrigin="anonymous"
+                referrerPolicy="no-referrer"
                 className="w-full h-64 object-contain mix-blend-multiply hover:scale-105 transition-transform duration-300"
               />
             </div>
 
             <div className="flex flex-col gap-1 mb-4">
               <h3 className="text-xl font-bold text-gray-800">
-                {equipment.equipmentName}
+                {basicInfo?.equipmentName}
               </h3>
               <p className="text-sm text-gray-500 font-medium">
-                {equipment.modelName}
+                {basicInfo?.modelName}
               </p>
             </div>
 
             <div className="flex flex-wrap gap-2 mb-6">
               <span
                 className={`px-3 py-1 border text-xs font-bold rounded-full flex items-center ${getStatusColor(
-                  equipment.equipmentStatus
+                  basicInfo?.equipmentStatus,
                 )}`}
               >
-                {getStatusIcon(equipment.equipmentStatus)}
-                {equipment.equipmentStatus}
+                {getStatusIcon(basicInfo?.equipmentStatus)}
+                {basicInfo?.equipmentStatus}
               </span>
               <span className="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold rounded-full">
-                {equipment.category}
+                {basicInfo?.category}
               </span>
             </div>
 
             <div className="pt-4 border-t border-gray-100">
               <p className="text-sm text-gray-600 leading-relaxed">
-                {equipment.description}
+                {equipment.description || "No description available."}
               </p>
             </div>
           </div>
@@ -166,19 +192,19 @@ const ViewEquipmentDetails = () => {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-500">Last Service</span>
                 <span className="text-sm font-bold text-gray-800">
-                  {equipment.lastService}
+                  {serviceSchedule?.lastService || "N/A"}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-500">Next Due</span>
                 <span className="text-sm font-bold text-gray-800">
-                  {equipment.nextService}
+                  {serviceSchedule?.nextService || "N/A"}
                 </span>
               </div>
 
               <div className="pt-2">
                 <div className="w-full bg-fuchsia-900 text-white text-center py-2 rounded-lg text-sm font-medium shadow-sm">
-                  {equipment.equipmentStatus === "Working"
+                  {basicInfo?.equipmentStatus === "Working"
                     ? "Scheduled Device"
                     : "Check Schedule"}
                 </div>
@@ -192,23 +218,35 @@ const ViewEquipmentDetails = () => {
           {/* Basic Information */}
           <InfoCard title="Basic Information" icon={<FaInfoCircle />}>
             <InfoRow label="Equipment ID" value={equipment.equipmentId} />
-            <InfoRow label="Serial Number" value={equipment.serialNumber} />
-            <InfoRow label="Model" value={equipment.modelName} />
-            <InfoRow label="Manufacturer" value={equipment.manufacturer} />
-            <InfoRow label="Category" value={equipment.category} />
-            <InfoRow label="Department" value={equipment.department} />
-            <InfoRow label="Location" value={equipment.location} fullWidth />
+            <InfoRow label="Serial Number" value={basicInfo?.serialNumber} />
+            <InfoRow label="Model" value={basicInfo?.modelName} />
+            <InfoRow label="Manufacturer" value={basicInfo?.manufacturer} />
+            <InfoRow label="Category" value={basicInfo?.category} />
+            <InfoRow label="Department" value={basicInfo?.department} />
+            <InfoRow label="Location" value={basicInfo?.location} fullWidth />
           </InfoCard>
 
           {/* Technical Specifications */}
           <InfoCard title="Technical Specifications" icon={<FaCogs />}>
-            <InfoRow label="Field Strength" value={equipment.fieldStrength} />
-            <InfoRow label="Bore Size" value={equipment.boreSize} />
-            <InfoRow label="Max Gradient" value={equipment.maxGradient} />
-            <InfoRow label="Slew Rate" value={equipment.slewRate} />
+            <InfoRow
+              label="Field Strength"
+              value={technicalSpecifications?.fieldStrength}
+            />
+            <InfoRow
+              label="Bore Size"
+              value={technicalSpecifications?.boreSize}
+            />
+            <InfoRow
+              label="Max Gradient"
+              value={technicalSpecifications?.maxGradient}
+            />
+            <InfoRow
+              label="Slew Rate"
+              value={technicalSpecifications?.slewRate}
+            />
             <InfoRow
               label="Power Requirement"
-              value={equipment.powerRequirement}
+              value={technicalSpecifications?.powerRequirement}
               fullWidth
             />
           </InfoCard>
@@ -221,34 +259,34 @@ const ViewEquipmentDetails = () => {
             <IconRow
               icon={<FaCalendarAlt className="text-purple-600" />}
               label="Installation Date"
-              value={equipment.installationDate}
+              value={purchaseInfo?.installationDate}
               bgColor="bg-purple-50"
             />
             <IconRow
               icon={<FaRupeeSign className="text-emerald-600" />}
               label="Purchase Cost"
-              value={equipment.purchaseCost}
+              value={purchaseInfo?.purchaseCost}
               bgColor="bg-emerald-50"
             />
             <IconRow
               icon={<FaClock className="text-blue-600" />}
               label="Warranty Period"
-              value={equipment.warrantyPeriod}
+              value={purchaseInfo?.warrantyPeriod}
               bgColor="bg-blue-50"
             />
             <IconRow
               icon={<FaCalendarAlt className="text-orange-600" />}
               label="Warranty Expiry"
-              value={equipment.warrantyExpiry}
+              value={purchaseInfo?.warrantyExpiry}
               bgColor="bg-orange-50"
             />
           </InfoCard>
 
           {/* Supplier Information */}
           <InfoCard title="Supplier Information" icon={<FaTruck />}>
-            <InfoRow label="Supplier Name" value={equipment.supplierName} />
-            <InfoRow label="Contact Number" value={equipment.contactNumber} />
-            <InfoRow label="Email ID" value={equipment.emailId} fullWidth />
+            <InfoRow label="Supplier Name" value={supplier?.supplierName} />
+            <InfoRow label="Contact Number" value={supplier?.contactNumber} />
+            <InfoRow label="Email ID" value={supplier?.emailId} fullWidth />
           </InfoCard>
         </div>
       </div>
@@ -280,10 +318,10 @@ const InfoRow = ({ label, value, fullWidth }) => (
       {label}
     </p>
     <p className="text-sm font-semibold text-gray-700 wrap-break">
-      {value === "N/A" ? (
+      {value === "N/A" || !value ? (
         <span className="text-gray-400 italic">N/A</span>
       ) : (
-        value || "N/A"
+        value
       )}
     </p>
   </div>
@@ -296,7 +334,9 @@ const IconRow = ({ icon, label, value, bgColor }) => (
       <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
         {label}
       </p>
-      <p className="text-base font-bold text-gray-800">{value}</p>
+      <p className="text-base font-bold text-gray-800">
+        {value || <span className="text-gray-400 italic font-normal">N/A</span>}
+      </p>
     </div>
   </div>
 );

@@ -13,28 +13,18 @@ import {
 const medicineRouter = express.Router();
 
 // Add New Medicine
-medicineRouter.post(
-  "/add-medicine", authUser, upload.single("medicineImage"), addMedicine,
-);
+medicineRouter.post("/add-medicine", authUser, upload.single("medicineImage"), addMedicine,);
 
 // Get All Medicine
-medicineRouter.get(
-    "/all-medicines", authUser, getAllMedicines
-);
+medicineRouter.get("/all-medicines", authUser, getAllMedicines);
 
 // Get Medicine by Id
-medicineRouter.get(
-    "/medicine/:id", authUser, getMedicineById
-);
+medicineRouter.get("/medicine/:id", authUser, getMedicineById);
 
 // Update Medicine
-medicineRouter.put(
-    "/update/:id", authUser, upload.single("medicineImage"),updateMedicine,
-);
+medicineRouter.put("/update/:id", authUser, upload.single("medicineImage"),updateMedicine,);
 
 // Delete Medicine
-medicineRouter.delete(
-    "/delete/:id", authUser, deleteMedicine
-);
+medicineRouter.delete("/delete/:id", authUser, deleteMedicine);
 
 export default medicineRouter;

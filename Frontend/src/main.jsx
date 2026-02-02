@@ -8,19 +8,22 @@ import MedicineContextProvider from "./context/MedicineContext.jsx";
 import StaffContextProvider from "./context/StaffContext.jsx";
 import LabContextProvider from "./context/LabContext.jsx";
 import DeptContextProvider from "./context/DeptContext.jsx";
+import EquipmentContextProvider from "./context/EquipmentContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <AppContextProvider>
       <StaffContextProvider>
         <DeptContextProvider>
-            <LabContextProvider>
+          <LabContextProvider>
+            <EquipmentContextProvider>
               <MedicineContextProvider>
                 <PatientContextProvider>
                   <App />
                 </PatientContextProvider>
               </MedicineContextProvider>
-            </LabContextProvider>
+            </EquipmentContextProvider>
+          </LabContextProvider>
         </DeptContextProvider>
       </StaffContextProvider>
     </AppContextProvider>

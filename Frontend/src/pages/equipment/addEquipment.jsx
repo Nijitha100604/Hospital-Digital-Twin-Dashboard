@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useContext } from "react";
 import {
   FaPlusCircle,
   FaUpload,
@@ -14,11 +14,15 @@ import {
   FaCogs,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { EquipmentContext } from "../../context/EquipmentContext"; 
 
 const AddEquipment = () => {
   const navigate = useNavigate();
   const fileRef = useRef(null);
+
+  const { addEquipment } = useContext(EquipmentContext);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   /* ---------- Basic Info ---------- */
   const [equipmentName, setEquipmentName] = useState("");
@@ -52,30 +56,81 @@ const AddEquipment = () => {
 
   /* ---------- Additional ---------- */
   const [description, setDescription] = useState("");
+  
+  // Image State
   const [imageName, setImageName] = useState("");
+  const [imageFile, setImageFile] = useState(null);
 
   /* ---------- Handlers ---------- */
   const handleImageChange = (e) => {
     if (e.target.files[0]) {
       setImageName(e.target.files[0].name);
+      setImageFile(e.target.files[0]); 
     }
   };
 
   const removeImage = (e) => {
     e.stopPropagation();
     setImageName("");
+    setImageFile(null);
     fileRef.current.value = null;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    toast.success("New equipment added successfully");
-    navigate("/equipment-list");
+    setIsSubmitting(true);
+
+    const formData = new FormData();
+
+    // Basic Info
+    formData.append("equipmentName", equipmentName);
+    formData.append("modelName", modelName);
+    formData.append("serialNumber", serialNumber);
+    formData.append("manufacturer", manufacturer);
+    formData.append("category", category);
+    formData.append("department", department);
+    formData.append("location", location);
+    formData.append("equipmentStatus", equipmentStatus);
+
+    // Technical
+    formData.append("powerRequirement", powerRequirement);
+    formData.append("fieldStrength", fieldStrength);
+    formData.append("boreSize", boreSize);
+
+    // Service
+    formData.append("lastService", lastService);
+    formData.append("nextService", nextService);
+
+    // Purchase
+    formData.append("installationDate", installationDate);
+    formData.append("purchaseCost", purchaseCost);
+    formData.append("warrantyPeriod", warrantyPeriod);
+    formData.append("warrantyExpiry", warrantyExpiry);
+
+    // Supplier
+    formData.append("supplierName", supplierName);
+    formData.append("contactNumber", contactNumber);
+    formData.append("emailId", emailId);
+
+    formData.append("description", description);
+
+    // Image
+    if (imageFile) {
+      formData.append("equipmentImage", imageFile);
+    }
+
+    const success = await addEquipment(formData);
+
+    if (success) {
+      navigate("/equipment-list"); 
+    } else {
+      setIsSubmitting(false); 
+    }
   };
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen">
-      {/* Header (Matches AddNewMedicine Style) */}
+      {/* Header */}
       <div className="bg-white p-6 rounded-xl mb-6 flex flex-col md:flex-row justify-between items-center border border-gray-200 shadow-sm">
         <div className="mb-4 md:mb-0 w-full md:w-auto">
           <div className="flex gap-3 items-center">
@@ -91,6 +146,7 @@ const AddEquipment = () => {
 
         <div className="w-full md:w-auto">
           <button
+            type="button"
             onClick={() => navigate(-1)}
             className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto cursor-pointer"
           >
@@ -148,6 +204,7 @@ const AddEquipment = () => {
                   "Emergency",
                   "Sterilization",
                   "Laboratory",
+                  "Therapeutic"
                 ]}
               />
               <Select
@@ -156,12 +213,20 @@ const AddEquipment = () => {
                 value={department}
                 onChange={setDepartment}
                 options={[
+                  "General",
                   "Radiology",
                   "Cardiology",
                   "ICU",
                   "Emergency",
                   "Operation Theatre",
                   "CSSD",
+                  "Dermatology",
+                  "Orthopedics",
+                  "Laboratory Services",
+                  "Gynecology",
+                  "Neurology",
+                  "Nephrology",
+                  "Pediatrics",
                 ]}
               />
               <Input
@@ -354,11 +419,12 @@ const AddEquipment = () => {
           </div>
         </div>
 
-        {/* Actions (Bottom Right - Matches AddNewMedicine) */}
+        {/* Actions (Bottom Right) */}
         <div className="flex justify-end gap-4 mt-6">
           <button
             type="button"
             onClick={() => navigate(-1)}
+            disabled={isSubmitting}
             className="flex items-center cursor-pointer gap-2 bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors"
           >
             <FaTimes /> Cancel
@@ -366,9 +432,12 @@ const AddEquipment = () => {
 
           <button
             type="submit"
-            className="flex items-center cursor-pointer gap-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-4 py-2 rounded-md transition-colors"
+            disabled={isSubmitting}
+            className={`flex items-center cursor-pointer gap-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-4 py-2 rounded-md transition-colors ${
+              isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+            }`}
           >
-            <FaSave /> Save Equipment
+            <FaSave /> {isSubmitting ? "Saving..." : "Save Equipment"}
           </button>
         </div>
       </form>

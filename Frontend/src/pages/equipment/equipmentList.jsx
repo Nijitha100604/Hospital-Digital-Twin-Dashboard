@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { assets } from "../../assets/assets"; // Assuming you store equipment images here too
+import { EquipmentContext } from "../../context/EquipmentContext";
+import Loading from "../Loading";
 
 import {
   FaSearch,
@@ -12,11 +13,12 @@ import {
   FaPlus,
   FaFilter,
   FaHeartbeat,
-  FaBell
+  FaBell,
 } from "react-icons/fa";
-import { equipment_records } from "../../data/equipment";
 
 const EquipmentList = () => {
+  const { equipments, fetchEquipments, loading } = useContext(EquipmentContext);
+
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -24,7 +26,11 @@ const EquipmentList = () => {
 
   const navigate = useNavigate();
 
-  /* ---------- Alert Logic (Same as Calibration List) ---------- */
+  useEffect(() => {
+    fetchEquipments();
+  }, [fetchEquipments]);
+
+  /* ---------- Alert Logic ---------- */
   const getDaysLeft = (dateString) => {
     if (!dateString) return 0;
     const today = new Date();
@@ -33,29 +39,33 @@ const EquipmentList = () => {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  // Count items that are Overdue (< 0 days) or Due Soon (<= 30 days)
-  const calibrationAlertCount = equipment_records.filter((e) => {
-    const days = getDaysLeft(e.nextService);
-    return days <= 30; 
+  const calibrationAlertCount = equipments.filter((e) => {
+    const days = getDaysLeft(e.serviceSchedule?.nextService); // Access nested prop
+    return days <= 30;
   }).length;
 
   /* ---------- Filters ---------- */
   const filteredEquipment = useMemo(() => {
-    return equipment_records.filter((e) => {
+    return equipments.filter((e) => {
+      const name = e.basicInfo?.equipmentName?.toLowerCase() || "";
+      const id = e.equipmentId?.toLowerCase() || "";
+      const serial = e.basicInfo?.serialNumber?.toLowerCase() || "";
+      const dept = e.basicInfo?.department || "";
+      const status = e.basicInfo?.equipmentStatus || "";
+
       const matchesSearch =
-        e.equipmentName.toLowerCase().includes(search.toLowerCase()) ||
-        e.equipmentId.toLowerCase().includes(search.toLowerCase()) ||
-        e.serialNumber.toLowerCase().includes(search.toLowerCase());
+        name.includes(search.toLowerCase()) ||
+        id.includes(search.toLowerCase()) ||
+        serial.includes(search.toLowerCase());
 
       const matchesDepartment =
-        departmentFilter === "All" || e.department === departmentFilter;
+        departmentFilter === "All" || dept === departmentFilter;
 
-      const matchesStatus =
-        statusFilter === "All" || e.equipmentStatus === statusFilter;
+      const matchesStatus = statusFilter === "All" || status === statusFilter;
 
       return matchesSearch && matchesDepartment && matchesStatus;
     });
-  }, [search, departmentFilter, statusFilter]);
+  }, [search, departmentFilter, statusFilter, equipments]);
 
   /* ---------- Reset count on filter change ---------- */
   useEffect(() => {
@@ -63,21 +73,23 @@ const EquipmentList = () => {
   }, [search, departmentFilter, statusFilter]);
 
   /* ---------- Summary Stats ---------- */
-  const totalItems = equipment_records.length;
-  const workingCount = equipment_records.filter(
-    (e) => e.equipmentStatus === "Working"
+  const totalItems = equipments.length;
+  const workingCount = equipments.filter(
+    (e) => e.basicInfo?.equipmentStatus === "Working",
   ).length;
-  const maintenanceCount = equipment_records.filter(
-    (e) => e.equipmentStatus === "Under Maintenance"
+  const maintenanceCount = equipments.filter(
+    (e) => e.basicInfo?.equipmentStatus === "Under Maintenance",
   ).length;
-  const offlineCount = equipment_records.filter(
-    (e) => e.equipmentStatus === "Offline"
+  const offlineCount = equipments.filter(
+    (e) => e.basicInfo?.equipmentStatus === "Offline",
   ).length;
 
   const departments = [
     "All",
-    ...new Set(equipment_records.map((e) => e.department)),
+    ...new Set(equipments.map((e) => e.basicInfo?.department).filter(Boolean)),
   ];
+
+  if (loading) return <Loading />;
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-blue-50 min-h-screen">
@@ -202,13 +214,21 @@ const EquipmentList = () => {
 
       {/* Equipment Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {filteredEquipment.slice(0, visibleCount).map((e) => (
-          <EquipmentCard
-            key={e.equipmentId}
-            equipment={e}
-            navigate={navigate}
-          />
-        ))}
+        {filteredEquipment.length > 0 ? (
+          filteredEquipment
+            .slice(0, visibleCount)
+            .map((e) => (
+              <EquipmentCard
+                key={e.equipmentId}
+                equipment={e}
+                navigate={navigate}
+              />
+            ))
+        ) : (
+          <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
+            No equipment found matching your criteria.
+          </div>
+        )}
       </div>
 
       {/* Show More */}
@@ -248,7 +268,17 @@ const SummaryCard = ({ title, value, icon, bg, border }) => (
 );
 
 const EquipmentCard = ({ equipment, navigate }) => {
-  // Helper to determine status color
+  const {
+    equipmentName,
+    modelName,
+    department,
+    location,
+    equipmentStatus,
+    manufacturer,
+  } = equipment.basicInfo || {};
+  const { nextService } = equipment.serviceSchedule || {};
+  const image = equipment.equipmentImage;
+
   const getStatusStyle = (status) => {
     switch (status) {
       case "Working":
@@ -266,18 +296,20 @@ const EquipmentCard = ({ equipment, navigate }) => {
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col h-full overflow-hidden group">
       <div className="relative h-48 bg-gray-50 flex items-center justify-center p-4 border-b border-gray-100">
         <img
-          src={assets[equipment.equipmentImage]}
-          alt={equipment.equipmentName}
+          src={image || "https://via.placeholder.com/300?text=No+Image"}
+          alt={equipmentName}
+          crossOrigin="anonymous"
+          referrerPolicy="no-referrer"
           className="object-contain h-full w-full group-hover:scale-105 transition-transform"
         />
 
         <div className="absolute top-3 right-3">
           <span
             className={`text-[10px] font-bold px-2.5 py-1 rounded-full text-white shadow-sm ${getStatusStyle(
-              equipment.equipmentStatus
+              equipmentStatus,
             )}`}
           >
-            {equipment.equipmentStatus}
+            {equipmentStatus}
           </span>
         </div>
       </div>
@@ -285,14 +317,14 @@ const EquipmentCard = ({ equipment, navigate }) => {
       <div className="p-5 flex flex-col flex-1">
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-bold text-gray-800 text-lg line-clamp-1">
-            {equipment.equipmentName}
+            {equipmentName}
           </h3>
         </div>
-        <p className="text-xs text-gray-400 mb-3">{equipment.modelName}</p>
+        <p className="text-xs text-gray-400 mb-3">{modelName}</p>
 
         <div className="mb-4">
           <span className="inline-block px-2.5 py-0.5 rounded-md bg-gray-100 text-gray-500 text-xs font-medium border border-gray-200">
-            {equipment.department}
+            {department}
           </span>
         </div>
 
@@ -308,20 +340,20 @@ const EquipmentCard = ({ equipment, navigate }) => {
               Location
             </span>
             <span className="font-semibold text-gray-700 text-xs truncate">
-              {equipment.location}
+              {location}
             </span>
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] uppercase text-gray-400 font-bold tracking-wider">
               Service Due
             </span>
-            <span className="text-xs truncate">{equipment.nextService}</span>
+            <span className="text-xs truncate">{nextService || "N/A"}</span>
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] uppercase text-gray-400 font-bold tracking-wider">
               Maker
             </span>
-            <span className="text-xs truncate">{equipment.manufacturer}</span>
+            <span className="text-xs truncate">{manufacturer}</span>
           </div>
         </div>
 
