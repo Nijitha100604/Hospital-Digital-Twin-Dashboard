@@ -1,6 +1,8 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { equipment_records } from "../../data/equipment"; // Ensure correct data path
+import { EquipmentContext } from "../../context/EquipmentContext"; 
+import Loading from "../Loading";
+import { toast } from "react-toastify";
 import {
   FaEdit,
   FaUpload,
@@ -14,78 +16,156 @@ import {
   FaTrash,
   FaArrowLeft,
   FaMicroscope,
-  FaCalendarAlt,
   FaFileInvoiceDollar,
 } from "react-icons/fa";
-import { toast } from "react-toastify";
 
 const EditEquipmentDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const fileRef = useRef(null);
+  const { getEquipmentById, updateEquipment } = useContext(EquipmentContext);
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const equipment = equipment_records.find((e) => e.equipmentId === id);
+  const [equipmentName, setEquipmentName] = useState("");
+  const [modelName, setModelName] = useState("");
+  const [serialNumber, setSerialNumber] = useState("");
+  const [manufacturer, setManufacturer] = useState("");
+  const [category, setCategory] = useState("");
+  const [department, setDepartment] = useState("");
+  const [location, setLocation] = useState("");
+  const [equipmentStatus, setEquipmentStatus] = useState("");
 
-  if (!equipment) {
-    return (
-      <div className="max-w-7xl mx-auto p-6 text-center text-red-600 font-bold bg-slate-50 min-h-screen">
-        Equipment not found
-      </div>
-    );
-  }
+  const [powerRequirement, setPowerRequirement] = useState("");
+  const [fieldStrength, setFieldStrength] = useState("");
+  const [boreSize, setBoreSize] = useState("");
 
-  /* ---------- State (PRE-FILLED) ---------- */
-  const [equipmentName, setEquipmentName] = useState(equipment.equipmentName);
-  const [modelName, setModelName] = useState(equipment.modelName);
-  const [serialNumber, setSerialNumber] = useState(equipment.serialNumber);
-  const [manufacturer, setManufacturer] = useState(equipment.manufacturer);
-  const [category, setCategory] = useState(equipment.category);
-  const [department, setDepartment] = useState(equipment.department);
-  const [location, setLocation] = useState(equipment.location);
-  const [equipmentStatus, setEquipmentStatus] = useState(equipment.equipmentStatus);
+  const [lastService, setLastService] = useState("");
+  const [nextService, setNextService] = useState("");
 
-  /* Technical Specs */
-  const [powerRequirement, setPowerRequirement] = useState(equipment.powerRequirement || "");
-  const [fieldStrength, setFieldStrength] = useState(equipment.fieldStrength || "");
-  const [boreSize, setBoreSize] = useState(equipment.boreSize || "");
+  const [installationDate, setInstallationDate] = useState("");
+  const [purchaseCost, setPurchaseCost] = useState("");
+  const [warrantyPeriod, setWarrantyPeriod] = useState("");
+  const [warrantyExpiry, setWarrantyExpiry] = useState("");
 
-  /* Service */
-  const [lastService, setLastService] = useState(equipment.lastService || "");
-  const [nextService, setNextService] = useState(equipment.nextService || "");
+  const [supplierName, setSupplierName] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
+  const [emailId, setEmailId] = useState("");
 
-  /* Purchase & Warranty */
-  const [installationDate, setInstallationDate] = useState(equipment.installationDate || "");
-  const [purchaseCost, setPurchaseCost] = useState(equipment.purchaseCost || "");
-  const [warrantyPeriod, setWarrantyPeriod] = useState(equipment.warrantyPeriod || "");
-  const [warrantyExpiry, setWarrantyExpiry] = useState(equipment.warrantyExpiry || "");
+  const [description, setDescription] = useState("");
+  
+  const [imageName, setImageName] = useState("");
+  const [imageFile, setImageFile] = useState(null); // Actual file object
 
-  /* Supplier */
-  const [supplierName, setSupplierName] = useState(equipment.supplierName || "");
-  const [contactNumber, setContactNumber] = useState(equipment.contactNumber || "");
-  const [emailId, setEmailId] = useState(equipment.emailId || "");
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      const data = await getEquipmentById(id);
+      
+      if (data) {
+        setEquipmentName(data.basicInfo?.equipmentName || "");
+        setModelName(data.basicInfo?.modelName || "");
+        setSerialNumber(data.basicInfo?.serialNumber || "");
+        setManufacturer(data.basicInfo?.manufacturer || "");
+        setCategory(data.basicInfo?.category || "");
+        setDepartment(data.basicInfo?.department || "");
+        setLocation(data.basicInfo?.location || "");
+        setEquipmentStatus(data.basicInfo?.equipmentStatus || "");
 
-  const [description, setDescription] = useState(equipment.description || "");
-  const [imageName, setImageName] = useState(equipment.equipmentImage || "");
+        setPowerRequirement(data.technicalSpecifications?.powerRequirement || "");
+        setFieldStrength(data.technicalSpecifications?.fieldStrength || "");
+        setBoreSize(data.technicalSpecifications?.boreSize || "");
+
+        setLastService(data.serviceSchedule?.lastService || "");
+        setNextService(data.serviceSchedule?.nextService || "");
+
+        setInstallationDate(data.purchaseInfo?.installationDate || "");
+        setPurchaseCost(data.purchaseInfo?.purchaseCost || "");
+        setWarrantyPeriod(data.purchaseInfo?.warrantyPeriod || "");
+        setWarrantyExpiry(data.purchaseInfo?.warrantyExpiry || "");
+
+        setSupplierName(data.supplier?.supplierName || "");
+        setContactNumber(data.supplier?.contactNumber || "");
+        setEmailId(data.supplier?.emailId || "");
+
+        setDescription(data.description || "");
+        setImageName(data.equipmentImageName || ""); 
+      } else {
+        toast.error("Equipment not found");
+        navigate("/equipment-list");
+      }
+      setLoading(false);
+    };
+    loadData();
+  }, [id, getEquipmentById, navigate]);
 
   /* ---------- Handlers ---------- */
   const handleImageChange = (e) => {
     if (e.target.files[0]) {
       setImageName(e.target.files[0].name);
+      setImageFile(e.target.files[0]);
     }
   };
 
   const removeImage = (e) => {
     e.stopPropagation();
     setImageName("");
+    setImageFile(null);
     fileRef.current.value = null;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // In real app: update API / DB here
-    toast.success("Equipment details updated successfully");
-    navigate(`/view-equipment/${equipment.equipmentId}`);
+    setIsSubmitting(true);
+
+    const formData = new FormData();
+
+    // Basic Info
+    formData.append("equipmentName", equipmentName);
+    formData.append("modelName", modelName);
+    formData.append("serialNumber", serialNumber);
+    formData.append("manufacturer", manufacturer);
+    formData.append("category", category);
+    formData.append("department", department);
+    formData.append("location", location);
+    formData.append("equipmentStatus", equipmentStatus);
+
+    // Technical
+    formData.append("powerRequirement", powerRequirement);
+    formData.append("fieldStrength", fieldStrength);
+    formData.append("boreSize", boreSize);
+
+    // Service
+    formData.append("lastService", lastService);
+    formData.append("nextService", nextService);
+
+    // Purchase
+    formData.append("installationDate", installationDate);
+    formData.append("purchaseCost", purchaseCost);
+    formData.append("warrantyPeriod", warrantyPeriod);
+    formData.append("warrantyExpiry", warrantyExpiry);
+
+    // Supplier
+    formData.append("supplierName", supplierName);
+    formData.append("contactNumber", contactNumber);
+    formData.append("emailId", emailId);
+
+    formData.append("description", description);
+
+    if (imageFile) {
+      formData.append("equipmentImage", imageFile);
+    }
+
+    const success = await updateEquipment(id, formData);
+
+    if (success) {
+      navigate(`/view-equipment/${id}`);
+    } else {
+      setIsSubmitting(false);
+    }
   };
+
+  if (loading) return <Loading />;
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen">
@@ -94,7 +174,7 @@ const EditEquipmentDetails = () => {
         <div className="mb-4 md:mb-0 w-full md:w-auto">
           <div className="flex gap-3 items-center">
             <div className="p-2 bg-fuchsia-100 rounded-lg text-fuchsia-700">
-                <FaMicroscope className="text-xl" />
+              <FaMicroscope className="text-xl" />
             </div>
             <p className="text-gray-800 font-bold text-lg">Edit Equipment</p>
           </div>
@@ -105,6 +185,7 @@ const EditEquipmentDetails = () => {
 
         <div className="w-full md:w-auto">
           <button
+            type="button"
             onClick={() => navigate(-1)}
             className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto cursor-pointer"
           >
@@ -157,6 +238,7 @@ const EditEquipmentDetails = () => {
                   "Emergency",
                   "Sterilization",
                   "Laboratory",
+                  "Therapeutic",
                 ]}
               />
               <Select
@@ -165,12 +247,20 @@ const EditEquipmentDetails = () => {
                 value={department}
                 onChange={setDepartment}
                 options={[
+                  "General",
                   "Radiology",
                   "Cardiology",
                   "ICU",
                   "Emergency",
                   "Operation Theatre",
                   "CSSD",
+                  "Dermatology",
+                  "Orthopedics",
+                  "Laboratory Services",
+                  "Gynecology",
+                  "Neurology",
+                  "Nephrology",
+                  "Pediatrics",
                 ]}
               />
               <Input
@@ -224,28 +314,28 @@ const EditEquipmentDetails = () => {
 
             {/* Purchase & Warranty */}
             <Section title="Purchase & Warranty" icon={<FaFileInvoiceDollar />}>
-               <Input 
-                 label="Installation Date" 
-                 type="date" 
-                 value={installationDate} 
-                 onChange={setInstallationDate} 
-               />
-               <Input 
-                 label="Purchase Cost" 
-                 value={purchaseCost} 
-                 onChange={setPurchaseCost} 
-               />
-               <Input 
-                 label="Warranty Period" 
-                 value={warrantyPeriod} 
-                 onChange={setWarrantyPeriod} 
-               />
-               <Input 
-                 label="Warranty Expiry" 
-                 type="date" 
-                 value={warrantyExpiry} 
-                 onChange={setWarrantyExpiry} 
-               />
+              <Input
+                label="Installation Date"
+                type="date"
+                value={installationDate}
+                onChange={setInstallationDate}
+              />
+              <Input
+                label="Purchase Cost"
+                value={purchaseCost}
+                onChange={setPurchaseCost}
+              />
+              <Input
+                label="Warranty Period"
+                value={warrantyPeriod}
+                onChange={setWarrantyPeriod}
+              />
+              <Input
+                label="Warranty Expiry"
+                type="date"
+                value={warrantyExpiry}
+                onChange={setWarrantyExpiry}
+              />
             </Section>
           </div>
 
@@ -279,14 +369,14 @@ const EditEquipmentDetails = () => {
                         onClick={removeImage}
                         className="mt-3 text-xs text-red-600 hover:text-red-800 font-medium flex items-center gap-1 bg-white px-2 py-1 rounded border border-red-200 shadow-sm"
                       >
-                        <FaTrash /> Remove
+                        <FaTrash /> Remove/Change
                       </button>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center">
                       <FaUpload className="text-3xl text-gray-400 mb-3" />
                       <p className="text-sm font-medium text-gray-700">
-                        Click to change
+                        Click to upload new image
                       </p>
                     </div>
                   )}
@@ -294,6 +384,7 @@ const EditEquipmentDetails = () => {
                     type="file"
                     ref={fileRef}
                     onChange={handleImageChange}
+                    accept=".png,.jpg,.jpeg,.webp"
                     className="hidden"
                   />
                 </div>
@@ -349,6 +440,7 @@ const EditEquipmentDetails = () => {
           <button
             type="button"
             onClick={() => navigate(-1)}
+            disabled={isSubmitting}
             className="flex items-center gap-2 cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
           >
             <FaTimes /> Cancel
@@ -356,9 +448,12 @@ const EditEquipmentDetails = () => {
 
           <button
             type="submit"
-            className="flex items-center gap-2 cursor-pointer bg-fuchsia-800 hover:bg-fuchsia-900 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
+            disabled={isSubmitting}
+            className={`flex items-center gap-2 cursor-pointer bg-fuchsia-800 hover:bg-fuchsia-900 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm ${
+              isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+            }`}
           >
-            <FaSave /> Update Equipment
+            <FaSave /> {isSubmitting ? "Updating..." : "Update Equipment"}
           </button>
         </div>
       </form>
@@ -407,8 +502,11 @@ const Select = ({ label, required, value, onChange, options }) => (
         onChange={(e) => onChange(e.target.value)}
         className="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-300 bg-white focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent outline-none transition-all text-sm text-gray-700 appearance-none cursor-pointer"
       >
+        <option value="">Select...</option>
         {options.map((o) => (
-          <option key={o}>{o}</option>
+          <option key={o} value={o}>
+            {o}
+          </option>
         ))}
       </select>
       <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
