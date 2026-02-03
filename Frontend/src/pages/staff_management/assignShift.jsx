@@ -11,7 +11,7 @@ function AssignShift() {
 
   // --- CONTEXT ---
   const { staffs, fetchStaffs } = useContext(StaffContext);
-  const { shifts, addShift, fetchShifts } = useContext(ShiftContext);
+  const { shifts, addShift, fetchShifts } = useContext(StaffContext);
 
   // --- STATES ---
   const [searchTerm, setSearchTerm] = useState("");

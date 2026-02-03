@@ -7,11 +7,13 @@ export const EquipmentContext = createContext();
 
 const EquipmentContextProvider = ({ children }) => {
   const { token, backendUrl } = useContext(AppContext);
-
   const [equipments, setEquipments] = useState([]);
+  const [maintenanceLogs, setMaintenanceLogs] = useState([]); 
   const [loading, setLoading] = useState(false);
 
-  //Fetch All Equipment
+  {/* Equipment Context */}
+
+  // Fetch All Equipment
   const fetchEquipments = useCallback(async () => {
     if (!token) return;
     setLoading(true);
@@ -33,11 +35,11 @@ const EquipmentContextProvider = ({ children }) => {
     }
   }, [token, backendUrl]);
 
-  //Get Single Equipment by ID
+  // Get Single Equipment by ID
   const getEquipmentById = async (id) => {
     if (!token) return null;
     
-    // Check if we already have it in state
+    // Check cache first
     const cachedItem = equipments.find((e) => e.equipmentId === id);
     if (cachedItem) return cachedItem;
 
@@ -56,7 +58,7 @@ const EquipmentContextProvider = ({ children }) => {
     }
   };
 
-  //Add New Equipment
+  // Add Equipment
   const addEquipment = async (formData) => {
     try {
       const { data } = await axios.post(
@@ -80,7 +82,7 @@ const EquipmentContextProvider = ({ children }) => {
     }
   };
 
-  //Update Equipment
+  // Update Equipment
   const updateEquipment = async (id, formData) => {
     try {
       const { data } = await axios.put(
@@ -104,7 +106,7 @@ const EquipmentContextProvider = ({ children }) => {
     }
   };
 
-  //Delete Equipment
+  // Delete Equipment
   const deleteEquipment = async (id) => {
     try {
       const { data } = await axios.delete(
@@ -127,21 +129,110 @@ const EquipmentContextProvider = ({ children }) => {
     }
   };
 
+  { /* Maintenance Context*/ }
+
+  // Fetch Maintenance Logs
+  const fetchMaintenanceLogs = useCallback(async () => {
+    if (!token) return;
+    try {
+      const { data } = await axios.get(`${backendUrl}/api/maintenance/all`, { headers: { token } });
+      if (data.success) {
+        setMaintenanceLogs(data.data);
+      }
+    } catch (error) {
+      console.error("Maintenance fetch error:", error);
+    }
+  }, [token, backendUrl]);
+
+  // Add Maintenance Log
+  const addMaintenanceLog = async (formData) => {
+    try {
+      const { data } = await axios.post(`${backendUrl}/api/maintenance/add`, formData, { headers: { token } });
+      if (data.success) {
+        toast.success(data.message);
+        await Promise.all([fetchMaintenanceLogs(), fetchEquipments()]);
+        return true;
+      } else {
+        toast.error(data.message);
+        return false;
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Error creating maintenance log");
+      return false;
+    }
+  };
+
+  //Update Log
+  const updateMaintenanceLog = async (logId, formData) => {
+    try {
+      const { data } = await axios.put(
+        `${backendUrl}/api/maintenance/update/${logId}`, 
+        formData, 
+        { headers: { token } }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        await fetchMaintenanceLogs(); 
+        return true;
+      } else {
+        toast.error(data.message);
+        return false;
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Error updating log");
+      return false;
+    }
+  };
+
+  // Delete Log
+  const deleteMaintenanceLog = async (logId) => {
+    try {
+      const { data } = await axios.delete(
+        `${backendUrl}/api/maintenance/delete/${logId}`, 
+        { headers: { token } }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        await fetchMaintenanceLogs();
+        return true;
+      }
+      toast.error(data.message);
+      return false;
+    } catch (error) {
+      console.error(error);
+      toast.error("Error deleting log");
+      return false;
+    }
+  };
+
 
   useEffect(() => {
     if (token) {
-      fetchEquipments();
+      setLoading(true);
+      Promise.all([fetchEquipments(), fetchMaintenanceLogs()])
+        .finally(() => setLoading(false));
     }
-  }, [token, fetchEquipments]);
+  }, [token, fetchEquipments, fetchMaintenanceLogs]);
 
   const value = {
     loading,
+    
     equipments,
     fetchEquipments,
     getEquipmentById,
     addEquipment,
     updateEquipment,
-    deleteEquipment
+    deleteEquipment,
+
+    maintenanceLogs,
+    fetchMaintenanceLogs,
+    addMaintenanceLog,
+    updateMaintenanceLog,
+    deleteMaintenanceLog,
   };
 
   return (
