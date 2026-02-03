@@ -6,6 +6,7 @@ import prescriptionModel from '../models/prescriptionModel.js';
 import staffModel from '../models/staffModel.js';
 import consultationModel from './../models/consultationModel.js';
 import bedAvailabilityModel from './../models/bedAvailabilityModel.js';
+import mongoose from 'mongoose';
 
 // Get all consultations
 const allConsultations = async(req, res) =>{
@@ -20,6 +21,22 @@ const allConsultations = async(req, res) =>{
         res.json({success: false, message: error.message})
     }
 
+}
+
+const consultation = async(req, res) =>{
+    try{
+
+        const {id} = req.params;
+        const cons = await consultationModel.findOne({consultationId: id});
+        if(!cons){
+            return res.json({success: false, message: "Consultation not found"});
+        }
+        return res.json({success: true, data: cons});
+
+    } catch(error){
+        console.log(error);
+        return res.json({success: false, message: error.message});
+    }
 }
 
 //  Add diagnosis and remarks
@@ -186,6 +203,10 @@ const addLabReports = async(req, res) =>{
 
 // doctor request admission
 const requestAdmission = async(req, res) => {
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         
         const { consultationId, appointmentId, patientId, patientName, doctorId, bedType } = req.body;
@@ -193,7 +214,7 @@ const requestAdmission = async(req, res) => {
             return res.json({success: false, message: "Missing admission details"});
         }
 
-        const consultation = await consultationModel.findOne({consultationId});
+        const consultation = await consultationModel.findOne({consultationId}).session(session);
         if(!consultation){
             return res.json({success: false, message: "Consultation not found"});
         }
@@ -207,7 +228,7 @@ const requestAdmission = async(req, res) => {
         })
 
         const admissionIndex = consultation.admission.length - 1;
-        await consultation.save();
+        await consultation.save({session});
         const bedRequest = new bedRequestModel({
             consultationId,
             admissionIndex,
@@ -218,15 +239,21 @@ const requestAdmission = async(req, res) => {
             bedType
         })
 
-        await bedRequest.save();
+        await bedRequest.save({session});
         await appointmentModel.updateOne(
             {appointmentId},
-            { admissionStatus: "Requested" }
+            { admissionStatus: "Requested" },
+            {session}
         );
 
-        res.json({success: true, message: "Admission requested successfully"}, admissionIndex);
+        await session.commitTransaction();
+        session.endSession();
+
+        res.json({success: true, message: "Admission requested successfully", admissionIndex});
 
     } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
         console.log(error);
         return res.json({success: false, message: error.message});
     }
@@ -250,25 +277,54 @@ const getPendingBedRequests = async(req, res) => {
 // assign bed
 const assignBed = async(req, res) =>{
 
+    const session = await mongoose.startSession();
+
     try{
+
+        session.startTransaction();
 
         const { bedId, requestId, consultationId, admissionIndex, appointmentId, patientName, patientId, doctorId, department, block } = req.body;
 
         if(!bedId || !requestId || !consultationId || admissionIndex === undefined || !appointmentId || !block || !department){
+            await session.abortTransaction();
+            session.endSession();
             return res.json({success: false, message: "Missing data"});
         }
 
-        const bed = await bedAvailabilityModel.findOne({ bedId });
-        if( !bed || bed.status === "Occupied" ){
-            return res.json({success: false, message: "Bed not available"});
+        const bed = await bedAvailabilityModel.findOneAndUpdate(
+            { bedId, status: "Available" },
+            {
+                status: "Occupied",
+                occupiedDetails: {
+                    patientId,
+                    patientName,
+                    admissionIndex,
+                    appointmentId,
+                    admittedDate: new Date(),
+                    consultationId,
+                    doctorId,
+                    bedRequestId: requestId
+                }
+            },
+            { new: true, session }
+        );
+
+        if (!bed) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.json({ success: false, message: "Bed already occupied" });
         }
 
-        const consultation = await consultationModel.findOne({ consultationId });
+        const consultation = await consultationModel.findOne({ consultationId }).session(session);
         if (!consultation) {
+            await session.abortTransaction();
+            session.endSession();
             return res.json({ success: false, message: "Consultation not found" });
         }
 
         if (!consultation.admission[admissionIndex]) {
+            await session.abortTransaction();
+            session.endSession();
             return res.json({ success: false, message: "Invalid admission index" });
         }
 
@@ -281,33 +337,29 @@ const assignBed = async(req, res) =>{
         }
 
         consultation.admission[admissionIndex].request.requestStatus = "Assigned";
-        await consultation.save();
-
-        bed.status = "Occupied";
-        bed.occupiedDetails = {
-            patientId,
-            patientName,
-            admittedDate: new Date(),
-            consultationId,
-            doctorId,
-            bedRequestId: requestId
-        }
-        await bed.save();
+        await consultation.save({ session });
 
         await bedRequestModel.updateOne(
             {requestId},
-            {status: "Assigned"}
+            {status: "Assigned"},
+            { session }
         );
 
         await appointmentModel.updateOne(
             { appointmentId },
-            { admissionStatus: "Admitted" }
+            { admissionStatus: "Admitted" },
+            { session }
         )
+
+        await session.commitTransaction();
+        session.endSession();
 
         return res.json({success: true, message: "Bed assigned successfully"});
 
     } catch(error){
         console.log(error);
+        await session.abortTransaction();
+        session.endSession();
         return res.json({success: false, message: error.message});
     }
 
@@ -320,7 +372,7 @@ const addDailyNote = async(req, res) => {
         
         const { consultationId, admissionIndex, note } = req.body;
 
-        if(!note){
+        if(!note?.trim()){
             return res.json({success: false, message: "Daily Note is required"});
         }
 
@@ -329,21 +381,23 @@ const addDailyNote = async(req, res) => {
         if (!consultation) {
             return res.json({success: false, message: "Consultation not found" });
         }
-        if (!consultation.admission[admissionIndex]) {
+
+        const admission = consultation.admission[admissionIndex];
+        if (!admission) {
             return res.json({success: false, message: "Invalid admission index" });
         }
-        consultation.admission[admissionIndex].dailyNotes.push({
+        admission.dailyNotes.push({
             date: new Date(),
             note
         });
 
         await consultation.save();
 
-        res.json({success: true, message: "Daily Note added"});
+        res.json({success: true, message: "Daily Note added", dailyNotes: admission.dailyNotes});
 
     } catch (error) {
         console.log(error);
-        return res.json({success: false, message: "Daily Note is required"});
+        return res.json({success: false, message: error.message});
     }
 
 }
@@ -351,25 +405,37 @@ const addDailyNote = async(req, res) => {
 // discharge patient
 const dischargePatient = async(req, res) => {
 
+    const session = await mongoose.startSession();
+
     try {
+
+        session.startTransaction();
         
-        const { consultationId, admissionIndex, dischargeRemarks, finalVitals, patientInstructions, appointmentId } = req.body;
-        if(!consultationId || admissionIndex === undefined || !appointmentId || !dischargeSummary || !finalVitals || !patientInstructions){
+        const { consultationId, admissionIndex, dischargeRemarks, finalDiagnosis, finalVitals, patientInstructions, appointmentId } = req.body;
+        if(!consultationId || admissionIndex === undefined || !appointmentId || !dischargeRemarks || !finalVitals || !patientInstructions){
+            await session.abortTransaction();
+            session.endSession();
             return res.json({success: false, message: "Missing details"});
         }
 
-        const consultation = await consultationModel.findOne({consultationId});
+        const consultation = await consultationModel.findOne({consultationId}).session(session);
         if(!consultation){
+            await session.abortTransaction();
+            session.endSession();
             return res.json({success: false, message: "Consultation not found"});
         }
 
         const admission = consultation.admission[admissionIndex];
 
         if(!admission){
+            await session.abortTransaction();
+            session.endSession();
             return res.json({success: false, message: "Invalid admission index"});
         }
 
         if(!admission.allocation.admitted){
+            await session.abortTransaction();
+            session.endSession();
             return res.json({success: false, message: "Patient is not admitted"});
         }
 
@@ -377,7 +443,7 @@ const dischargePatient = async(req, res) => {
         const admissionDate = admission.allocation.admissionDate;
 
         const numberOfDays = Math.max(1,
-            Math.cel((dischargeDate - admissionDate) / (1000 * 60 * 60 * 24) )
+            Math.ceil((dischargeDate - admissionDate) / (1000 * 60 * 60 * 24) )
         )
 
         admission.discharge = {
@@ -385,30 +451,38 @@ const dischargePatient = async(req, res) => {
             dischargeRemarks: dischargeRemarks || "",
             numberOfDays,
             finalVitals: finalVitals || {},
+            finalDiagnosis: finalDiagnosis || "",
             patientInstructions: patientInstructions || []
         }
 
         admission.allocation.admitted = false;
 
-        await consultation.save();
+        await consultation.save({session});
 
         await bedAvailabilityModel.updateOne(
             { bedId: admission.allocation.bedId },
             {
                 status: "Available",
-                occupiedDetails: {}
-            }
+                $unset: { occupiedDetails: "" }
+            },
+            { session }
         );
 
         await appointmentModel.updateOne(
             { appointmentId },
-            { admissionStatus: "Discharged" }
+            { admissionStatus: "Discharged" },
+            { session }
         );
 
-        res.json({success: false, message: "Patient Discharged Successfully"});
+        await session.commitTransaction();
+        session.endSession();
+
+        res.json({success: true, message: "Patient Discharged Successfully"});
 
     } catch (error) {
         console.log(error);
+        await session.abortTransaction();
+        session.endSession();
         return res.json({success: false, message: error.message});
     }
 
@@ -423,5 +497,6 @@ export {
     getPendingBedRequests,
     assignBed,
     dischargePatient,
-    addDailyNote
+    addDailyNote,
+    consultation
 }

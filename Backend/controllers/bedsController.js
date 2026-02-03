@@ -13,7 +13,11 @@ const getBeds = async(req, res) =>{
           as: "department"
         }
       },
-      { $unwind: "$department" },
+      { $unwind: {
+          path: "$department",
+          preserveNullAndEmptyArrays: true 
+        } 
+      },
 
       {
         $group: {
@@ -22,10 +26,29 @@ const getBeds = async(req, res) =>{
           block: { $first: "$department.block" },
           floor: { $first: "$floor" },
           beds: {
-            $push: {
-              bedId: "$bedId",
-              bedType: "$bedType",
-              status: "$status"
+            $push: "$$ROOT"
+          }
+        }
+      },
+
+      {
+        $project: {
+          _id: 0,
+          departmentName: 1,
+          block: 1,
+          floor: 1,
+
+          beds: {
+            $map: {
+              input: "$beds",
+              as: "bed",
+              in: {
+                bedId: "$$bed.bedId",
+                bedType: "$$bed.bedType",
+                status: "$$bed.status",
+                occupiedDetails: "$$bed.occupiedDetails",
+                departmentId: "$$bed.departmentId"
+              }
             }
           }
         }

@@ -447,7 +447,7 @@ function PatientConsultation() {
         <div className="mb-3">
           <p className="text-fuchsia-900 text-sm font-semibold">Medical History</p>
           {
-            patient?.medical?.history.length > 0 ?
+            patient?.medical?.history?.length > 0 ?
             <div className="flex flex-wrap gap-3 mt-2">
               {
                 patient?.medical?.history.map((item, index)=>(
@@ -466,7 +466,7 @@ function PatientConsultation() {
         <div className="mb-3">
           <p className="text-fuchsia-900 text-sm font-semibold">Allergies</p>
           {
-            patient?.medical?.allergies.length > 0 ?
+            patient?.medical?.allergies?.length > 0 ?
             <div className="flex flex-wrap gap-3 mt-2">
               {
                 patient?.medical?.allergies.map((item, index)=>(

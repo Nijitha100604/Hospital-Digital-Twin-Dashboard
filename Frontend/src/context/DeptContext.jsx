@@ -16,6 +16,7 @@ const DeptContextProvider = (props) => {
     const [ loading, setLoading ] = useState(false);
     const [ beds, setBeds ] = useState([]);
     const [ bedLoading, setBedLoading ] = useState(false);
+    const [pendingBedRequests, setPendingBedRequests] = useState([]);
 
     // add department
     const addDepartment = async(formData) =>{
@@ -217,6 +218,102 @@ const DeptContextProvider = (props) => {
 
     }
 
+    // fetch pending bed requests
+    const fetchPendingBedRequests = async() =>{
+        if(!token) return;
+        try {
+               
+            const {data} = await axios.get(
+                `${backendUrl}/api/consultation/pending-requests`,
+                {headers: {token}}
+            );
+            if(data.success){
+                setPendingBedRequests(data.data);
+            } else{
+                toast.error(data.message);
+            }
+                
+        } catch (error) {
+            console.log(error);
+            toast.error("Internal Server Error");
+        }
+    }
+
+    // assign bed 
+    const assignBed = async(bedData) =>{
+
+        if(!token) return;
+        try{
+            console.log(backendUrl);
+            const {data} = await axios.post(`${backendUrl}/api/consultation/assign-bed`,
+                bedData,
+                {headers: {token}}
+            );
+            if(data.success){
+                toast.success(data.message);
+                return true;
+            } else{
+                toast.error(data.message);
+                return false;
+            }
+
+        } catch(error){
+            console.log(error);
+            toast.error("Internal Server Error");
+            return false;
+        }
+        
+    }
+
+    // add Daily Notes
+    const addDailyNote = async(payload) =>{
+
+        if(!token) return;
+        try{
+            const {data} = await axios.post(
+                `${backendUrl}/api/consultation/add-daily-note`,
+                payload,
+                {headers: {token}}
+            );
+            if(data.success){
+                toast.success(data.message);
+                return data.dailyNotes;
+            }
+            toast.error(data.message);
+            return null;
+        } catch(error){
+            console.log(error);
+            toast.error("Internal Server Error");
+            return null;
+        }
+    }
+
+    // discharge
+    const dischargePatient = async(payload) =>{
+        
+        if(!token) return;
+        try{
+
+            const {data} = await axios.post(`${backendUrl}/api/consultation/discharge`,
+                payload,
+                {headers: {token}}
+            );
+            if(data.success){
+                toast.success(data.message);
+                return true;
+            } else{
+                toast.error(data.message);
+                return false;
+            }
+
+        } catch(error){
+            console.log(error);
+            toast.error("Internal Server Error");
+            return false;
+        }
+
+    }
+
     const value = {
         addDepartment,
         fetchDepartments,
@@ -231,7 +328,12 @@ const DeptContextProvider = (props) => {
         updateIssueStatus,
         fetchBeds,
         beds,
-        bedLoading
+        bedLoading,
+        fetchPendingBedRequests,
+        pendingBedRequests,
+        assignBed,
+        addDailyNote,
+        dischargePatient
     }
 
     return(

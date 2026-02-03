@@ -51,6 +51,7 @@ const consultationSchema = new mongoose.Schema({
                     bloodPressure: { type: String, default: ""},
                     heartRate: { type: String, default: "" }
                 },
+                finalDiagnosis: { type: String, default: "" },
                 patientInstructions: { type: [String], default: [] }
             } 
         }

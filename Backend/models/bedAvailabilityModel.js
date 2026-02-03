@@ -13,6 +13,7 @@ const bedAvailabilitySchema = new mongoose.Schema({
         patientName: { type: String, default: "" },
         admittedDate: { type: Date },
         admissionId: { type: String, default: "" },
+        admissionIndex: { type: Number, default: null }, 
         consultationId: { type: String, default: "" },
         doctorId: { type: String, default: "" },
         bedRequestId: { type: String, default: "" }

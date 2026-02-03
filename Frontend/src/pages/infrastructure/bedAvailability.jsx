@@ -13,11 +13,13 @@ import { useContext } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { DeptContext } from '../../context/DeptContext';
 import { useEffect } from 'react';
+import { StaffContext } from './../../context/StaffContext';
 
 function BedAvailability() {
 
   const { token } = useContext(AppContext);
-  const { fetchBeds, beds, bedLoading } = useContext(DeptContext);
+  const { fetchBeds, beds, bedLoading, fetchPendingBedRequests, pendingBedRequests } = useContext(DeptContext);
+  const { staffs, fetchStaffs } = useContext(StaffContext);
 
   const totalBeds = beds?.reduce(
     (sum, dept) => sum + dept.beds.length, 0
@@ -27,13 +29,14 @@ function BedAvailability() {
   );
 
   const availableBeds = totalBeds - occupiedBeds;
-  const occupancyRate = totalBeds ? ((occupiedBeds / totalBeds) * 100) : 0;
-
+  const occupancyRate = totalBeds ? ((occupiedBeds / totalBeds) * 100).toFixed(2) : 0;
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBed, setSelectedBed] = useState(null);
   const [modalType, setModalType] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [selectedBedRequest, setSelectedBedRequest] = useState(null);
+  const [showRequestModal, setShowRequestModal] = useState(false);
 
   const filteredDepartments = beds
     ?.map(dept => {
@@ -68,10 +71,20 @@ function BedAvailability() {
   }
   };
 
+  const doctorMap = React.useMemo(() => {
+    const map = {};
+    staffs?.forEach(staff => {
+      map[staff.staffId] = staff.fullName;
+    });
+    return map;
+  }, [staffs]);
+
   useEffect(()=>{
 
     if(token){
       fetchBeds();
+      fetchPendingBedRequests();
+      fetchStaffs();
     }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,9 +110,26 @@ function BedAvailability() {
     <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
 
     {/* Heading */}
+    <div className="flex justify-between items-center gap-4">
     <div className="flex flex-col gap-1">
       <p className="text-gray-800 font-bold text-lg">Bed Availability</p>
       <p className="text-gray-500 text-sm">View and manage real-time bed occupancy across hospital wards</p>
+    </div>
+
+    {/* Bed requests */}
+    <button
+      onClick={() => setShowRequestModal(true)}
+      className="relative px-4 py-2 bg-gray-100 text-gray-900 text-sm font-medium rounded-lg border cursor-pointer border-gray-600 transition-all"
+    >
+      Bed Requests
+      {
+        pendingBedRequests.length > 0 && (
+          <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+            {pendingBedRequests.length}
+          </span>
+        )
+      }
+    </button>
     </div>
 
     {/* Summary */}
@@ -216,11 +246,14 @@ function BedAvailability() {
 
             <div className="flex flex-wrap gap-4 items-center mb-4">
               {
-                dept.beds.map((bed, index)=>(
+                dept.beds.map((bed, index)=>{
+                  const isMismatch = selectedBedRequest && bed.bedType !== selectedBedRequest.bedType;
+                  return(
                   <div
                     key = {index}
 
                     onClick={() => {
+                      if(isMismatch) return;
                       setSelectedBed({
                         ...bed,
                         department: dept.departmentName
@@ -232,14 +265,15 @@ function BedAvailability() {
                     }}
 
                     className={`flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-md border cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95
+                    ${isMismatch ? "opacity-40 cursor-not-allowed" : ""}
                     ${getBedStyle(bed.bedType, bed.status)}`}
                   >
                     <MdOutlineBed 
                       size={18} 
                     />
                     <p className="text-[10px] font-medium">{bed.bedId}</p>
-                  </div>
-                ))
+                  </div>)
+                })
               }
             </div>
 
@@ -298,7 +332,11 @@ function BedAvailability() {
             {modalType === "AVAILABLE" && (
               <AvailableBedModal 
                 bed={selectedBed} 
-                onClose={() => setShowModal(false)}
+                bedRequest={selectedBedRequest}
+                onClose={() => {
+                  setSelectedBedRequest(null);
+                  setShowModal(false);
+                }}
               />
             )}
             {modalType === "OCCUPIED" && (
@@ -307,6 +345,78 @@ function BedAvailability() {
                 onClose={() => setShowModal(false)}
               />
             )}
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    {
+      showRequestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-3">
+          <div className="bg-white w-full max-w-3xl rounded-xl shadow-lg max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex justify-between items-center px-5 py-3 border-b">
+              <p className="text-lg font-bold text-gray-800">Bed Requests</p>
+              <button
+                onClick={() => setShowRequestModal(false)}
+                className="text-gray-500 text-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* requests */}
+            <div className="p-4 overflow-y-auto flex flex-col gap-3">
+              {
+                pendingBedRequests.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center">
+                    No pending bed requests
+                  </p>
+                ) : (
+                  pendingBedRequests.map((req, index)=>(
+                    <div
+                      key={index}
+                      className="w-full border border-gray-300 rounded-lg p-3 flex flex-col gap-3"
+                    >
+
+                      <span className="text-sm text-gray-900 font-medium border border-gray-500 rounded-lg px-3 py-1 w-fit">
+                        {req.requestId}
+                      </span>
+
+                      <div className="flex flex-wrap md:px-10 items-center justify-between gap-4">
+
+                        <div className="flex flex-col gap-1">
+                          <p className="text-sm font-medium text-gray-900">{req.patientName}</p>
+                          <p className="text-sm text-gray-500">{req.patientId}</p>
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <p className="text-sm font-medium text-gray-900">{req.doctorId}</p>
+                          <p className="text-sm text-gray-500">{doctorMap[req.doctorId] || "-"}</p>
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <p className="text-sm text-gray-500">Bed Type</p>
+                          <p className="text-sm font-medium text-gray-900">{req.bedType}</p>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            setSelectedBedRequest(req);
+                            setShowRequestModal(false);
+                          }}
+                          className="px-4 py-2 bg-green-700 text-white text-sm rounded-md hover:bg-green-800 whitespace-nowrap cursor-pointer"
+                        >
+                          Assign Bed
+                        </button>
+
+                      </div>
+                    </div>
+
+                  ))
+                )
+              }
             </div>
           </div>
         </div>

@@ -32,8 +32,6 @@ app.use(express.json());
 app.use(cors());
 
 //  api endpoints
-
-
 app.use('/api', adminRouter);
 
 // staff routes

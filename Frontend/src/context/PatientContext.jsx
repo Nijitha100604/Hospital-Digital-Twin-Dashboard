@@ -16,6 +16,7 @@ const PatientContextProvider = (props) =>{
     const [appointments, setAppointments] = useState([]);
     const [conLoading, setConLoading] = useState(false);
     const [consultations, setConsultations] = useState([]);
+    
 
     const fetchPatients = async() =>{
 
@@ -87,7 +88,22 @@ const PatientContextProvider = (props) =>{
 
     }
 
+    const fetchConsultationById = async(consultationId) =>{
+        try{
+            const {data} = await axios.get(
+                `${backendUrl}/api/consultation/${consultationId}`,
+                {headers: {token}}
+            );
+            if(data.success){
+                return data.data;
+            }
+        } catch(error){
+            console.log(error);
+            toast.error("Internal Server Error");
+        }
+    }
 
+    
     useEffect(()=>{
         if(token){
             fetchPatients();
@@ -109,7 +125,8 @@ const PatientContextProvider = (props) =>{
         conLoading,
         consultations,
         setConsultations,
-        fetchConsultations
+        fetchConsultations,
+        fetchConsultationById
     }
 
     return (
