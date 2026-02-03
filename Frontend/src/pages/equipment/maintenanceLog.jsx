@@ -1,9 +1,9 @@
-import React, { useState, useMemo, useRef } from "react";
-import { maintenance_log } from "../../data/maintenanceLog";
-import { equipment_records } from "../../data/equipment";
-import { staffList } from "../../data/staffList";
+import React, { useState, useMemo, useRef, useContext, useEffect } from "react";
+import { EquipmentContext } from "../../context/EquipmentContext";
+import { StaffContext } from "../../context/StaffContext";
 import { assets } from "../../assets/assets";
-import AddMaintenance from "./AddMaintenance";
+import AddMaintenance from "./addMaintenance";
+import Loading from "../Loading";
 import { toPng } from "html-to-image"; 
 import { jsPDF } from "jspdf";
 import { toast } from "react-toastify";
@@ -12,7 +12,6 @@ import {
   FaSearch,
   FaTools,
   FaCalendarAlt,
-  FaMoneyBillWave,
   FaUserCog,
   FaPlus,
   FaExclamationCircle,
@@ -23,26 +22,35 @@ import {
   FaFilter,
   FaFileAlt,
   FaTimes,
-  FaPhone,
-  FaEnvelope,
   FaDownload,
-  FaEdit // Added Edit Icon
+  FaEdit,
+  FaCheckCircle,
+  FaSpinner,
+  FaPauseCircle,
+  FaMoneyBillWave
 } from "react-icons/fa";
 
 const MaintenanceLog = () => {
+  // 2. Consume Contexts
+  const { maintenanceLogs, fetchMaintenanceLogs, addMaintenanceLog, updateMaintenanceLog, loading } = useContext(EquipmentContext);
+  const { equipments } = useContext(EquipmentContext);
+  const { staffs } = useContext(StaffContext);
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   
-  // STATE MANAGEMENT FOR LOGS (To allow updates)
-  const [logs, setLogs] = useState(maintenance_log); 
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingLog, setEditingLog] = useState(null); // Track log being edited
+  const [editingLog, setEditingLog] = useState(null); 
   const [viewReportLog, setViewReportLog] = useState(null); 
+
+  // Fetch data on mount
+  useEffect(() => {
+    fetchMaintenanceLogs();
+  }, [fetchMaintenanceLogs]);
   
   // --- Filtering Logic ---
   const filteredLogs = useMemo(() => {
-    return logs.filter(log => {
+    return maintenanceLogs.filter(log => {
       const matchesSearch = 
         log.equipmentName.toLowerCase().includes(search.toLowerCase()) ||
         log.logId.toLowerCase().includes(search.toLowerCase()) ||
@@ -52,43 +60,43 @@ const MaintenanceLog = () => {
 
       return matchesSearch && matchesStatus;
     });
-  }, [search, statusFilter, logs]);
+  }, [search, statusFilter, maintenanceLogs]);
 
-  // --- Summary Statistics Logic ---
-  const totalEntries = logs.length;
-  const currentMonthEntries = logs.filter(log => {
-    const logDate = new Date(log.maintenanceDate);
-    const now = new Date();
-    return logDate.getMonth() === now.getMonth() && logDate.getFullYear() === now.getFullYear();
-  }).length;
-  const totalCost = logs.reduce((acc, curr) => acc + Number(curr.cost), 0);
-  const uniqueTechnicians = [...new Set(logs.map(log => log.technicianName))].length;
+  // --- Summary Statistics Logic (Updated) ---
+  const totalEntries = maintenanceLogs.length;
+  
+  const completedCount = maintenanceLogs.filter(l => l.status === "Completed").length;
+  const inProgressCount = maintenanceLogs.filter(l => l.status === "In Progress").length;
+  const pendingCount = maintenanceLogs.filter(l => l.status === "Pending Parts").length;
 
   // --- Handlers ---
   const handleAddClick = () => {
-    setEditingLog(null); // Ensure we are in "Add" mode
+    setEditingLog(null); 
     setIsModalOpen(true);
   };
 
   const handleEditClick = (log) => {
-    setEditingLog(log); // Set the log to be edited
+    setEditingLog(log); 
     setIsModalOpen(true);
   };
 
-  const handleSaveLog = (formData) => {
+  const handleSaveLog = async (formData) => {
+    let success = false;
+    
     if (editingLog) {
-      // UPDATE EXISTING
-      setLogs(prevLogs => 
-        prevLogs.map(log => log.logId === formData.logId ? formData : log)
-      );
-      toast.success("Log updated successfully");
+       if(updateMaintenanceLog) {
+           success = await updateMaintenanceLog(formData.logId, formData);
+       } else {
+           console.warn("Update function missing in context");
+       }
     } else {
-      // ADD NEW
-      setLogs(prevLogs => [...prevLogs, formData]);
-      toast.success("New log added successfully");
+      success = await addMaintenanceLog(formData);
     }
-    setIsModalOpen(false);
-    setEditingLog(null);
+
+    if(success) {
+        setIsModalOpen(false);
+        setEditingLog(null);
+    }
   };
 
   // --- Helper for Status Colors ---
@@ -103,9 +111,11 @@ const MaintenanceLog = () => {
 
   // --- Helper to get Staff ID ---
   const getTechnicianDisplay = (name) => {
-    const staff = staffList.find(s => s.name === name);
+    const staff = staffs.find(s => s.fullName === name);
     return staff ? `${name} (${staff.staffId})` : name;
   };
+
+  if (loading) return <Loading />;
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen">
@@ -115,13 +125,9 @@ const MaintenanceLog = () => {
         <div className="mb-4 md:mb-0 w-full md:w-auto">
           <div className="flex gap-3 items-center">
             <FaHistory size={24} className="text-gray-500" />
-            <p className="text-gray-800 font-bold text-lg">
-              Maintenance Log
-            </p>
+            <p className="text-gray-800 font-bold text-lg">Maintenance Log</p>
           </div>
-          <p className="text-gray-500 text-sm mt-1">
-            Record of all equipment maintenance activities
-          </p>
+          <p className="text-gray-500 text-sm mt-1">Record of all equipment maintenance activities</p>
         </div>
 
         <div className="w-full md:w-auto">
@@ -129,13 +135,12 @@ const MaintenanceLog = () => {
             onClick={handleAddClick}
             className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
           >
-            <FaPlus />
-            Add Entry
+            <FaPlus /> Add Entry
           </button>
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* Summary Cards (Updated) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <SummaryCard 
           title="Total Entries" 
@@ -144,22 +149,22 @@ const MaintenanceLog = () => {
           bg="bg-purple-50" border="border-purple-100"
         />
         <SummaryCard 
-          title="This Month" 
-          value={currentMonthEntries} 
-          icon={<FaCalendarAlt className="text-green-600" />} 
+          title="Completed" 
+          value={completedCount} 
+          icon={<FaCheckCircle className="text-green-600" />} 
           bg="bg-green-50" border="border-green-100"
         />
         <SummaryCard 
-          title="Total Cost" 
-          value={`₹${totalCost.toLocaleString()}`} 
-          icon={<FaMoneyBillWave className="text-orange-600" />} 
-          bg="bg-orange-50" border="border-orange-100"
+          title="In Progress" 
+          value={inProgressCount} 
+          icon={<FaSpinner className="text-blue-600 animate-spin-slow" />} 
+          bg="bg-blue-50" border="border-blue-100"
         />
         <SummaryCard 
-          title="Technicians" 
-          value={uniqueTechnicians} 
-          icon={<FaUserCog className="text-blue-600" />} 
-          bg="bg-blue-50" border="border-blue-100"
+          title="Pending Parts" 
+          value={pendingCount} 
+          icon={<FaPauseCircle className="text-orange-600" />} 
+          bg="bg-orange-50" border="border-orange-100"
         />
       </div>
 
@@ -233,10 +238,10 @@ const MaintenanceLog = () => {
             <div className="text-xs text-gray-500 font-medium mb-6 flex gap-4">
               <span>ID: {log.equipmentId}</span>
               <span>•</span>
-              <span>{log.maintenanceDate}</span>
+              <span>{new Date(log.maintenanceDate).toLocaleDateString()}</span>
             </div>
 
-            {/* Row 3: Details (Issue & Action) */}
+            {/* Row 3: Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="flex gap-3">
                 <div className="shrink-0 mt-0.5">
@@ -278,7 +283,7 @@ const MaintenanceLog = () => {
               <FooterStat 
                 icon={<FaCalendarCheck />} 
                 label="Next Scheduled" 
-                value={log.nextScheduled} 
+                value={new Date(log.nextScheduled).toLocaleDateString()} 
               />
             </div>
 
@@ -297,7 +302,7 @@ const MaintenanceLog = () => {
         <AddMaintenance 
           onClose={() => setIsModalOpen(false)} 
           onSave={handleSaveLog}
-          initialData={editingLog} // Pass data if editing
+          initialData={editingLog} 
         />
       )}
 
@@ -305,6 +310,8 @@ const MaintenanceLog = () => {
         <ReportModal 
           log={viewReportLog} 
           onClose={() => setViewReportLog(null)} 
+          equipments={equipments}
+          staffs={staffs}
         />
       )}
 
@@ -337,11 +344,11 @@ const FooterStat = ({ icon, label, value }) => (
 );
 
 /* --- Report Modal Component --- */
-const ReportModal = ({ log, onClose }) => {
+const ReportModal = ({ log, onClose, equipments, staffs }) => {
   const reportRef = useRef(null); 
 
-  const equipment = equipment_records.find(e => e.equipmentId === log.equipmentId);
-  const technician = staffList.find(s => s.name === log.technicianName);
+  const equipment = equipments.find(e => e.equipmentId === log.equipmentId);
+  const technician = staffs.find(s => s.fullName === log.technicianName);
 
   const handleDownloadPdf = async () => {
     if (reportRef.current === null) return;
@@ -387,7 +394,7 @@ const ReportModal = ({ log, onClose }) => {
                 <p className="text-sm text-gray-500">Equipment Maintenance Record</p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-gray-600">Date: {log.maintenanceDate}</p>
+                <p className="text-sm font-bold text-gray-600">Date: {new Date(log.maintenanceDate).toLocaleDateString()}</p>
                 <p className="text-sm text-gray-500">Log ID: {log.logId}</p>
               </div>
             </div>
@@ -396,8 +403,9 @@ const ReportModal = ({ log, onClose }) => {
               <div className="w-1/3 bg-gray-50 rounded-lg p-4 flex items-center justify-center border border-gray-100">
                 {equipment ? (
                   <img 
-                    src={assets[equipment.equipmentImage]} 
-                    alt={equipment.equipmentName} 
+                    src={equipment.equipmentImage || "https://via.placeholder.com/150"} 
+                    alt={equipment.basicInfo?.equipmentName} 
+                    crossOrigin="anonymous"
                     className="max-h-40 object-contain mix-blend-multiply"
                   />
                 ) : (
@@ -419,11 +427,11 @@ const ReportModal = ({ log, onClose }) => {
                   </div>
                   <div>
                     <p className="text-gray-500 text-xs uppercase font-bold">Location</p>
-                    <p className="text-gray-800">{equipment?.location || "N/A"}</p>
+                    <p className="text-gray-800">{equipment?.basicInfo?.location || "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-gray-500 text-xs uppercase font-bold">Department</p>
-                    <p className="text-gray-800">{equipment?.department || "N/A"}</p>
+                    <p className="text-gray-800">{equipment?.basicInfo?.department || "N/A"}</p>
                   </div>
                 </div>
               </div>
@@ -459,7 +467,7 @@ const ReportModal = ({ log, onClose }) => {
                   </div>
                   <div>
                     <span className="text-gray-500 block text-xs">Next Due</span>
-                    <span className="font-bold text-gray-800">{log.nextScheduled}</span>
+                    <span className="font-bold text-gray-800">{new Date(log.nextScheduled).toLocaleDateString()}</span>
                   </div>
                 </div>
               </div>
@@ -480,7 +488,7 @@ const ReportModal = ({ log, onClose }) => {
                 </div>
                 <div>
                    <p className="text-gray-500 text-xs uppercase font-bold">Contact</p>
-                   <p className="text-gray-800">{technician?.contact || "N/A"}</p>
+                   <p className="text-gray-800">{technician?.contactNumber || "N/A"}</p>
                 </div>
               </div>
             </div>
@@ -500,16 +508,10 @@ const ReportModal = ({ log, onClose }) => {
         </div>
 
         <div className="p-5 border-t border-gray-200 bg-gray-50 rounded-b-lg flex justify-end gap-3">
-          <button 
-            onClick={onClose}
-            className="px-5 py-2.5 cursor-pointer rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-white transition-colors"
-          >
+          <button onClick={onClose} className="px-5 py-2.5 cursor-pointer rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-white transition-colors">
             Close
           </button>
-          <button 
-            onClick={handleDownloadPdf}
-            className="px-5 py-2.5 cursor-pointer rounded-lg bg-fuchsia-900 text-white font-medium hover:bg-fuchsia-800 transition-colors flex items-center gap-2 shadow-md"
-          >
+          <button onClick={handleDownloadPdf} className="px-5 py-2.5 cursor-pointer rounded-lg bg-fuchsia-900 text-white font-medium hover:bg-fuchsia-800 transition-colors flex items-center gap-2 shadow-md">
             <FaDownload /> Download PDF
           </button>
         </div>

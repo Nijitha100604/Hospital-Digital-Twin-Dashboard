@@ -1,22 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { FaTimes, FaTools, FaSave, FaExclamationCircle, FaUserMd } from "react-icons/fa";
-import { equipment_records } from "../../data/equipment";
-import { staffList } from "../../data/staffList";
+import { StaffContext } from "../../context/StaffContext";
+import { EquipmentContext } from "../../context/EquipmentContext";
 import { toast } from "react-toastify";
 
-const AddMaintenance = ({ onClose, onSave, initialData }) => {
+const AddMaintenance = ({ onClose, onSave, initialData, selectedEquipment }) => {
   
+  const { staffs } = useContext(StaffContext);
+  const { equipments, fetchEquipments, addMaintenanceLog } = useContext(EquipmentContext);
+
   /* Form State */
+  const [equipmentInput, setEquipmentInput] = useState("");
   const [equipmentId, setEquipmentId] = useState("");
   const [equipmentName, setEquipmentName] = useState("");
   
-  const [maintenanceDate, setMaintenanceDate] = useState("");
+  const [maintenanceDate, setMaintenanceDate] = useState(new Date().toISOString().split('T')[0]);
   const [duration, setDuration] = useState("");
   const [cost, setCost] = useState("");
   const [status, setStatus] = useState("Completed");
   const [nextScheduledService, setNextScheduledService] = useState("");
   
-  /* Technician State */
   const [technicianInput, setTechnicianInput] = useState("");
   const [selectedStaffId, setSelectedStaffId] = useState("");
   const [isSubstitute, setIsSubstitute] = useState(false);
@@ -26,9 +29,12 @@ const AddMaintenance = ({ onClose, onSave, initialData }) => {
   const [issueReported, setIssueReported] = useState("");
   const [actionsTaken, setActionsTaken] = useState("");
 
-  /* --- EFFECT: Populate Form if Editing (initialData exists) --- */
+  // Filter only Technicians
+  const technicians = staffs.filter(s => s.designation === "Technician");
+
   useEffect(() => {
     if (initialData) {
+      setEquipmentInput(`${initialData.equipmentName} (${initialData.equipmentId})`);
       setEquipmentId(initialData.equipmentId);
       setEquipmentName(initialData.equipmentName);
       setMaintenanceDate(initialData.maintenanceDate);
@@ -39,32 +45,46 @@ const AddMaintenance = ({ onClose, onSave, initialData }) => {
       setIssueReported(initialData.issueReported);
       setActionsTaken(initialData.actionsTaken);
       
-      // Handle Technician Logic
       setTechnicianInput(initialData.technicianName);
-      // Check if technician exists in staff list
-      const staff = staffList.find(s => s.name === initialData.technicianName);
+      const staff = staffs.find(s => s.fullName === initialData.technicianName);
       if (staff) {
         setSelectedStaffId(staff.staffId);
         setIsSubstitute(false);
       } else {
         setIsSubstitute(true);
         setSubstituteName(initialData.technicianName);
-        // Assuming contact isn't stored in main log for simplicity, or add field to log if needed
+      }
+    } 
+    else if (selectedEquipment) {
+      setEquipmentInput(`${selectedEquipment.basicInfo.equipmentName} (${selectedEquipment.equipmentId})`);
+      setEquipmentId(selectedEquipment.equipmentId);
+      setEquipmentName(selectedEquipment.basicInfo.equipmentName);
+      
+      if(selectedEquipment.serviceSchedule?.nextService) {
       }
     }
-  }, [initialData]);
+  }, [initialData, selectedEquipment, staffs]);
 
-  /* --- EFFECT: Auto-fill Equipment Name when ID changes --- */
-  useEffect(() => {
-    if (equipmentId) {
-      const equip = equipment_records.find(e => e.equipmentId === equipmentId);
-      if (equip) setEquipmentName(equip.equipmentName);
-      // Don't clear name if it's being set by initialData
-      else if (!initialData) setEquipmentName(""); 
+  const handleEquipmentChange = (e) => {
+    const val = e.target.value;
+    setEquipmentInput(val);
+
+    const found = equipments.find(
+      (eq) => 
+        eq.equipmentId === val || 
+        eq.basicInfo.equipmentName === val ||
+        `${eq.basicInfo.equipmentName} (${eq.equipmentId})` === val
+    );
+
+    if (found) {
+      setEquipmentId(found.equipmentId);
+      setEquipmentName(found.basicInfo.equipmentName);
+    } else {
+      setEquipmentId(""); 
+      setEquipmentName("");
     }
-  }, [equipmentId, initialData]);
+  };
 
-  /* Handle Technician Selection */
   const handleTechnicianChange = (e) => {
     const val = e.target.value;
     setTechnicianInput(val);
@@ -75,8 +95,8 @@ const AddMaintenance = ({ onClose, onSave, initialData }) => {
       return;
     }
 
-    const staff = staffList.find(s => 
-      s.staffId === val || `${s.name} (${s.staffId})` === val
+    const staff = technicians.find(s => 
+      s.staffId === val || `${s.fullName} (${s.staffId})` === val
     );
 
     if (staff) {
@@ -88,10 +108,9 @@ const AddMaintenance = ({ onClose, onSave, initialData }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic Validation
     if (!equipmentId || !maintenanceDate || !nextScheduledService) {
       toast.error("Please fill all required fields (*)");
       return;
@@ -100,15 +119,13 @@ const AddMaintenance = ({ onClose, onSave, initialData }) => {
     // Determine Final Technician Name
     let finalTechnicianName = technicianInput;
     if (!isSubstitute && selectedStaffId) {
-        const staff = staffList.find(s => s.staffId === selectedStaffId);
-        if(staff) finalTechnicianName = staff.name;
+        const staff = staffs.find(s => s.staffId === selectedStaffId);
+        if(staff) finalTechnicianName = staff.fullName;
     } else if (isSubstitute) {
         finalTechnicianName = substituteName || technicianInput;
     }
 
-    // Create Data Object
     const formData = {
-        logId: initialData ? initialData.logId : `ML${Date.now()}`, // Keep ID if editing, else new
         equipmentId,
         equipmentName,
         maintenanceDate,
@@ -119,12 +136,18 @@ const AddMaintenance = ({ onClose, onSave, initialData }) => {
         nextScheduled: nextScheduledService,
         issueReported,
         actionsTaken,
-        // In a real app, you'd save substitute details separately
+        ...(initialData && { logId: initialData.logId }) 
     };
 
-    // Pass data back to parent
-    onSave(formData);
-    onClose();
+    if (onSave) {
+        onSave(formData);
+    } else {
+        const success = await addMaintenanceLog(formData);
+        if (success) {
+            await fetchEquipments(); 
+            onClose();
+        }
+    }
   };
 
   return (
@@ -142,7 +165,7 @@ const AddMaintenance = ({ onClose, onSave, initialData }) => {
                 {initialData ? `Editing Log ID: ${initialData.logId}` : "Record activity & update schedule"}
             </p>
           </div>
-          <button onClick={onClose} className="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full">
+          <button onClick={onClose} className="text-white/80 cursor-pointer hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full">
             <FaTimes size={20} />
           </button>
         </div>
@@ -151,23 +174,26 @@ const AddMaintenance = ({ onClose, onSave, initialData }) => {
         <div className="overflow-y-auto p-6 md:p-8 space-y-8 custom-scrollbar">
           <form id="maintenance-form" onSubmit={handleSubmit}>
             
-            {/* 1. Equipment Info */}
+            {/*Equipment Info */}
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-5">
               <h3 className="text-blue-800 font-bold mb-4 flex items-center gap-2">
                 <FaTools className="text-blue-600" /> Equipment Details
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-500 uppercase">Equipment ID <span className="text-red-500">*</span></label>
+                  <label className="text-xs font-bold text-gray-500 uppercase">Select Equipment <span className="text-red-500">*</span></label>
                   <input 
-                    list="equip-ids" 
-                    value={equipmentId} 
-                    onChange={(e) => setEquipmentId(e.target.value)}
-                    placeholder="Select or Type ID"
+                    list="equip-list" 
+                    value={equipmentInput} 
+                    onChange={handleEquipmentChange}
+                    disabled={!!initialData || !!selectedEquipment} // Disable if editing or pre-selected
+                    placeholder="Search by ID or Name"
                     className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-fuchsia-500 outline-none text-sm bg-white"
                   />
-                  <datalist id="equip-ids">
-                    {equipment_records.map(e => <option key={e.equipmentId} value={e.equipmentId} />)}
+                  <datalist id="equip-list">
+                    {equipments.map(e => (
+                      <option key={e.equipmentId} value={`${e.basicInfo.equipmentName} (${e.equipmentId})`} />
+                    ))}
                   </datalist>
                 </div>
                 <div className="space-y-1.5">
@@ -183,7 +209,7 @@ const AddMaintenance = ({ onClose, onSave, initialData }) => {
               </div>
             </div>
 
-            {/* 2. Technician Info */}
+            {/*Technician Info */}
             <div className="bg-purple-50 border border-purple-100 rounded-xl p-5 mt-6">
               <h3 className="text-purple-800 font-bold mb-4 flex items-center gap-2">
                 <FaUserMd className="text-purple-600" /> Technician Information
@@ -201,134 +227,75 @@ const AddMaintenance = ({ onClose, onSave, initialData }) => {
                   />
                   <datalist id="staff-list">
                     <option value="Other / Substitute">External / Substitute Technician</option>
-                    {staffList.map(s => (
-                      <option key={s.staffId} value={`${s.name} (${s.staffId})`}>
-                        {s.designation} - {s.department}
+                    {technicians.map(s => (
+                      <option key={s.staffId} value={`${s.fullName} (${s.staffId})`}>
+                        {s.department}
                       </option>
                     ))}
                   </datalist>
                 </div>
 
-                {/* Conditional Fields for Substitute */}
                 {isSubstitute && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5 animate-fade-in bg-white p-4 rounded-lg border border-purple-200">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-gray-500 uppercase">Substitute Name <span className="text-red-500">*</span></label>
-                      <input 
-                        type="text" 
-                        value={substituteName}
-                        onChange={(e) => setSubstituteName(e.target.value)}
-                        placeholder="Enter full name"
-                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-fuchsia-500 outline-none text-sm"
-                      />
+                      <label className="text-xs font-bold text-gray-500 uppercase">Substitute Name</label>
+                      <input type="text" value={substituteName} onChange={(e) => setSubstituteName(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm" />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-gray-500 uppercase">Contact Number <span className="text-red-500">*</span></label>
-                      <input 
-                        type="tel" 
-                        value={substituteContact}
-                        onChange={(e) => setSubstituteContact(e.target.value)}
-                        placeholder="Enter mobile number"
-                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-fuchsia-500 outline-none text-sm"
-                      />
+                      <label className="text-xs font-bold text-gray-500 uppercase">Contact Number</label>
+                      <input type="tel" value={substituteContact} onChange={(e) => setSubstituteContact(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm" />
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* 3. Maintenance Details */}
+            {/*Maintenance Details */}
             <div className="bg-fuchsia-50 border border-fuchsia-100 rounded-xl p-5 mt-6">
               <h3 className="text-fuchsia-800 font-bold mb-4 flex items-center gap-2">
                 <FaSave className="text-fuchsia-600" /> Work Details
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 uppercase">Maintenance Date <span className="text-red-500">*</span></label>
-                  <input 
-                    type="date" 
-                    value={maintenanceDate}
-                    onChange={(e) => setMaintenanceDate(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-fuchsia-500 outline-none text-sm"
-                  />
+                  <input type="date" value={maintenanceDate} onChange={(e) => setMaintenanceDate(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm" />
                 </div>
-
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 uppercase">Status</label>
-                  <select 
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-fuchsia-500 outline-none text-sm bg-white"
-                  >
+                  <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm bg-white">
                     <option>Completed</option>
                     <option>In Progress</option>
                     <option>Pending Parts</option>
                   </select>
                 </div>
-
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-500 uppercase">Duration (Hours)</label>
-                  <input 
-                    type="number" 
-                    placeholder="e.g. 2.5"
-                    value={duration}
-                    onChange={(e) => setDuration(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-fuchsia-500 outline-none text-sm"
-                  />
+                  <label className="text-xs font-bold text-gray-500 uppercase">Duration (Hrs)</label>
+                  <input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm" />
                 </div>
-
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 uppercase">Cost (₹)</label>
-                  <input 
-                    type="number" 
-                    placeholder="e.g. 1500"
-                    value={cost}
-                    onChange={(e) => setCost(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-fuchsia-500 outline-none text-sm"
-                  />
+                  <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm" />
                 </div>
-
                 <div className="col-span-1 md:col-span-2 space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 uppercase">Next Scheduled Service <span className="text-red-500">*</span></label>
-                  <input 
-                    type="date" 
-                    value={nextScheduledService}
-                    onChange={(e) => setNextScheduledService(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-fuchsia-500 outline-none text-sm"
-                  />
+                  <input type="date" value={nextScheduledService} onChange={(e) => setNextScheduledService(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm" />
                 </div>
-
               </div>
             </div>
 
-            {/* 4. Issues & Actions */}
+            {/*Issues */}
             <div className="bg-orange-50 border border-orange-100 rounded-xl p-5 mt-6">
               <h3 className="text-orange-800 font-bold mb-4 flex items-center gap-2">
                 <FaExclamationCircle className="text-orange-600" /> Issue & Actions
               </h3>
-              
               <div className="space-y-5">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-500 uppercase">Issue / Problem Reported</label>
-                  <textarea 
-                    rows="2"
-                    placeholder="Describe the issue or reason for maintenance..."
-                    value={issueReported}
-                    onChange={(e) => setIssueReported(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-fuchsia-500 outline-none text-sm resize-none"
-                  />
+                  <label className="text-xs font-bold text-gray-500 uppercase">Issue Reported</label>
+                  <textarea rows="2" value={issueReported} onChange={(e) => setIssueReported(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm" />
                 </div>
-
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 uppercase">Actions Taken</label>
-                  <textarea 
-                    rows="2"
-                    placeholder="Describe the actions taken to resolve the issue..."
-                    value={actionsTaken}
-                    onChange={(e) => setActionsTaken(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-fuchsia-500 outline-none text-sm resize-none"
-                  />
+                  <textarea rows="2" value={actionsTaken} onChange={(e) => setActionsTaken(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm" />
                 </div>
               </div>
             </div>
@@ -336,20 +303,10 @@ const AddMaintenance = ({ onClose, onSave, initialData }) => {
           </form>
         </div>
 
-        {/* Footer Actions */}
+        {/* Footer */}
         <div className="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50 shrink-0">
-          <button 
-            type="button" 
-            onClick={onClose}
-            className="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-white transition-colors"
-          >
-            Cancel
-          </button>
-          <button 
-            type="submit"
-            form="maintenance-form"
-            className="px-6 py-2.5 rounded-lg bg-fuchsia-900 text-white font-medium hover:bg-fuchsia-800 transition-colors shadow-md flex items-center gap-2"
-          >
+          <button type="button" onClick={onClose} className="px-6 py-2.5 cursor-pointer rounded-lg border border-gray-300 text-gray-700 hover:bg-white">Cancel</button>
+          <button type="submit" form="maintenance-form" className="px-6 py-2.5 cursor-pointer rounded-lg bg-fuchsia-900 text-white hover:bg-fuchsia-800 shadow-md flex items-center gap-2">
             <FaSave /> {initialData ? "Update Entry" : "Save Entry"}
           </button>
         </div>
