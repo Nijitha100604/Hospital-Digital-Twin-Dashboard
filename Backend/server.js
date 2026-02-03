@@ -20,6 +20,7 @@ import prescriptionRouter from './routes/prescriptionRoute.js';
 import issueRouter from './routes/issueRoute.js';
 import bedRouter from './routes/bedRoute.js';
 import equipmentRouter from './routes/equipmentRoute.js';
+import maintenanceRouter from './routes/maintenanceRoute.js';
 
 // app config
 const app = express();
@@ -62,6 +63,7 @@ app.use('/api/prescription', prescriptionRouter);
 
 //equipment routes
 app.use('/api/equipment', equipmentRouter);
+app.use('/api/maintenance', maintenanceRouter)
 
 // shift routes
 app.use('/api/staff', staffRouter);
