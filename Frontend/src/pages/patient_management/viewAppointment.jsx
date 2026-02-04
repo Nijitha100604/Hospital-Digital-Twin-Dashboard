@@ -97,6 +97,16 @@ function ViewAppointment() {
     return report?.status || "Requested";
   } 
 
+  const checkBP = (value) =>{
+    const [systolic, diastolic] = value.split("/").map(Number);
+    if (!systolic || !diastolic) return false;
+    return systolic < 120 && diastolic < 80;
+  }
+
+  const checkHR = (value) => {
+    return value >= 60 && value <= 100;
+  }
+
   useEffect(()=>{
     
     const fetchDetails = () =>{
@@ -467,57 +477,173 @@ function ViewAppointment() {
     </div>
 
     {
-      conData?.admission?.length > 0 &&
-      conData.admission.some(adm => adm.admitted) ? (
+    conData?.admission?.length > 0 ? (
+      conData.admission.map((item, index) => {
 
-      conData.admission
-        .filter(adm => adm.admitted)
-        .map((adm, index) => (
+        const isRequested =
+          item.request?.requested &&
+          item.request?.requestStatus === "Pending";
+
+        const isAdmitted =
+          item.allocation?.admitted &&
+          !item.discharge?.dischargeDate;
+
+        const isDischarged =
+          !!item.discharge?.dischargeDate;
+
+        return (
           <div
             key={index}
-            className="grid grid-cols-2 gap-5 border-b border-gray-300 pb-4 mb-4"
+            className="border border-gray-300 rounded-lg mb-4 bg-gray-50"
           >
 
-            {/* Bed Details */}
-            <div className="flex flex-col gap-4 border border-gray-300 rounded-lg px-4 py-3 items-center">
-              <p className="text-sm font-medium">Block: {adm.block || "—"}</p>
-              <p className="text-sm font-medium">Ward: {adm.ward || "—"}</p>
-              <p className="text-sm font-medium">Bed: {adm.bedNumber || "—"}</p>
-              <p className="text-sm font-medium">
-                Days: {adm.numberOfDays}
+            {/* HEADER */}
+            <div className="flex justify-between items-center p-3">
+              <p className="text-sm font-semibold text-fuchsia-800">
+                Admission #{index + 1}
               </p>
+
+              <span
+                className={`text-xs px-2 py-1 rounded-md font-semibold text-white
+                  ${isRequested
+                    ? "bg-blue-600"
+                    : isAdmitted
+                    ? "bg-orange-600"
+                    : "bg-green-700"
+                  }`}
+              >
+                {isRequested
+                  ? "Requested"
+                  : isAdmitted
+                  ? "Admitted"
+                  : "Discharged"}
+              </span>
             </div>
 
-            {/* Daily Notes */}
-            <div className="flex flex-col gap-2 border border-gray-300 rounded-lg px-4 py-3">
-              <p className="text-sm font-medium text-gray-700">
-                Daily Notes
+            {/* REQUEST DETAILS */}
+            {isRequested && (
+              <p className="text-sm text-gray-700 px-3 pb-2">
+                Requested on{" "}
+                <span className="font-semibold">
+                  {formatDate(item.request.requestDate)}
+                </span>
               </p>
+            )}
 
-              {
-                adm.dailyNotes?.length > 0 ? (
-                  adm.dailyNotes.map((note, i) => (
-                    <div key={i} className="flex justify-between text-sm">
-                      <span>{formatDate(note.date)}</span>
-                      <span>{note.note}</span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500">
-                    No daily notes available
+            {/* ALLOCATION DETAILS */}
+            {(isAdmitted || isDischarged) && (
+              <div className="grid grid-cols-3 gap-3 mb-3 px-3">
+                <div>
+                  <p className="text-xs text-gray-500">Block</p>
+                  <p className="text-sm font-bold">
+                    {item.allocation?.block || "-"}
                   </p>
-                )
-              }
-            </div>
+                </div>
 
+                <div>
+                  <p className="text-xs text-gray-500">Department</p>
+                  <p className="text-sm font-bold">
+                    {item.allocation?.department || "-"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-gray-500">Bed ID</p>
+                  <p className="text-sm font-bold">
+                    {item.allocation?.bedId || "-"}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {(isAdmitted || isDischarged) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 px-3 border border-gray-300 mx-3 rounded-lg py-4 gap-4">
+
+                {/* DAILY NOTES */}
+                <div>
+                  <p className="text-sm font-medium mb-3 text-gray-900">
+                    Daily Notes
+                  </p>
+
+                  {item.dailyNotes?.length > 0 ? (
+                    item.dailyNotes.map((note, i) => (
+                      <p key={i} className="text-sm text-gray-700">
+                        <span className="font-medium text-gray-900">
+                          {formatDate(note.date)}
+                        </span>{" "}
+                        - {note.note}
+                      </p>
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-500">
+                      No daily notes available
+                    </p>
+                  )}
+                </div>
+
+                {/* DISCHARGE DETAILS */}
+                {isDischarged && (
+                  <div>
+                    <p className="text-sm font-medium mb-3 text-gray-900">
+                      Discharge Details
+                    </p>
+
+                    <div className="flex flex-col gap-2">
+                      <p className="text-sm">
+                        Duration:
+                        <span className="font-semibold ml-1">
+                          {item.discharge.numberOfDays} day(s)
+                        </span>
+                      </p>
+
+                      <p className="text-sm">
+                        Final Vitals:
+                        <span className="ml-1 font-semibold">
+                          BP: <span className={`font-semibold ${checkBP(item.discharge.finalVitals?.bloodPressure)? "text-green-700" : "text-red-700"}`}>{item.discharge.finalVitals?.bloodPressure}</span> mmHg,
+                          HR: <span className={`font-semibold ${checkHR(item.discharge.finalVitals?.heartRate)? "text-green-700" : "text-red-700"}`}>{item.discharge.finalVitals?.heartRate}</span> bpm
+                        </span>
+                      </p>
+
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">
+                          Patient Instructions
+                        </p>
+
+                        {item.discharge.patientInstructions?.length > 0 ? (
+                          item.discharge.patientInstructions.map((ins, i) => (
+                            <p key={i} className="text-sm">
+                              • {ins}
+                            </p>
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500">
+                            No instructions provided
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            )}
           </div>
-        ))
-
-      ) : (
-
-      <p className="text-center text-gray-500 text-sm py-4">
-        No Admission Details Available
+        );
+      })
+    ) : (
+      <p className="text-sm text-gray-500 text-center mt-4">
+        No admission details available
       </p>
+    )
+  }
+  {
+    appData?.admissionStatus === "Discharged" && (
+      <button 
+        onClick = {()=>navigate(`/discharge-summary/${conData?.consultationId}`)}
+        className="px-3 py-2 bg-fuchsia-700 hover:bg-fuchsia-800 text-white rounded-lg cursor-pointer text-sm font-semibold transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
+      >
+        View Discharge Summary
+      </button>
     )
   }
 

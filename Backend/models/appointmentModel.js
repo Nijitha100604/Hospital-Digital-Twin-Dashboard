@@ -23,7 +23,7 @@ const appointmentSchema = new mongoose.Schema({
         enum: ["Not Required", "Requested", "Admitted", "Discharged"],
         default: "Not Required"
     }
-
+    
 }, { timestamps: true });
 
 appointmentSchema.pre('save', async function() {

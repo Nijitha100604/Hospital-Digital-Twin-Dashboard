@@ -549,7 +549,11 @@ function PatientProfile() {
             </p>
           ) : (
           consultation.flatMap(c => 
-          c?.admission.map((item, index)=>(
+            c?.admission?.map((item, index)=>{
+            const admittedOn = item?.allocation?.admissionDate;
+            const dischargedOn = item?.discharge?.dischargeDate;
+            const totalDays = item?.discharge?.numberOfDays;
+            return(
             <div 
               key={index}
               className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-6 gap-3 border-b border-b-gray-600 py-2"
@@ -557,36 +561,43 @@ function PatientProfile() {
 
               <div className="flex flex-col gap-2">
                 <p className="text-sm text-gray-600 font-medium">Admitted on</p>
-                <p className="text-sm font-bold text-gray-900">{formatDate(item.date)}</p>
+                <p className="text-sm font-bold text-gray-900">{admittedOn ? formatDate(admittedOn) : "—"}</p>
               </div>
 
               <div className="flex flex-col gap-2">
                 <p className="text-sm text-gray-600 font-medium">Total Days</p>
-                <p className="text-sm font-bold text-gray-900">{item.numberOfDays}</p>
+                <p className="text-sm font-bold text-gray-900">{totalDays || "—"}</p>
               </div>
 
               <div className="flex flex-col gap-2">
                 <p className="text-sm text-gray-600 font-medium">Block</p>
-                <p className="text-sm font-bold text-gray-900">{item.block}</p>
+                <p className="text-sm font-bold text-gray-900">{item?.allocation?.block || "—"}</p>
               </div>
 
               <div className="flex flex-col gap-2">
-                <p className="text-sm text-gray-600 font-medium">Ward</p>
-                <p className="text-sm font-bold text-gray-900">{item.ward}</p>
+                <p className="text-sm text-gray-600 font-medium">Department</p>
+                <p className="text-sm font-bold text-gray-900">{item?.allocation?.department || "—"}</p>
               </div>
 
               <div className="flex flex-col gap-2">
                 <p className="text-sm text-gray-600 font-medium">Bed No.</p>
-                <p className="text-sm font-bold text-gray-900">{item.bedNumber}</p>
+                <p className="text-sm font-bold text-gray-900">{item?.allocation?.bedId || "—"}</p>
               </div>
 
               <button 
-                className="text-sm font-medium bg-violet-500 px-2 py-1 text-white rounded-lg cursor-pointer transition-all duration-300 ease-in-out hover:bg-violet-600 hover:scale-105 active:scale-95"
-                onClick={()=>navigate(`/discharge-summary/${patient?.patientId}`)}
+                disabled={!dischargedOn}
+                className={`text-sm font-medium px-2 py-1 rounded-lg transition-all duration-300 ease-in-out
+                  ${dischargedOn
+                    ? "bg-violet-500 text-white hover:bg-violet-600 hover:scale-105 active:scale-95 cursor-pointer"
+                    : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                  }`}
+                onClick={()=>navigate(`/discharge-summary/${c.consultationId}`)}
               >Summary</button>
 
             </div>
-          )) )
+            )
+
+          }) )
           )
         }
       </div>

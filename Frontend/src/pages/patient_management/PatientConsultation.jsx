@@ -307,6 +307,16 @@ function PatientConsultation() {
       }
     }
 
+    const checkBP = (value) =>{
+      const [systolic, diastolic] = value.split("/").map(Number);
+      if (!systolic || !diastolic) return false;
+      return systolic < 120 && diastolic < 80;
+    }
+
+    const checkHR = (value) => {
+      return value >= 60 && value <= 100;
+    }
+
     useEffect(()=>{
       const fetchConsultation = async() =>{
       
@@ -566,11 +576,11 @@ function PatientConsultation() {
     </div>
 
     {/* Prescription */}
-    <div className="w-full bg-white px-3 py-3 mt-4 rounded-lg border border-gray-300">
+    <div className="w-full bg-white px-3 py-3 mt-4 mb-2 rounded-lg border border-gray-300">
       <p className="text-sm font-medium text-gray-600 mb-4">Prescriptions</p>
 
       {
-        consultation?.prescriptions?.length > 0 ? (
+        consultation?.prescriptions?.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full border border-gray-300 text-sm">
               <thead className="bg-gray-100">
@@ -597,8 +607,11 @@ function PatientConsultation() {
               </tbody>
             </table>
           </div>
-        ) : (
+        ) 
+        }
 
+        {
+          appointment?.status !== "Completed" && (
           <div>
           <div className="grid md:grid-cols-4 gap-3 items-center">
 
@@ -742,8 +755,10 @@ function PatientConsultation() {
           }
 
           </div>
-        )
-      }
+          )
+        }
+        
+      
 
     </div>
 
@@ -885,7 +900,7 @@ function PatientConsultation() {
           consultation.admission.map((item, index)=>{
             const isRequested = item.request?.requested && item.request?.requestStatus === "Pending";
             const isAdmitted = item.allocation?.admitted && !item.discharge?.dischargeDate;
-            const isDischarged = !!item.discharge?.dischargeDate;
+            const isDischarged = item.discharge?.dischargeDate;
 
             return (
               <div
@@ -911,7 +926,7 @@ function PatientConsultation() {
 
                 {
                   (isAdmitted || isDischarged) && (
-                    <div className="grid grid-cols-3 gap-3 mb-3">
+                    <div className="grid grid-cols-3 gap-3 mb-3 px-3">
                       <div>
                         <p className="text-xs text-gray-500">Block</p>
                         <p className="text-sm font-bold">{item.allocation.block || "-"}</p>
@@ -929,48 +944,60 @@ function PatientConsultation() {
                 }
 
                 {
-                  isAdmitted && (
-                    <div className="mb-2">
-                      <p className="text-sm font-medium text-gray-700">Daily Notes</p>
+                  (isAdmitted || isDischarged) && (
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 px-3 border border-gray-300 mx-3 rounded-lg py-4 gap-4">
+
+                    {/* Daily Notes */}
+                    <div>
+                      <p className="text-sm font-medium mb-3 text-gray-900">Daily Notes</p>
                       {
                         item.dailyNotes?.length > 0 ? (
                           item.dailyNotes.map((note, i)=>(
-                            <p key={i}>{formatDate(note.date)} - {note.note}</p>
+                            <p key={i} className="text-sm text-gray-700"> <span className="font-medium text-gray-900">{formatDate(note.date)}</span> - {note.note}</p>
                           ))
                         ) : (
                           <p className="text-xs text-gray-500">No daily notes available</p>
                         )
                       }
                     </div>
+
+                    {/* Discharge details */}
+
+                    {
+                      isDischarged && (
+                        <div>
+                          <p className="text-sm font-medium mb-3 text-gray-900">Discharge Details</p>
+                          <div className="flex flex-col gap-2 items-start">
+                            <p className="text-sm text-gray-700">Duration: <span className="font-semibold ml-1 text-gray-900">{item.discharge.numberOfDays} day(s)</span> </p>
+                            <p className="text-sm text-gray-700">Final Vitals: BP: <span className={`font-semibold ${checkBP(item.discharge.finalVitals?.bloodPressure)? "text-green-700" : "text-red-700"}`}>{item.discharge.finalVitals?.bloodPressure}</span> mmHg , HR: <span className={`font-semibold ${checkHR(item.discharge.finalVitals?.heartRate)? "text-green-700" : "text-red-700"}`}>{item.discharge.finalVitals?.heartRate}</span> bpm</p>
+                          
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Patient Instructions</p>
+                              {item.discharge.patientInstructions?.length > 0 ? (
+                                item.discharge.patientInstructions.map((ins, i) => (
+                                <p key={i} className="text-sm">
+                                  • {ins}
+                                </p>
+                                ))
+                              ) : (
+                                <p className="text-sm text-gray-500 mt-1">
+                                  No instructions provided
+                                </p>
+                              )}
+                          </div>
+                          </div>
+                          
+                        </div>
+                      )
+                    }
+
+
+                    </div>
                   )
                 }
 
-                {
-                  isDischarged && (
-                    <>
-                      <p className="text-sm text-gray-700 mb-1">Duration: <span className="font-semibold ml-1">{item.discharge.numberOfDays}</span>day(s) </p>
-                      <div className="mb-2">
-                        <p className="text-sm font-medium text-gray-700">Final Vitals</p>
-                        <p className="text-xs">BP: <b>{item.discharge.finalVitals?.bloodPressure || "-"}</b></p>
-                        <p className="text-xs">HR: <b>{item.discharge.finalVitals?.heartRate || "-"}</b></p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Patient Instructions</p>
-                        {item.discharge.patientInstructions?.length > 0 ? (
-                          item.discharge.patientInstructions.map((ins, i) => (
-                          <p key={i} className="text-xs">
-                            • {ins}
-                          </p>
-                          ))
-                        ) : (
-                          <p className="text-xs text-gray-500">
-                            No instructions provided
-                          </p>
-                        )}
-                      </div>
-                    </>
-                  )
-                }
+                
               </div>
             )
           })
@@ -978,6 +1005,16 @@ function PatientConsultation() {
           <p className="text-sm text-gray-500 text-center mt-4">
             No admission details available
           </p>
+        )
+      }
+      {
+        appointment?.admissionStatus === "Discharged" && (
+          <button 
+            onClick = {()=>navigate(`/discharge-summary/${consultation?.consultationId}`)}
+            className="px-3 py-2 bg-fuchsia-700 hover:bg-fuchsia-800 text-white rounded-lg cursor-pointer text-sm font-semibold transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
+          >
+            View Discharge Summary
+          </button>
         )
       }
       

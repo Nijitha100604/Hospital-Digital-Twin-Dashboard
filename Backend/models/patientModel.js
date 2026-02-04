@@ -35,7 +35,7 @@ const patientSchema = new mongoose.Schema({
             ]
         }
     ]
-
+    
 }, { timestamps: true });
 
 patientSchema.pre('save', async function() {

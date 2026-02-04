@@ -56,7 +56,7 @@ const consultationSchema = new mongoose.Schema({
             } 
         }
     ]
-
+    
 }, { timestamps: true })
 
 consultationSchema.pre("save", async function () {
