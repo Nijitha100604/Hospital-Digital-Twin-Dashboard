@@ -35,6 +35,29 @@ const LabContextProvider = (props) =>{
 
     }
 
+    const fetchReportById = async (reportId) => {
+        if (!token) return null;
+        setLoading(true);
+        try {
+            const { data } = await axios.get(`${backendUrl}/api/reports/${reportId}`, { 
+                headers: { token } 
+            });
+            
+            if (data.success) {
+                return data.data;
+            } else {
+                toast.error(data.message);
+                return null;
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error("Failed to fetch report details");
+            return null;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(()=>{
 
         if(token){
@@ -48,7 +71,8 @@ const LabContextProvider = (props) =>{
         loading,
         reports,
         fetchLabReports,
-        setReports
+        setReports,
+        fetchReportById
     }
 
     return(
