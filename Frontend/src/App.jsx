@@ -38,7 +38,7 @@ import EditSupplierDetails from "./pages/inventory/editSupplierDetails";
 import ViewMedicineDetails from "./pages/inventory/viewMedicineDetails";
 import LabReportsList from "./pages/laboratory/labReportsList";
 import LabResultsEntry from "./pages/laboratory/labResultsEntry";
-import PatientWiseReports from "./pages/laboratory/patientWiseReports";
+import PatientWiseReport from "./pages/laboratory/patientWiseReports";
 import UploadReport from "./pages/laboratory/uploadReport";
 import AddStaff from "./pages/staff_management/AddStaff";
 import AssignShift from "./pages/staff_management/AssignShift";
@@ -140,7 +140,8 @@ function App() {
             {/* Laboratory */}
             <Route path="/lab-reports-list" element={<LabReportsList />} />
             <Route path="/lab-results-entry" element={<LabResultsEntry />} />
-            <Route path="/patient-wise-reports" element={<PatientWiseReports />}/>
+            <Route path='/patient-wise-reports' element={<PatientWiseReport />} />
+            <Route path='/patient-wise-reports/:id' element={<PatientWiseReport />} />
             <Route path="/upload-report" element={<UploadReport />} />
 
 

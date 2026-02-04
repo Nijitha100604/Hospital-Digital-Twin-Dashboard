@@ -86,4 +86,30 @@ const getAllLabReports = async (req, res) => {
     }
 };
 
-export { addLabReports, getAllLabReports };
+
+// --- GET SINGLE REPORT BY ID ---
+const getReportById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Try to find by MongoDB _id first, then by custom labReportId (e.g., LAB0001)
+        const report = await labReportModel.findOne({
+            $or: [
+                { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }, // check valid ObjectId format
+                { labReportId: id }
+            ]
+        });
+
+        if (!report) {
+            return res.json({ success: false, message: "Report not found" });
+        }
+
+        res.json({ success: true, data: report });
+
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+export { addLabReports, getAllLabReports, getReportById };
