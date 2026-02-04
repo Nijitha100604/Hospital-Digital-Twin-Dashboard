@@ -34,7 +34,7 @@ function AvailableBedModal({ bed, bedRequest, onClose }) {
             patientId: bedRequest.patientId,
             doctorId: bedRequest.doctorId,
             department: bed.department,
-            block: bed.block || "A"
+            block: bed.block || "Block A"
           }
 
           const success = await assignBed(bedData);
@@ -139,8 +139,6 @@ function AvailableBedModal({ bed, bedRequest, onClose }) {
         </div>
         ) 
     }
-
-    
 
     <button 
         disabled={isDisabled || loading}

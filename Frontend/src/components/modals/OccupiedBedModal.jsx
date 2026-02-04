@@ -20,7 +20,7 @@ function OccupiedBedModal({bed, onClose}) {
     const [readyToDischarge, setReadyToDischarge] = useState(false);
 
     const { addDailyNote, dischargePatient, fetchBeds } = useContext(DeptContext);
-    const { fetchConsultationById } = useContext(PatientContext);
+    const { consultations, fetchConsultations } = useContext(PatientContext);
 
     const handleAddDailyNote = async() =>{
         if(!dailyNote.trim()){
@@ -39,13 +39,16 @@ function OccupiedBedModal({bed, onClose}) {
     }
 
     const handleSaveInstructions = () =>{
-        setInstructions("");
-        toast.success("Instructions Added!");
+        if(instructionList.length === 0){
+        toast.error("Add at least one instruction");
+        return;
+        }
+        toast.success("Instructions saved!");
     }
 
     const handleDischarge = async() =>{
 
-        if(!bp || !heartRate || !remarks || !finalDiagnosis || !instructionList)
+        if(!bp || !heartRate || !remarks || !finalDiagnosis || instructionList.length === 0)
         {
             toast.error("Enter all Fields");
             return;
@@ -54,18 +57,20 @@ function OccupiedBedModal({bed, onClose}) {
         const payload = {
             consultationId: bed?.occupiedDetails?.consultationId,
             admissionIndex: bed?.occupiedDetails?.admissionIndex,
+            appointmentId: bed?.occupiedDetails?. appointmentId,
             dischargeRemarks: remarks,
             finalVitals: {
                 bloodPressure: bp,
                 heartRate
             },
             finalDiagnosis,
-            patientInstructions: instructionList,
-            appointmentId: bed?.occupiedDetails?.appointmentId
+            patientInstructions: instructionList
         }
 
         const success = await dischargePatient(payload);
         if(success){
+            setInstructionList([]);
+            setDailyNotes([]);
             await fetchBeds();
             onClose();
         }
@@ -74,19 +79,37 @@ function OccupiedBedModal({bed, onClose}) {
     }
 
     useEffect(()=>{
+
+        if (!bed || bed?.status !== "Occupied" || !bed?.occupiedDetails?.consultationId || bed?.occupiedDetails?.admissionIndex === undefined || !consultations?.length ) {
+            return;
+        }
+
         const loadNotes = async() =>{
-            if(!bed?.occupiedDetails?.consultationId) return;
-            setLoadingNotes(true);
-            const consultation = await fetchConsultationById(bed.occupiedDetails.consultationId);
-            if(consultation){
+            try{
+                setLoadingNotes(true);
+                const consultation = consultations.find(
+                    c => c.consultationId === bed.occupiedDetails.consultationId
+                );
+                if (!consultation) {
+                    setDailyNotes([]);
+                    return;
+                }
                 const admission = consultation.admission?.[bed?.occupiedDetails?.admissionIndex];
                 setDailyNotes(admission?.dailyNotes || []);
+                
+            } catch (err) {
+                console.error("Failed to fetch notes:", err);
+            } finally {
+             setLoadingNotes(false);
             }
-            setLoadingNotes(false);
         };
         loadNotes();
+    }, [bed, consultations])
+
+    useEffect(()=>{
+        fetchConsultations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [bed])
+    }, [])
 
   return (
     <>
@@ -128,6 +151,7 @@ function OccupiedBedModal({bed, onClose}) {
         />
 
         <button
+            disabled={bed?.status !== "Occupied"}
             onClick={handleAddDailyNote}
             className="bg-blue-600 text-white px-4 rounded-lg hover:scale-105 transition"
         >

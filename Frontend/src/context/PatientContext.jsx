@@ -88,21 +88,6 @@ const PatientContextProvider = (props) =>{
 
     }
 
-    const fetchConsultationById = async(consultationId) =>{
-        try{
-            const {data} = await axios.get(
-                `${backendUrl}/api/consultation/${consultationId}`,
-                {headers: {token}}
-            );
-            if(data.success){
-                return data.data;
-            }
-        } catch(error){
-            console.log(error);
-            toast.error("Internal Server Error");
-        }
-    }
-
     
     useEffect(()=>{
         if(token){
@@ -125,8 +110,7 @@ const PatientContextProvider = (props) =>{
         conLoading,
         consultations,
         setConsultations,
-        fetchConsultations,
-        fetchConsultationById
+        fetchConsultations
     }
 
     return (
