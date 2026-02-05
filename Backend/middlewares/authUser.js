@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import staffModel from '../models/staffModel.js';
 
 // authentication middleware
 
@@ -9,21 +10,19 @@ const authUser = async(req, res, next)=>{
         if(!token){
             return res.json({success: false, message: "Not Authorized Login again"})
         }
-        const token_decode = jwt.verify(token, process.env.JWT_SECRET)
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
-        if(token_decode.email !== process.env.ADMIN_EMAIL ||  token_decode.password !== process.env.ADMIN_PASSWORD){
-            return res.json({success: false, message: "Not Authorized Login again"})
+        const staff = await staffModel.findById(decoded.id).select("-password");
+
+        if(!staff){
+            return res.json({success: false, message: "User no longer exists"});
         }
 
-        if (typeof next === 'function') {
-            return next();
-        } else {
-            throw new Error("Next is not a function inside the middleware");
-        }
+        next();
 
     } catch (error) {
         console.log(error);
-        res.json({success: false, message:error.message});
+        res.json({success: false, message: "Not authorized login again"});
     }
 }
 

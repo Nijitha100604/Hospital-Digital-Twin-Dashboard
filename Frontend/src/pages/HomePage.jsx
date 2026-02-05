@@ -14,18 +14,15 @@ import {
   FaClock
 } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
+import { useContext } from 'react';
+import { AppContext } from '../context/AppContext';
 
 
-const HomePage = ({ user, setActiveCategory }) => {
+const HomePage = ({ setActiveCategory }) => {
+
+  const {userData} = useContext(AppContext);
+
   const navigate = useNavigate();
-
-  // User Context 
-  const currentUser = user || {
-    name: "Michael Wilson",
-    role: "Admin", 
-    initials: "MW"
-  };
-
 
   // Quick Access Modules Configuration 
   const quickLinks = [
@@ -128,14 +125,14 @@ const HomePage = ({ user, setActiveCategory }) => {
       <div className="bg-fuchsia-900 rounded-2xl p-6 md:p-8 text-white shadow-lg mb-8 flex flex-col md:flex-row justify-between items-center gap-4 animate-fade-in">
         <div>
           <p className="text-fuchsia-200 text-sm mb-1 font-medium tracking-wide">Welcome back,</p>
-          <h1 className="text-2xl md:text-3xl font-bold">{currentUser.name}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">{userData?.fullName || "-"}</h1>
           <div className="mt-2 inline-block px-3 py-1 bg-fuchsia-800 rounded-full text-xs font-semibold border border-fuchsia-600">
-            {currentUser.role === 'Admin' ? 'Super Admin' : currentUser.role} Home
+            {userData?.designation || "-"} Home
           </div>
         </div>
         
         <div className="w-16 h-16 rounded-full border-4 border-fuchsia-800 flex items-center justify-center bg-white text-fuchsia-900 text-xl font-bold shadow-md">
-          {currentUser.initials}
+          HW
         </div>
       </div>
 
@@ -148,7 +145,7 @@ const HomePage = ({ user, setActiveCategory }) => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {quickLinks
-            .filter(link => link.roles.includes(currentUser.role)) // Filter based on User Role
+            .filter(link => link.roles.includes(userData?.designation)) // Filter based on User Role
             .map((link) => (
               <div 
                 key={link.id}

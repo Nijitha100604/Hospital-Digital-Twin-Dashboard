@@ -11,6 +11,7 @@ const AppContextProvider = (props) =>{
     const storedToken = localStorage.getItem('token');
 
     const [token, setToken] = useState(storedToken && isTokenValid(storedToken) ? storedToken : "");
+    const [userData, setUserData] = useState(null);
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
     useEffect(() => {
@@ -30,6 +31,7 @@ const AppContextProvider = (props) =>{
 
     const value = {
         token, setToken,
+        userData, setUserData,
         backendUrl,
         isAuthenticated: !!token,
     }
