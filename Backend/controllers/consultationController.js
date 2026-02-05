@@ -77,8 +77,8 @@ const addPrescriptions = async(req, res) =>{
 
         const { appointmentId, prescriptions } = req.body; 
 
-        if (!appointmentId || !Array.isArray(prescriptions)) {
-            return res.json({ success: false, message: "Missing Prescriptions" });
+        if (!appointmentId || !Array.isArray(prescriptions) || prescriptions.length === 0) {
+            return res.json({ success: false, message: "Invalid prescriptions data" });
         }
 
         const consultation = await consultationModel.findOne({ appointmentId });

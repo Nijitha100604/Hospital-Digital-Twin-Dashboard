@@ -16,7 +16,7 @@ function PatientConsultation() {
     const [consultation, setConsultation] = useState(null);
     const [diagnosis, setDiagnosis] = useState("");
     const [doctorRemarks, setDoctorRemarks] = useState("");
-    const [prescriptions, setPrescriptions] = useState([]);
+    const [prescriptionsList, setPrescriptionsList] = useState([]);
     const [medicineName, setMedicineName] = useState("");
     const [frequency, setFrequency] = useState([]);
     const [duration, setDuration] = useState("");
@@ -126,7 +126,7 @@ function PatientConsultation() {
         instruction
       };
 
-      setPrescriptions(prev => [...prev, newMedicine]);
+      setPrescriptionsList(prev => [...prev, newMedicine]);
 
       setMedicineName("");
       setSelectedMedicine(null);
@@ -136,13 +136,13 @@ function PatientConsultation() {
     };
 
     const handleDeleteMedicine = (index) => {
-      setPrescriptions(prev =>
+      setPrescriptionsList(prev =>
         prev.filter((_, i) => i !== index)
       );
     };
 
     const handleSavePrescription = async() => {
-      if (prescriptions.length === 0) {
+      if (prescriptionsList.length === 0) {
         toast.error("Add at least one medicine");
         return;
       }
@@ -151,13 +151,13 @@ function PatientConsultation() {
 
         const {data} = await axios.post(`${backendUrl}/api/consultation/add-prescriptions`, {
           appointmentId: consultation?.appointmentId,
-          prescriptions
+          prescriptions: prescriptionsList
         }, {headers: {token}});
 
         if(data.success){
           toast.success(data.message, {autoClose: 2000});
           await fetchConsultations();
-          setPrescriptions([]);
+          setPrescriptionsList([]);
         } else{
           toast.error(data.message);
         }
@@ -332,7 +332,6 @@ function PatientConsultation() {
           appointmentDetails(foundConsultation?.appointmentId);
           setDiagnosis(foundConsultation?.doctor?.diagnosis || "");
           setDoctorRemarks(foundConsultation?.doctor?.remarks || "");
-          setPrescriptions(foundConsultation?.prescriptions || []);
         }
       }
       fetchConsultation();
@@ -592,7 +591,7 @@ function PatientConsultation() {
                 </tr>
               </thead>
               <tbody>
-                {consultation.prescriptions.map((item, index) => (
+                {consultation?.prescriptions.map((item, index) => (
                   <tr key={index} className="text-center">
                     <td className="p-2 border">{item?.medicineName}</td>
                     <td className="p-2 border">
@@ -608,12 +607,11 @@ function PatientConsultation() {
             </table>
           </div>
         ) 
-        }
-
+      }
         {
-          appointment?.status !== "Completed" && (
+          (appointment?.status !== "Completed" && consultation?.prescriptions?.length === 0) && (
           <div>
-          <div className="grid md:grid-cols-4 gap-3 items-center">
+          <div className="grid md:grid-cols-4 gap-3 mt-3 items-center">
 
             <div>
               <label className="text-sm text-gray-800 font-medium">Medicine name<span className="text-red-600">*</span></label>
@@ -730,10 +728,10 @@ function PatientConsultation() {
           </div>
 
           {
-            prescriptions.length > 0 && (
+            prescriptionsList.length > 0 && (
               <div className="mt-4 space-y-2">
                 {
-                  prescriptions.map((item, index)=>(
+                  prescriptionsList.map((item, index)=>(
                     <div 
                       key={index}
                       className="flex items-center justify-between border border-gray-300 p-2 rounded-md"
@@ -755,7 +753,7 @@ function PatientConsultation() {
           }
 
           </div>
-          )
+          ) 
         }
         
       
