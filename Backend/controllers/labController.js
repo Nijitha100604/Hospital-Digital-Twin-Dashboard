@@ -2,6 +2,7 @@ import labReportModel from "../models/labReportModel.js";
 import consultationModel from "../models/consultationModel.js";
 import patientModel from "../models/patientModel.js";
 import staffModel from "../models/staffModel.js";
+import { v2 as cloudinary } from "cloudinary";
 
 // --- 1. ADD LAB REPORTS (Request Test) ---
 const addLabReports = async (req, res) => {
@@ -112,4 +113,101 @@ const getReportById = async (req, res) => {
     }
 };
 
-export { addLabReports, getAllLabReports, getReportById };
+// --- SUBMIT RESULTS (Manual Entry) ---
+const submitLabResults = async (req, res) => {
+    try {
+        const { reportId, testResults, comments, technicianId, technicianName, sampleDate } = req.body;
+
+        // 1. Find the report
+        const report = await labReportModel.findById(reportId);
+        
+        if (!report) {
+            return res.json({ success: false, message: "Report not found" });
+        }
+
+        // 2. Update fields
+        report.testResults = testResults;
+        report.comments = comments || "";
+        report.technicianId = technicianId;
+        report.technicianName = technicianName;
+        report.sampleDate = sampleDate; // Update sample date if changed
+        
+        // 3. Mark as Completed
+        report.entryType = "Manual";
+        report.status = "Completed";
+        report.completedAt = new Date();
+
+        // 4. Save
+        await report.save();
+
+        res.json({ success: true, message: "Results saved successfully!" });
+
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+
+// --- 4. UPLOAD REPORT FILE (Handles both Existing Request & New Entry) ---
+const uploadLabReportFile = async (req, res) => {
+    try {
+        const { reportId, patientId, patientName, age, gender, doctorName, testName, department, sampleDate } = req.body;
+        const reportFile = req.file;
+
+        if (!reportFile) return res.json({ success: false, message: "No file uploaded" });
+
+        // 1. Upload to Cloudinary
+        const uploadResponse = await cloudinary.uploader.upload(reportFile.path, { resource_type: "auto" });
+        const fileUrl = uploadResponse.secure_url;
+
+        let report;
+
+        // SCENARIO A: Updating an existing request (from List)
+        if (reportId) {
+            report = await labReportModel.findById(reportId);
+            if (!report) return res.json({ success: false, message: "Report ID provided but not found" });
+            
+            report.reportDocument = fileUrl;
+            report.entryType = "Upload";
+            report.status = "Completed";
+            report.completedAt = new Date();
+            await report.save();
+        } 
+        // SCENARIO B: Creating a new report (Direct Upload)
+        else {
+            // Validate required fields for new entry
+            if(!patientId || !testName) {
+                return res.json({ success: false, message: "Patient ID and Test Type are required for new entries" });
+            }
+
+            report = new labReportModel({
+                // Generate a new ID automatically via Model hook
+                appointmentId: "MANUAL-UPLOAD", // Placeholder
+                consultationId: "MANUAL-UPLOAD", // Placeholder
+                patientId,
+                patientName,
+                age: age || 0,
+                gender: gender || "Unknown",
+                doctorName: doctorName || "Self/External",
+                doctorId: "EXT",
+                testName,
+                department: department || "Pathology",
+                sampleDate: sampleDate || new Date(),
+                reportDocument: fileUrl,
+                entryType: "Upload",
+                status: "Completed",
+                completedAt: new Date()
+            });
+            await report.save();
+        }
+
+        res.json({ success: true, message: "Report uploaded successfully!" });
+
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+export { addLabReports, getAllLabReports, getReportById,submitLabResults,uploadLabReportFile };
