@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FaUserInjured, 
@@ -20,9 +20,16 @@ import { AppContext } from '../context/AppContext';
 
 const HomePage = ({ setActiveCategory }) => {
 
-  const {userData} = useContext(AppContext);
+  const {userData, fetchUserProfile, token} = useContext(AppContext);
 
   const navigate = useNavigate();
+
+  useEffect(()=>{
+    if(token){
+      fetchUserProfile(token)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
 
   // Quick Access Modules Configuration 
   const quickLinks = [

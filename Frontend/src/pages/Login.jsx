@@ -9,7 +9,7 @@ import { toast } from 'react-toastify';
 function Login() {
     const navigate = useNavigate();
 
-    const {setToken, backendUrl, setUserData} = useContext(AppContext);
+    const {setToken, backendUrl, fetchUserProfile} = useContext(AppContext);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -26,7 +26,7 @@ function Login() {
             if(data.success){
                 localStorage.setItem('token', data.token);
                 setToken(data.token);
-                setUserData(data.staff);
+                await fetchUserProfile(data.token);
                 setEmail('');
                 setPassword('');
                 navigate('/');

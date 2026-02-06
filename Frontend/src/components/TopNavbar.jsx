@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { assets } from './../assets/assets';
 import { FaRegBell } from "react-icons/fa";
 import { FaArrowRightFromBracket } from "react-icons/fa6";
@@ -11,7 +11,7 @@ import { useContext } from 'react';
 function TopNavbar({ setIsSidebarOpen }) {
 
   const navigate = useNavigate();
-  const { setToken, userData } = useContext(AppContext);
+  const { setToken, userData, fetchUserProfile, token } = useContext(AppContext);
 
   const handleLogout = () => {
     const confirmLogout = window.confirm(
@@ -23,6 +23,13 @@ function TopNavbar({ setIsSidebarOpen }) {
       setToken('');              
     }                 
   };
+
+  useEffect(()=>{
+    if(token){
+      fetchUserProfile(token);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
 
   return (
 

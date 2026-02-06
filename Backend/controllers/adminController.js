@@ -38,19 +38,31 @@ const login = async(req, res) =>{
             process.env.JWT_SECRET, 
             { expiresIn: '24h' }
         );
-        res.json({success: true, 
-            token,
-            staff: {
-                id: staff._id,
-                fullName: staff.fullName,
-                email: staff.email,
-                profilePhoto: staff.profilePhoto,
-                designation: staff.designation
-            }
-        });
+        res.json({success: true, token });
     } catch(error){
         console.log(error);
         res.json({success: false, message:error.message});
+    }
+}
+
+// staff profile
+ 
+const staffProfile = async(req, res) => {
+    try {
+       const staff = await staffModel.findById(req.user.id).select("-password");
+       if(!staff){
+        return res.json({success: false, message: "User not found"});
+       } 
+       const staffData = {
+        fullName: staff.fullName,
+        email: staff.email,
+        designation: staff.designation,
+        profilePhoto: staff.profilePhoto
+       }
+       return res.json({success: true, data: staffData});
+    } catch (error) {
+        console.log(error);
+        res.json({success: false, message: error.message});
     }
 }
 
@@ -87,8 +99,8 @@ const changePassword = async(req, res) =>{
     }
 }
 
-
 export {
     login,
     changePassword,
+    staffProfile
 }

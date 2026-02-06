@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { createContext } from "react";
 import { isTokenValid } from "../utils/auth.js";
 import { jwtDecode } from "jwt-decode";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AppContext = createContext();
@@ -13,6 +15,24 @@ const AppContextProvider = (props) =>{
     const [token, setToken] = useState(storedToken && isTokenValid(storedToken) ? storedToken : "");
     const [userData, setUserData] = useState(null);
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+    const fetchUserProfile = async(passedToken) =>{
+        const authToken = passedToken || token;
+        if(!authToken) return;
+        try{
+            const {data} = await axios.get(
+                `${backendUrl}/api/get-profile`, 
+                {headers: {token}}
+            );
+            if(data.success){
+                setUserData(data.data);
+            }
+        } catch(error){
+            console.log(error);
+            toast.error("Internal Server Error");
+        }
+
+    }
 
     useEffect(() => {
         if (!token) return;
@@ -31,9 +51,10 @@ const AppContextProvider = (props) =>{
 
     const value = {
         token, setToken,
-        userData, setUserData,
+        userData,
         backendUrl,
         isAuthenticated: !!token,
+        fetchUserProfile
     }
 
     return(
