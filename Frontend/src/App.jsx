@@ -139,6 +139,7 @@ function App() {
 
             {/* Laboratory */}
             <Route path="/lab-reports-list" element={<LabReportsList />} />
+            <Route path='/lab-results-entry/:id' element={<LabResultsEntry />} />
             <Route path="/lab-results-entry" element={<LabResultsEntry />} />
             <Route path='/patient-wise-reports' element={<PatientWiseReport />} />
             <Route path='/patient-wise-reports/:id' element={<PatientWiseReport />} />
