@@ -317,6 +317,11 @@ function PatientConsultation() {
       return value >= 60 && value <= 100;
     }
 
+    const reportStatusMap = reports?.reduce((acc, report) => {
+      acc[report.labReportId] = report.status;
+      return acc;
+    }, {});
+
     useEffect(()=>{
       const fetchConsultation = async() =>{
       
@@ -768,25 +773,37 @@ function PatientConsultation() {
         labReports?.length > 0 && (
           <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-3">
             {
-              labReports.map((item, index)=>(
+              labReports.map((item, index)=>{
+
+                const status = reportStatusMap?.[item.labReportId] || "Requested";
+
+                const statusColor =
+                  status === "Requested"
+                  ? "bg-blue-500"
+                  : status === "Completed"
+                  ? "bg-green-600"
+                  : "bg-gray-500";
+
+                return(
                 <div 
                   key = {index}
                   className="px-3 py-2 flex items-center flex-wrap justify-between gap-3 border border-gray-300 rounded-lg"
                 >
                   <p className="text-sm font-medium">{item?.testName}</p>
-                  <p className={`text-white px-2 py-1 rounded-lg text-sm font-medium ${item?.status === "Requested" ? "bg-blue-500" : item?.status === "Completed" ? "bg-green-600" : "bg-gray-500"}`}>{item?.status}</p>
+                  <p className={`text-white px-2 py-1 rounded-lg text-sm font-medium ${statusColor}`}>{status}</p>
                   {
-                    item?.status === "Completed" &&
+                    status === "Completed" &&
                     <FaEye 
                     size={18}
                     onClick = {()=>{
-                      navigate(`/lab-reports-list/${item?.labReportId}`);
+                      navigate(`/patient-wise-reports/${item?.labReportId}`);
                       window.scroll(0,0);
                     }}
                     />
                   }
-                </div>
-              ))
+                </div> 
+                )
+              })
             }
           </div>
         ) 
