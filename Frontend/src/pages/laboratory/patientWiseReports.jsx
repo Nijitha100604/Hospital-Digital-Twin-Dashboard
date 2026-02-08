@@ -7,7 +7,7 @@ import {
 import { LabContext } from "../../context/LabContext";
 
 export default function PatientWiseReport() {
-  const { id } = useParams(); // URL Parameter (e.g., LAB0003 or 65c4...)
+  const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -20,9 +20,7 @@ export default function PatientWiseReport() {
   // --- 1. LOAD DATA LOGIC ---
   useEffect(() => {
     const loadData = async () => {
-      // Case A: ID is present in URL (View Mode)
       if (id) {
-        // If data was passed via navigation state, check if it matches the requested ID
         if (location.state?.reportData && (
             location.state.reportData._id === id || 
             location.state.reportData.labReportId === id
@@ -32,13 +30,11 @@ export default function PatientWiseReport() {
           return;
         }
 
-        // Otherwise, fetch from context or API (Page Refresh)
         const foundLocal = reports.find((r) => r._id === id || r.labReportId === id);
         if (foundLocal) {
             setReportData(foundLocal);
             setSearchInput(foundLocal.patientId || "");
         } else {
-            // Fetch from backend using the ID (supports both formats)
             const data = await fetchReportById(id);
             if (data) {
                 setReportData(data);
@@ -49,7 +45,6 @@ export default function PatientWiseReport() {
             }
         }
       } else {
-        // Case B: No ID (Search Mode)
         setReportData(null);
         setSearchInput("");
       }
@@ -60,8 +55,6 @@ export default function PatientWiseReport() {
   // --- 2. SEARCH HANDLER ---
   const handleSearch = () => {
     if (!searchInput.trim()) return;
-
-    // Search in the loaded reports list by PatientID, Name, or ReportID
     const foundLocal = reports.find(
         r => r.patientId?.toLowerCase() === searchInput.toLowerCase() || 
              r.labReportId?.toLowerCase() === searchInput.toLowerCase() ||
@@ -69,7 +62,6 @@ export default function PatientWiseReport() {
     );
 
     if (foundLocal) {
-        // Navigate using the preferred ID (labReportId if available)
         const linkId = foundLocal.labReportId || foundLocal._id;
         navigate(`/patient-wise-reports/${linkId}`, { state: { reportData: foundLocal } });
         setErrorMsg("");
@@ -79,18 +71,45 @@ export default function PatientWiseReport() {
     }
   };
 
-  // --- UI HELPERS ---
+  const handlePrint = () => {
+    window.print();
+  };
+
   const getStatusStyle = (status) => {
     if (status === "High" || status === "Abnormal") return "bg-red-50 text-red-600 border-red-100";
     if (status === "Low") return "bg-amber-50 text-amber-600 border-amber-100";
     return "bg-emerald-50 text-emerald-600 border-emerald-100";
   };
 
+  // Helper to check file type
+  const isPdf = reportData?.reportDocument?.toLowerCase().endsWith(".pdf");
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-800">
       
-      {/* HEADER */}
-      <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* PRINT STYLES */}
+      <style>
+        {`
+          @media print {
+            body * { visibility: hidden; }
+            #printable-report, #printable-report * { visibility: visible; }
+            #printable-report { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                margin: 0; 
+                padding: 20px; 
+                background: white; 
+                border: none; 
+            }
+            .no-print { display: none !important; }
+          }
+        `}
+      </style>
+
+      {/* HEADER (Hidden when printing) */}
+      <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/lab-reports-list')} className="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 shadow-sm transition-all cursor-pointer">
             <ArrowLeft size={18} />
@@ -112,20 +131,16 @@ export default function PatientWiseReport() {
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           />
-          <button 
-            onClick={handleSearch}
-            className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-          >
+          <button onClick={handleSearch} className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer">
             Find
           </button>
         </div>
       </div>
 
-      {/* CONTENT */}
       <div className="max-w-7xl mx-auto">
         
         {errorMsg && (
-          <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl mb-6 flex items-center gap-2 text-sm animate-in fade-in">
+          <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl mb-6 flex items-center gap-2 text-sm animate-in fade-in no-print">
             <AlertTriangle size={16} /> {errorMsg}
           </div>
         )}
@@ -144,7 +159,7 @@ export default function PatientWiseReport() {
            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in duration-500">
             
             {/* LEFT: PATIENT INFO */}
-            <div className="lg:col-span-4 space-y-6">
+            <div className="lg:col-span-4 space-y-6 no-print">
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="bg-slate-900 p-6 text-white flex items-center gap-4">
                   <div className="w-14 h-14 bg-white/10 rounded-full flex items-center justify-center text-xl font-bold border border-white/20">
@@ -174,10 +189,10 @@ export default function PatientWiseReport() {
                 </div>
 
                 <div className="px-6 pb-6 pt-2 grid grid-cols-2 gap-3">
-                  <button className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer">
+                  <button onClick={handlePrint} className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer">
                     <Download size={16} /> PDF
                   </button>
-                  <button className="flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer">
+                  <button onClick={handlePrint} className="flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer">
                     <Printer size={16} /> Print
                   </button>
                 </div>
@@ -186,8 +201,9 @@ export default function PatientWiseReport() {
 
             {/* RIGHT: REPORT CONTENT */}
             <div className="lg:col-span-8">
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 min-h-[500px] flex flex-col">
+              <div id="printable-report" className="bg-white rounded-2xl shadow-sm border border-slate-200 min-h-[500px] flex flex-col">
                 
+                {/* Report Header */}
                 <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
                     <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -197,6 +213,9 @@ export default function PatientWiseReport() {
                     <p className="text-xs text-slate-400 font-medium mt-1 uppercase tracking-wide">
                         Report ID: {reportData.labReportId}
                     </p>
+                    <div className="hidden print:block mt-2">
+                        <p className="font-bold">Patient: {reportData.patientName} ({reportData.patientId})</p>
+                    </div>
                   </div>
                   
                   <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${
@@ -208,7 +227,10 @@ export default function PatientWiseReport() {
                   </span>
                 </div>
 
+                {/* Body Content */}
                 <div className="p-6">
+                   
+                   {/* 1. MANUAL ENTRY TABLE */}
                    {reportData.entryType === 'Manual' && reportData.testResults?.length > 0 && (
                        <div className="overflow-hidden rounded-xl border border-slate-200 mb-8">
                          <table className="w-full text-left text-sm">
@@ -240,22 +262,38 @@ export default function PatientWiseReport() {
                        </div>
                    )}
 
+                   {/* 2. UPLOADED FILE DISPLAY (IMAGE or PDF) */}
                    {reportData.entryType === 'Upload' && reportData.reportDocument && (
-                       <div className="text-center p-12 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
-                           <FileText size={48} className="text-slate-400 mx-auto mb-4"/>
-                           <p className="text-slate-600 font-medium mb-2">Report Document Available</p>
-                           <p className="text-slate-400 text-xs mb-6">Uploaded on {new Date(reportData.updatedAt || reportData.createdAt).toLocaleDateString()}</p>
-                           <a 
-                             href={reportData.reportDocument} 
-                             target="_blank" 
-                             rel="noopener noreferrer"
-                             className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-indigo-700 transition shadow-sm cursor-pointer"
-                           >
-                               <Eye size={18}/> View / Download Document
-                           </a>
+                       <div className="w-full">
+                           {isPdf ? (
+                               // PDF View
+                               <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-8 text-center">
+                                   <FileText size={48} className="text-red-500 mx-auto mb-4"/>
+                                   <p className="text-slate-700 font-bold mb-2 text-lg">PDF Report Available</p>
+                                   <p className="text-slate-400 text-xs mb-6">Click below to view the full document.</p>
+                                   <a 
+                                     href={reportData.reportDocument} 
+                                     target="_blank" 
+                                     rel="noopener noreferrer"
+                                     className="inline-flex items-center gap-2 bg-red-500 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-red-600 transition shadow-sm cursor-pointer"
+                                   >
+                                       <Eye size={18}/> View PDF Document
+                                   </a>
+                               </div>
+                           ) : (
+                               // Image View (Direct Display)
+                               <div className="rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-black/5">
+                                   <img 
+                                     src={reportData.reportDocument} 
+                                     alt="Lab Report Scan" 
+                                     className="w-full h-auto object-contain max-h-[800px]"
+                                   />
+                               </div>
+                           )}
                        </div>
                    )}
 
+                   {/* 3. PENDING STATE */}
                    {(reportData.status === 'Requested' || reportData.status === 'Pending') && (
                        <div className="flex flex-col items-center justify-center p-12 text-center text-slate-400">
                            <Clock size={48} className="mb-4 text-amber-300" />

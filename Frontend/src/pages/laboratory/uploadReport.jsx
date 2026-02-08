@@ -19,7 +19,7 @@ export default function UploadReport() {
   const { staffs } = useContext(StaffContext);
 
   const reportData = location.state?.reportData;
-
+const [correctionReason, setCorrectionReason] = useState("");
   const [file, setFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
 
