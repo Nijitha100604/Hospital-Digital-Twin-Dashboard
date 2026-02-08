@@ -6,7 +6,7 @@ import {
   Search, FileText, ChevronLeft, ChevronRight, 
   Filter, Eye, Loader2 
 } from "lucide-react";
-import { AppContext } from "../../context/AppContext"; // To get token & backendUrl
+import { AppContext } from "../../context/AppContext";
 
 export default function LabReportList() {
   const navigate = useNavigate(); 
@@ -24,12 +24,11 @@ export default function LabReportList() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // --- 1. FETCH REAL DATA FROM BACKEND ---
+  // --- 1. FETCH DATA ---
   const fetchLabReports = async () => {
     if (!token) return;
     setLoading(true);
     try {
-      // Ensure this endpoint exists in your backend router
       const { data } = await axios.get(`${backendUrl}/api/reports/all-reports`, {
         headers: { token }
       });
@@ -54,20 +53,25 @@ export default function LabReportList() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  // --- 2. DYNAMIC TEST TYPES ---
+  // This automatically finds all unique test names from your loaded reports
+  const uniqueTestTypes = useMemo(() => {
+    const types = new Set(reports.map(r => r.testName || r.testType || "General"));
+    return Array.from(types).sort(); // Sort alphabetically
+  }, [reports]);
+
   /* -------------------- FILTER LOGIC -------------------- */
   const filteredData = useMemo(() => {
     let data = reports.filter((item) => {
-      // Adjust field names based on your MongoDB Schema (e.g., item.patientName vs item.name)
       const pName = item.patientName || "Unknown"; 
       const pId = item.patientId || "";
-      const rId = item.labReportId || item._id || ""; // Fallback to _id if labReportId missing
+      const rId = item.labReportId || item._id || "";
 
       const matchesSearch = 
         pName.toLowerCase().includes(searchTerm.toLowerCase()) || 
         pId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         rId.toLowerCase().includes(searchTerm.toLowerCase());
       
-      // Adjust 'testName' field if backend sends 'testType'
       const testName = item.testName || item.testType || "General";
       const matchesType = filterType === "All" || testName === filterType;
       
@@ -78,7 +82,7 @@ export default function LabReportList() {
     });
 
     data.sort((a, b) => {
-      const dateA = new Date(a.createdAt || a.date); // Use createdAt from Mongoose
+      const dateA = new Date(a.createdAt || a.date);
       const dateB = new Date(b.createdAt || b.date);
       return sortOrder === "Newest" ? dateB - dateA : dateA - dateB;
     });
@@ -92,9 +96,8 @@ export default function LabReportList() {
     currentPage * itemsPerPage
   );
 
-  // Counts based on current fetched data
   const completedCount = reports.filter(r => r.status === "Completed").length;
-  const pendingCount = reports.filter(r => r.status === "Pending").length;
+  const pendingCount = reports.filter(r => r.status === "Requested" || r.status === "Pending").length;
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -110,8 +113,8 @@ export default function LabReportList() {
 
   // --- NAVIGATION ---
   const handleViewDetails = (report) => {
-    // Navigate to details page, passing the report object
-    navigate(`/patient-wise-reports/${report._id}`, { state: { reportData: report } });
+    const linkId = report.labReportId || report._id;
+    navigate(`/patient-wise-reports/${linkId}`, { state: { reportData: report } });
   };
 
   return (
@@ -139,27 +142,37 @@ export default function LabReportList() {
 
       {/* FILTERS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        
+        {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input type="text" placeholder="Search Patient / Report ID" className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
         </div>
+
+        {/* Filter by Type (DYNAMIC) */}
         <div className="relative">
-          <select className="cursor-pointer w-full pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-sm appearance-none bg-white font-medium text-gray-700" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+          <select 
+            className="cursor-pointer w-full pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-sm appearance-none bg-white font-medium text-gray-700" 
+            value={filterType} 
+            onChange={(e) => setFilterType(e.target.value)}
+          >
             <option value="All">Type: All</option>
-            {/* You can populate these dynamically from unique test names if needed */}
-            <option value="CBC">CBC</option>
-            <option value="Lipid Profile">Lipid Profile</option>
-            <option value="MRI Scan">MRI Scan</option>
-            <option value="X-Ray">X-Ray</option>
+            {uniqueTestTypes.map(type => (
+                <option key={type} value={type}>{type}</option>
+            ))}
           </select>
           <Filter className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
         </div>
+
+        {/* Filter by Status */}
         <div className="relative">
            <select className="cursor-pointer w-full pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-sm appearance-none bg-white font-medium text-gray-700" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-            <option value="All">Status: All</option><option value="Completed">Completed</option><option value="Pending">Pending</option>
+            <option value="All">Status: All</option><option value="Completed">Completed</option><option value="Requested">Requested</option>
           </select>
           <Filter className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
         </div>
+
+        {/* Sort Order */}
         <div className="relative">
            <select className="cursor-pointer w-full pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-sm appearance-none bg-white font-medium text-gray-700" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
             <option value="Newest">Date: Newest</option><option value="Oldest">Date: Oldest</option>
@@ -214,13 +227,24 @@ export default function LabReportList() {
                         {report.status || "Pending"}
                         </span>
                     </td>
-                    <td className="p-4 text-center">
+                    <td className="p-4 text-center flex justify-center gap-2">
+                        {/* VIEW BUTTON */}
                         <button 
                         onClick={() => handleViewDetails(report)}
-                        className="cursor-pointer text-purple-700 hover:text-white hover:bg-purple-700 border border-purple-200 hover:border-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1 mx-auto"
+                        className="cursor-pointer text-purple-700 hover:text-white hover:bg-purple-700 border border-purple-200 hover:border-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1"
                         >
                         <Eye size={14}/> View
                         </button>
+
+                        {/* ENTER RESULT BUTTON (Only if not completed) */}
+                        {report.status !== 'Completed' && (
+                            <button 
+                            onClick={() => navigate(`/lab-results-entry/${report.labReportId || report._id}`, { state: { reportData: report } })}
+                            className="cursor-pointer text-blue-700 hover:text-white hover:bg-blue-700 border border-blue-200 hover:border-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1"
+                            >
+                            Enter
+                            </button>
+                        )}
                     </td>
                     </tr>
                 ))}

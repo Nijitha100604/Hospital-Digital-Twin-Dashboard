@@ -7,7 +7,7 @@ import {
 import { LabContext } from "../../context/LabContext";
 
 export default function PatientWiseReport() {
-  const { id } = useParams(); // May be undefined if on base page
+  const { id } = useParams(); // URL Parameter (e.g., LAB0003 or 65c4...)
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -22,10 +22,13 @@ export default function PatientWiseReport() {
     const loadData = async () => {
       // Case A: ID is present in URL (View Mode)
       if (id) {
-        // If data was passed via navigation state, use it
-        if (location.state?.reportData && (location.state.reportData._id === id || location.state.reportData.labReportId === id)) {
+        // If data was passed via navigation state, check if it matches the requested ID
+        if (location.state?.reportData && (
+            location.state.reportData._id === id || 
+            location.state.reportData.labReportId === id
+        )) {
           setReportData(location.state.reportData);
-          setSearchInput(location.state.reportData.patientId || ""); // Pre-fill search
+          setSearchInput(location.state.reportData.patientId || "");
           return;
         }
 
@@ -35,6 +38,7 @@ export default function PatientWiseReport() {
             setReportData(foundLocal);
             setSearchInput(foundLocal.patientId || "");
         } else {
+            // Fetch from backend using the ID (supports both formats)
             const data = await fetchReportById(id);
             if (data) {
                 setReportData(data);
@@ -57,7 +61,7 @@ export default function PatientWiseReport() {
   const handleSearch = () => {
     if (!searchInput.trim()) return;
 
-    // Search in the loaded reports list
+    // Search in the loaded reports list by PatientID, Name, or ReportID
     const foundLocal = reports.find(
         r => r.patientId?.toLowerCase() === searchInput.toLowerCase() || 
              r.labReportId?.toLowerCase() === searchInput.toLowerCase() ||
@@ -65,8 +69,9 @@ export default function PatientWiseReport() {
     );
 
     if (foundLocal) {
-        // Update URL to the found report
-        navigate(`/patient-wise-reports/${foundLocal._id}`, { state: { reportData: foundLocal } });
+        // Navigate using the preferred ID (labReportId if available)
+        const linkId = foundLocal.labReportId || foundLocal._id;
+        navigate(`/patient-wise-reports/${linkId}`, { state: { reportData: foundLocal } });
         setErrorMsg("");
     } else {
         setErrorMsg("No report found matching this ID or Name.");
@@ -84,7 +89,7 @@ export default function PatientWiseReport() {
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-800">
       
-      {/* --- HEADER (ALWAYS VISIBLE) --- */}
+      {/* HEADER */}
       <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/lab-reports-list')} className="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 shadow-sm transition-all cursor-pointer">
@@ -116,21 +121,18 @@ export default function PatientWiseReport() {
         </div>
       </div>
 
-      {/* --- MAIN CONTENT --- */}
+      {/* CONTENT */}
       <div className="max-w-7xl mx-auto">
         
-        {/* Error Message */}
         {errorMsg && (
           <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl mb-6 flex items-center gap-2 text-sm animate-in fade-in">
             <AlertTriangle size={16} /> {errorMsg}
           </div>
         )}
 
-        {/* Loading State */}
         {loading && !reportData ? (
            <div className="flex justify-center p-12"><Loader2 className="animate-spin text-purple-600" size={32}/></div>
         ) : !reportData ? (
-           /* --- EMPTY STATE (SEARCH PROMPT) --- */
            <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
              <div className="bg-slate-50 p-4 rounded-full mb-4">
                <User size={32} className="text-slate-400" />
@@ -139,7 +141,6 @@ export default function PatientWiseReport() {
              <p className="text-slate-500 text-sm mt-1 max-w-xs">Enter a Patient ID or Name in the search bar above to view their report.</p>
            </div>
         ) : (
-           /* --- REPORT DETAILS (VIEW MODE) --- */
            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in duration-500">
             
             {/* LEFT: PATIENT INFO */}
@@ -187,7 +188,6 @@ export default function PatientWiseReport() {
             <div className="lg:col-span-8">
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 min-h-[500px] flex flex-col">
                 
-                {/* Title & Status */}
                 <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
                     <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -208,10 +208,7 @@ export default function PatientWiseReport() {
                   </span>
                 </div>
 
-                {/* Content */}
                 <div className="p-6">
-                   
-                   {/* 1. MANUAL ENTRY TABLE */}
                    {reportData.entryType === 'Manual' && reportData.testResults?.length > 0 && (
                        <div className="overflow-hidden rounded-xl border border-slate-200 mb-8">
                          <table className="w-full text-left text-sm">
@@ -243,13 +240,11 @@ export default function PatientWiseReport() {
                        </div>
                    )}
 
-                   {/* 2. UPLOADED FILE */}
                    {reportData.entryType === 'Upload' && reportData.reportDocument && (
                        <div className="text-center p-12 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
                            <FileText size={48} className="text-slate-400 mx-auto mb-4"/>
                            <p className="text-slate-600 font-medium mb-2">Report Document Available</p>
                            <p className="text-slate-400 text-xs mb-6">Uploaded on {new Date(reportData.updatedAt || reportData.createdAt).toLocaleDateString()}</p>
-                           
                            <a 
                              href={reportData.reportDocument} 
                              target="_blank" 
@@ -261,7 +256,6 @@ export default function PatientWiseReport() {
                        </div>
                    )}
 
-                   {/* 3. PENDING STATE */}
                    {(reportData.status === 'Requested' || reportData.status === 'Pending') && (
                        <div className="flex flex-col items-center justify-center p-12 text-center text-slate-400">
                            <Clock size={48} className="mb-4 text-amber-300" />
@@ -270,7 +264,6 @@ export default function PatientWiseReport() {
                        </div>
                    )}
 
-                   {/* COMMENTS */}
                    {reportData.comments && (
                        <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-5 mt-6">
                          <h5 className="text-amber-900 font-bold text-sm mb-2 flex items-center gap-2"><Activity size={16}/> Pathologist Impression</h5>
@@ -278,7 +271,6 @@ export default function PatientWiseReport() {
                        </div>
                    )}
 
-                   {/* META FOOTER */}
                    {reportData.technicianName && (
                      <div className="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
                         <span>Verified by: <strong className="text-slate-600">{reportData.technicianName}</strong></span>
