@@ -1,8 +1,9 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const LabContext = createContext();
 
 const LabContextProvider = (props) => {
@@ -131,11 +132,6 @@ const LabContextProvider = (props) => {
         }
     };
 
-    useEffect(() => {
-        if (token) {
-            fetchLabReports();
-        }
-    }, [token]);
 
     const value = {
         loading,

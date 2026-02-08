@@ -1,39 +1,155 @@
 import React, { useEffect, useState } from 'react'
+import { useContext } from 'react';
 import {
-  FaUserInjured,
   FaBed,
-  FaExclamationTriangle,
   FaUsers,
-  FaRupeeSign,
   FaChartLine, 
   FaSyncAlt,
-  FaArrowUp,
-  FaArrowDown,
   FaBoxes,
-  FaProcedures,
-  FaInfoCircle,
-  FaBuilding,
-  FaClock,
   FaUserPlus,
   FaHeartbeat,
-  FaFlask
+  FaFlask,
+  FaCalendarCheck,
+  FaHospitalAlt,
+  FaTools,
+  FaPills,
+  FaUserTie,
+  FaInfoCircle,
+  FaExclamationTriangle,
+  FaCube,
 } from "react-icons/fa";
 
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, BarChart, Bar
-} from "recharts";
-
-import { criticalAlerts, dashboardStatus, patientFlowTrends, departmentDistribution, revenueVsExpenses, departmentBedOccupancy } from '../data/admin';
 import { useNavigate } from "react-router-dom";
+import { PatientContext } from './../context/PatientContext';
+import { AppContext } from '../context/AppContext';
+import { LabContext } from '../context/LabContext';
+import { StaffContext } from '../context/StaffContext';
+import { MedicineContext } from '../context/MedicineContext';
+import { EquipmentContext } from '../context/EquipmentContext';
+import { DeptContext } from '../context/DeptContext';
 
 function AdminDashboard() {
 
     const [currentTime, setCurrentTime] = useState("");
     const [currentDate, setCurrentDate] = useState("");
 
-    // Current date and time
+    const isExpiringSoon = (dateStr) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); 
 
+      const expiry = new Date(dateStr);
+      expiry.setHours(0, 0, 0, 0); 
+
+      const diffTime = expiry - today;
+      const diffDays = diffTime / (1000 * 60 * 60 * 24);
+      return diffDays >= 0 && diffDays <= 90; 
+    };
+
+    const {token} = useContext(AppContext);
+    const { patients, fetchPatients, appointments, fetchAppointments } = useContext(PatientContext);
+    const { reports, fetchLabReports } = useContext(LabContext);
+    const { staffs, fetchStaffs} = useContext(StaffContext);
+    const { medicines, fetchMedicines } = useContext(MedicineContext);
+    const { equipments, fetchEquipments } = useContext(EquipmentContext);
+    const { departments, fetchDepartments, beds, fetchBeds, issues, fetchIssues } = useContext(DeptContext);
+    
+    // patients data
+    const totalPatients = patients?.length || 0;
+    const activePatients = appointments?.filter(
+      a => a?.status === "In Progress"
+    ).length || 0;
+
+    // appointments
+    const totalAppointments = appointments?.length || 0;
+    const completedAppointments = appointments?.filter(
+      a => a?.status === "Completed"
+    ).length || 0;
+
+    // lab reports
+    const totalReports = reports?.length || 0;
+    const completedReports = reports?.filter(
+      r => r?.status === "Completed"
+    ).length || 0;
+
+    // staffs data
+    const totalStaffs = staffs?.length || 0;
+    const presentStaffs = 0;
+
+    // medicines data
+    const totalMedicines = medicines?.length || 0;
+    const lowStockCount = medicines?.filter(
+      m => m.quantity <= m.minimumThreshold
+    ).length || 0;
+    const expiringSoonCount = medicines?.filter((m) =>
+      isExpiringSoon(m.expiryDate)
+    ).length || 0;
+    const inStock = totalMedicines - lowStockCount;
+
+    // equipments data
+    const totalEquipments = equipments?.length || 0;
+    const maintenanceEquipments = 0;
+
+    // departments data
+    const totalDepartments = departments?.length || 0;
+    const activeDepartments = departments?.filter(
+      d => d?.status === "Active"
+    ).length || 0;
+
+    // issues 
+    const totalIssues = issues?.length || 0;
+    const resolvedIssues = issues?.filter(
+      i => i?.status === "Resolved" 
+    ).length || 0;
+    const pendingIssues = issues?.filter(
+      i => i.status === "Pending"
+    ).length || 0;
+    const inProgressIssues = issues?.filter(
+      i => i.status === "In Progress"
+    ).length || 0;
+
+    // bed details
+    const totalBeds = beds?.reduce(
+      (sum, dept) => sum + (dept.beds?.length || 0), 0
+    );
+    const occupiedBeds = beds?.reduce(
+      (sum, dept) => sum + dept.beds.filter(b => b.status === "Occupied").length, 0
+    );
+    const occupancyRate = totalBeds ? ((occupiedBeds / totalBeds) * 100).toFixed(2) : 0;
+
+    // calculate department bed status
+    const departmentStats = beds?.map((dept)=>{
+
+      const totalBeds = dept.beds.length;
+      const occupiedBeds = dept.beds.filter(
+        (bed) => bed.status === "Occupied"
+      ).length;
+      const availableBeds = totalBeds - occupiedBeds;
+      const percentage = totalBeds === 0 ? 0 : Math.round((occupiedBeds / totalBeds) * 100);
+
+      let status = "Low";
+      let color = "bg-green-500";
+
+      if (percentage >= 85) {
+        status = "High";
+        color = "bg-red-500";
+      } else if (percentage >= 60) {
+        status = "Moderate";
+        color = "bg-yellow-500";
+      }
+
+      return {
+        ...dept,
+        totalBeds,
+        occupiedBeds,
+        availableBeds,
+        percentage,
+        status,
+        color
+      };
+
+    })
+
+    // Current date and time
     useEffect(() => {
     const updateDateTime = () => {
       const now = new Date();
@@ -65,61 +181,28 @@ function AdminDashboard() {
     return () => clearInterval(interval);
     }, []);
 
+    useEffect(()=>{
+      if(token){
+        Promise.all([
+          fetchPatients(),
+          fetchAppointments(),
+          fetchLabReports(),
+          fetchStaffs(),
+          fetchMedicines(),
+          fetchEquipments(),
+          fetchDepartments(),
+          fetchBeds(),
+          fetchIssues()
+        ]);
+      }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token])
+
     // refresh
 
     const handleRefresh = () => {
         window.location.reload(); 
     };
-
-    // Percentage Calculation
-    const calculatePercentage = (today, previous) => {
-        if (previous === 0) return 100;
-        return (((today - previous) / previous) * 100).toFixed(1);
-    };
-
-    // Values for dashboard status
-    const patientChange = calculatePercentage(
-        dashboardStatus.patients.today,
-        dashboardStatus.patients.previous
-    );
-
-    const bedOccupancyPercent = (
-        (dashboardStatus.beds.todayOccupied / dashboardStatus.beds.totalBeds) * 100
-    ).toFixed(1);
-
-    const bedChange = calculatePercentage(
-        dashboardStatus.beds.todayOccupied,
-        dashboardStatus.beds.previousOccupied
-    );
-
-    const emergencyChange = calculatePercentage(
-        dashboardStatus.emergencyCases.today,
-        dashboardStatus.emergencyCases.previous
-    );
-
-    const surgeryChange = calculatePercentage(
-        dashboardStatus.surgeries.today,
-        dashboardStatus.surgeries.previous
-    );
-
-    const staffAbsent = dashboardStatus.staff.total - dashboardStatus.staff.present;
-    const staffAbsentPercent = ((staffAbsent / dashboardStatus.staff.total) * 100).toFixed(1);
-
-    const revenueChange = calculatePercentage(
-        dashboardStatus.revenue.today,
-        dashboardStatus.revenue.previous
-    );
-
-    const warningsLength = criticalAlerts.length;
-
-    const COLORS = [
-        "#6366F1",
-        "#8B5CF6",
-        "#EC4899",
-        "#F59E0B",
-        "#10B981",
-        "#94A3B8"
-    ];
 
     const navigate = useNavigate();
 
@@ -154,7 +237,7 @@ function AdminDashboard() {
       icon: <FaFlask />,
       path: "/lab-reports-list"
     }
-  ];
+    ];
 
 
   return (
@@ -180,301 +263,501 @@ function AdminDashboard() {
 
     </div>
 
-
     {/* Overview */}
-    <div className="mt-8">
+    <div className="mt-6">
         <div className="flex gap-2 items-center">
             <FaChartLine size={18} className="text-gray-600"/>
-            <p className="font-medium text-gray-600">Clinical Operations Overview</p>
+            <p className="font-medium text-gray-600">Clinical Operations Dashboard</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+        {/* Overview Cards */}
+        <div className="mt-5 grid md:grid-cols-4 grid-cols-1 gap-5">
 
-        {/* TODAY PATIENTS */}
-        <Card
-          icon={<FaUserInjured />}
-          iconBg="bg-blue-100"
-          iconColor="text-blue-600"
-          title="Today Patients"
-          value={dashboardStatus.patients.today}
-          sub={`Total: ${dashboardStatus.patients.totalTillDate}`}
-          trend={<Trend value={patientChange} />}
-        />
+          {/* patients */}
+          <div 
+            onClick = {()=>{
+              navigate('/patient-list');
+              window.scroll(0,0);
+            }}
+            className="relative bg-white px-5 py-4 border border-gray-300 flex flex-col gap-3 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 rounded-lg hover:bg-fuchsia-50 cursor-pointer overflow-hidden group"
+          >
+            <span className="absolute bottom-0 left-0 w-0 h-1 bg-fuchsia-600 transition-all duration-300 group-hover:w-full"></span>
 
-        {/* BED OCCUPANCY */}
-        <Card
-          icon={<FaBed />}
-          iconBg="bg-purple-100"
-          iconColor="text-purple-600"
-          title="Bed Occupancy"
-          value={`${bedOccupancyPercent}%`}
-          sub={`${dashboardStatus.beds.todayOccupied}/${dashboardStatus.beds.totalBeds} Beds`}
-          trend={<Trend value={bedChange} />}
-        />
-
-        {/* EMERGENCY CASES */}
-        <Card
-          icon={<FaExclamationTriangle />}
-          iconBg="bg-red-100"
-          iconColor="text-red-600"
-          title="Emergency Cases"
-          value={dashboardStatus.emergencyCases.today}
-          sub="Today"
-          trend={<Trend value={emergencyChange} />}
-        />
-
-        {/* SURGERIES */}
-        <Card
-          icon={<FaProcedures />}
-          iconBg="bg-indigo-100"
-          iconColor="text-indigo-600"
-          title="Surgeries Scheduled"
-          value={dashboardStatus.surgeries.today}
-          sub="Today"
-          trend={<Trend value={surgeryChange} />}
-        />
-
-        {/* LOW STOCK */}
-        <Card
-            icon={<FaBoxes />}
-            iconBg="bg-yellow-100"
-            iconColor="text-yellow-600"
-            title="Low Stock Items"
-            value={dashboardStatus.inventory.lowStockItems}
-            sub={`Urgent: ${dashboardStatus.inventory.urgent ? "Yes" : "No"}`}
-        />
-
-        {/* STAFF STATUS */}
-        <Card
-            icon={<FaUsers />}
-            iconBg="bg-teal-100"
-            iconColor="text-teal-600"
-            title="Staff Status"
-            value={`Present: ${dashboardStatus.staff.present}`}
-            sub={`Absent: ${staffAbsent} (${staffAbsentPercent}%)`}
-        />
-
-        {/* TODAY REVENUE */}
-        <Card
-          icon={<FaRupeeSign />}
-          iconBg="bg-green-100"
-          iconColor="text-green-600"
-          title="Today Revenue"
-          value={`₹${dashboardStatus.revenue.today.toLocaleString("en-IN")}`}
-          sub="Compared to yesterday"
-          trend={<Trend value={revenueChange} />}
-        />
-
-      </div>
-    </div>
-
-    <div className="mt-5 w-full border border-red-400 p-3 rounded-lg">
-
-        <div className="flex flex-wrap justify-between gap-3 items-center mb-4">
-
-            <div className="flex gap-2 items-center">
-                <FaInfoCircle size={18} className="text-red-500"/>
-                <p className="text-md text-gray-800 font-semibold">Critical Warnings & Alerts</p>
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-gray-700 font-medium">Patients</p>
+              <div className={`p-2 rounded-lg text-xl bg-fuchsia-100 text-fuchsia-600 border border-fuchsia-300`}>
+                <FaUsers />
+              </div>
             </div>
 
-            {/* Warnings length */}
-            <p className={`px-3 py-1 text-sm rounded-lg font-semibold ${warningsLength > 0 ? "bg-red-300" : "bg-gray-300"}`}>{warningsLength} Active</p>
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-xl text-gray-900 font-extrabold">{totalPatients}</p>
+              <p className="text-xs text-gray-600 font-medium">Total Patients</p>
+            </div>
 
-        </div>
+            <hr className="text-gray-300"/>
 
-        {
-            criticalAlerts.length > 0 ?
-            <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-4 m-4">
-            {
-                criticalAlerts.map((item, index)=>(
-                    <div 
-                        key={index}
-                        className="flex flex-col gap-2 px-4 py-2 border border-red-300 rounded-lg hover:bg-red-50 transform cursor-pointer"
-                    >
-                        <div className="flex justify-between gap-2 items-center flex-wrap">
-                            <p className="text-sm font-semibold text-gray-800">{item.title}</p>
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-lg
-                                ${item.severity === "critical" ? "bg-red-400 text-white" :
-                                  item.severity === "high" ? "bg-orange-300 text-white" :
-                                    "bg-yellow-200 text-gray-800"}`}>
-                                {item.severity.toUpperCase()}
-                            </span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-2 mb-2">{item.description}</p>
-                        <div className="flex justify-between gap-3 flex-wrap items-center">
-                            <div className="flex gap-2 items-center">
-                                <FaBuilding size={16} className="text-gray-500"/>
-                                <p className="text-sm text-gray-500">{item.department}</p>
-                            </div>
-                            <div className="flex gap-2 items-center">
-                                <FaClock size={16} className="text-gray-500"/>
-                                <p className="text-sm text-gray-500">{item.time}</p>
-                            </div>
-                        </div>
-                    </div>
-                ))
-            }
-            </div> :
-            <p className="text-gray-800 text-md font-semibold text-center">
-                No Data available
-            </p>
-        }
-        
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-md text-gray-800 font-bold">{activePatients}</p>
+              <p className="text-xs text-gray-600 font-medium">Active Patients</p>
+            </div>
 
-    </div>
 
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full mt-8">
-      
-      {/* Patient Flow Trends */}
-      <div className="bg-white rounded-xl border p-4">
-        <h3 className="text-sm font-semibold text-gray-600 mb-3">
-          Patient Flow Trends
-        </h3>
+          </div>
 
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={patientFlowTrends}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              
-              <Area
-                type="monotone"
-                dataKey="consultations"
-                stroke="#3B82F6"
-                fill="#93C5FD"
-                name="Consultations"
-              />
-              <Area
-                type="monotone"
-                dataKey="admissions"
-                stroke="#8B5CF6"
-                fill="#C4B5FD"
-                name="Admissions"
-              />
-              <Area
-                type="monotone"
-                dataKey="emergencies"
-                stroke="#EF4444"
-                fill="#FCA5A5"
-                name="Emergencies"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+          {/* Appointments */}
+          <div 
+            onClick = {()=>{
+              navigate('/all-appointments');
+              window.scroll(0,0);
+            }}
+            className="relative bg-white px-5 py-4 border border-gray-300 flex flex-col gap-3 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 rounded-lg hover:bg-green-50 cursor-pointer overflow-hidden group"
+          >
+            <span className="absolute bottom-0 left-0 w-0 h-1 bg-green-600 transition-all duration-300 group-hover:w-full"></span>
 
-      {/* Department-wise Distribution */}
-      <div className="bg-white rounded-xl border p-4">
-        <h3 className="text-sm font-semibold text-gray-600 mb-3">
-          Department-wise Patient Distribution
-        </h3>
-
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={departmentDistribution}
-                dataKey="value"
-                nameKey="name"
-                innerRadius={55}
-                outerRadius={90}
-                paddingAngle={4}
-              >
-                {departmentDistribution.map((_, index) => (
-                  <Cell
-                    key={index}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend verticalAlign="bottom" height={36} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-    </div>
-
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full mt-8">
-
-      {/* Revenue vs Expenses */}
-      <div className="bg-white rounded-xl border p-4">
-        <h3 className="text-sm font-semibold text-gray-600 mb-3">
-          Revenue vs Expenses
-        </h3>
-
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={revenueVsExpenses}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Legend />
-              <Bar dataKey="revenue" fill="#10B981" />
-              <Bar dataKey="expenses" fill="#F59E0B" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Department Bed Occupancy */}
-      <div className="bg-white rounded-xl border p-4">
-        <h3 className="text-sm font-semibold text-gray-600 mb-4">
-          Department Bed Occupancy
-        </h3>
-
-        <div className="flex flex-col gap-4">
-          {departmentBedOccupancy.map((item, index) => {
-            const percent = ((item.occupied / item.total) * 100).toFixed(0);
-
-            return (
-              <div key={index}>
-                <div className="flex justify-between text-sm text-gray-600 mb-1">
-                  <span>{item.department}</span>
-                  <span>{item.occupied}/{item.total}</span>
-                </div>
-
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full ${
-                      percent > 85
-                        ? "bg-red-500"
-                        : percent > 65
-                        ? "bg-yellow-500"
-                        : "bg-green-500"
-                    }`}
-                    style={{ width: `${percent}%` }}
-                  />
-                </div>
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-gray-700 font-medium">Appointments</p>
+              <div className={`p-2 rounded-lg text-xl bg-green-100 text-green-600 border border-green-300`}>
+                <FaCalendarCheck />
               </div>
-            );
-          })}
+            </div>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-xl text-gray-900 font-extrabold">{totalAppointments}</p>
+              <p className="text-xs text-gray-600 font-medium">Total Appointments</p>
+            </div>
+
+            <hr className="text-gray-300"/>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-md text-gray-800 font-bold">{completedAppointments}</p>
+              <p className="text-xs text-gray-600 font-medium">Completed Appointments</p>
+            </div>
+
+
+          </div>
+
+          {/* Lab Reports */}
+          <div 
+            onClick = {()=>{
+              navigate('/lab-reports-list');
+              window.scroll(0,0);
+            }}
+            className="relative bg-white px-5 py-4 border border-gray-300 flex flex-col gap-3 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 rounded-lg hover:bg-pink-50 cursor-pointer overflow-hidden group"
+          >
+            <span className="absolute bottom-0 left-0 w-0 h-1 bg-pink-600 transition-all duration-300 group-hover:w-full"></span>
+
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-gray-700 font-medium">Lab Reports</p>
+              <div className={`p-2 rounded-lg text-xl bg-pink-100 text-pink-600 border border-pink-300`}>
+                <FaFlask />
+              </div>
+            </div>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-xl text-gray-900 font-extrabold">{totalReports}</p>
+              <p className="text-xs text-gray-600 font-medium">Total Reports</p>
+            </div>
+
+            <hr className="text-gray-300"/>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-md text-gray-800 font-bold">{completedReports}</p>
+              <p className="text-xs text-gray-600 font-medium">Completed Reports</p>
+            </div>
+
+          </div>
+
+          {/* staffs */}
+          <div 
+            onClick = {()=>{
+              navigate('/staff-list');
+              window.scroll(0,0);
+            }}
+            className="relative bg-white px-5 py-4 border border-gray-300 flex flex-col gap-3 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 rounded-lg hover:bg-indigo-50 cursor-pointer overflow-hidden group"
+          >
+            <span className="absolute bottom-0 left-0 w-0 h-1 bg-indigo-600 transition-all duration-300 group-hover:w-full"></span>
+
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-gray-700 font-medium">Staffs</p>
+              <div className={`p-2 rounded-lg text-xl bg-indigo-100 text-indigo-600 border border-indigo-300`}>
+                <FaUserTie />
+              </div>
+            </div>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-xl text-gray-900 font-extrabold">{totalStaffs}</p>
+              <p className="text-xs text-gray-600 font-medium">Total Staffs</p>
+            </div>
+
+            <hr className="text-gray-300"/>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-md text-gray-800 font-bold">{presentStaffs}</p>
+              <p className="text-xs text-gray-600 font-medium">Available Staffs</p>
+            </div>
+
+          </div>
+
+          {/* Medicines */}
+          <div 
+            onClick = {()=>{
+              navigate('/medicine-stocks');
+              window.scroll(0,0);
+            }}
+            className="relative bg-white px-5 py-4 border border-gray-300 flex flex-col gap-3 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 rounded-lg hover:bg-rose-50 cursor-pointer overflow-hidden group"
+          >
+            <span className="absolute bottom-0 left-0 w-0 h-1 bg-rose-600 transition-all duration-300 group-hover:w-full"></span>
+
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-gray-700 font-medium">Medicine Stocks</p>
+              <div className={`p-2 rounded-lg text-xl bg-rose-100 text-rose-600 border border-rose-300`}>
+                <FaPills />
+              </div>
+            </div>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-xl text-gray-900 font-extrabold">{totalMedicines}</p>
+              <p className="text-xs text-gray-600 font-medium">Total Stocks</p>
+            </div>
+
+            <hr className="text-gray-300"/>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-md text-gray-800 font-bold">{inStock}</p>
+              <p className="text-xs text-gray-600 font-medium">In Stock</p>
+            </div>
+
+          </div>
+
+          {/* Equipments */}
+          <div 
+            onClick = {()=>{
+              navigate('/equipment-list');
+              window.scroll(0,0);
+            }}
+            className="relative bg-white px-5 py-4 border border-gray-300 flex flex-col gap-3 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 rounded-lg hover:bg-yellow-50 cursor-pointer overflow-hidden group"
+          >
+            <span className="absolute bottom-0 left-0 w-0 h-1 bg-yellow-600 transition-all duration-300 group-hover:w-full"></span>
+
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-gray-700 font-medium">Equipment</p>
+              <div className={`p-2 rounded-lg text-xl bg-yellow-100 text-yellow-600 border border-yellow-300`}>
+                <FaTools />
+              </div>
+            </div>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-xl text-gray-900 font-extrabold">{totalEquipments}</p>
+              <p className="text-xs text-gray-600 font-medium">Total Equipment</p>
+            </div>
+
+            <hr className="text-gray-300"/>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-md text-gray-800 font-bold">{maintenanceEquipments}</p>
+              <p className="text-xs text-gray-600 font-medium">In Maintenace</p>
+            </div>
+
+          </div>
+
+          {/* Bed occupancy */}
+          <div 
+            onClick = {()=>{
+              navigate('/bed-availability');
+              window.scroll(0,0);
+            }}
+            className="relative bg-white px-5 py-4 border border-gray-300 flex flex-col gap-3 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 rounded-lg hover:bg-orange-50 cursor-pointer overflow-hidden group"
+          >
+            <span className="absolute bottom-0 left-0 w-0 h-1 bg-orange-600 transition-all duration-300 group-hover:w-full"></span>
+
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-gray-700 font-medium">Bed Occupancy</p>
+              <div className={`p-2 rounded-lg text-xl bg-orange-100 text-orange-600 border border-orange-300`}>
+                <FaBed />
+              </div>
+            </div>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-xl text-gray-900 font-extrabold">{totalBeds}</p>
+              <p className="text-xs text-gray-600 font-medium">Total Beds</p>
+            </div>
+
+            <hr className="text-gray-300"/>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-md text-gray-800 font-bold">{occupancyRate} % <span className="text-sm font-medium text-gray-600">( {occupiedBeds}/{totalBeds} )</span></p>
+              <p className="text-xs text-gray-600 font-medium">Occupancy Rate</p>
+            </div>
+
+          </div>
+
+          {/* Departments */}
+          <div 
+            onClick = {()=>{
+              navigate('/departments-list');
+              window.scroll(0,0);
+            }}
+            className="relative bg-white px-5 py-4 border border-gray-300 flex flex-col gap-3 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 rounded-lg hover:bg-cyan-50 cursor-pointer overflow-hidden group"
+          >
+            <span className="absolute bottom-0 left-0 w-0 h-1 bg-cyan-600 transition-all duration-300 group-hover:w-full"></span>
+
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-gray-700 font-medium">Departments</p>
+              <div className={`p-2 rounded-lg text-xl bg-cyan-100 text-cyan-600 border border-cyan-300`}>
+                <FaHospitalAlt />
+              </div>
+            </div>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-xl text-gray-900 font-extrabold">{totalDepartments}</p>
+              <p className="text-xs text-gray-600 font-medium">Total Departments</p>
+            </div>
+
+            <hr className="text-gray-300"/>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-md text-gray-800 font-bold">{activeDepartments}</p>
+              <p className="text-xs text-gray-600 font-medium">Active Departments</p>
+            </div>
+
+          </div>
+
+          {/* Issues */}
+          <div 
+            onClick = {()=>{
+              navigate('/issues-list');
+              window.scroll(0,0);
+            }}
+            className="relative bg-white px-5 py-4 border border-gray-300 flex flex-col gap-3 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 rounded-lg hover:bg-gray-50 cursor-pointer overflow-hidden group"
+          >
+            <span className="absolute bottom-0 left-0 w-0 h-1 bg-gray-600 transition-all duration-300 group-hover:w-full"></span>
+
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-gray-700 font-medium">Issues</p>
+              <div className={`p-2 rounded-lg text-xl bg-gray-100 text-gray-600 border border-gray-300`}>
+                <FaInfoCircle />
+              </div>
+            </div>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-xl text-gray-900 font-extrabold">{totalIssues}</p>
+              <p className="text-xs text-gray-600 font-medium">Total Issues</p>
+            </div>
+
+            <hr className="text-gray-300"/>
+
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-md text-gray-800 font-bold">{resolvedIssues}</p>
+              <p className="text-xs text-gray-600 font-medium">Resolved Issues</p>
+            </div>
+
+          </div>
+        
         </div>
-      </div>
 
     </div>
 
+    {/* Critical Alerts and Warnings */}
+    {
+      (expiringSoonCount > 0 || lowStockCount > 0 || maintenanceEquipments > 0 || pendingIssues > 0 || inProgressIssues > 0) && (
+        <div className="bg-white border border-gray-300 rounded-xl px-5 py-3 w-full mt-8">
+          <div className="flex items-center gap-1">
+            <div className={`p-2 rounded-lg text-xl text-rose-600`}>
+              <FaInfoCircle />
+            </div>
+            <p className="font-semibold text-gray-700">Need Attention</p>
+          </div>
+
+          {/* cards */}
+          <div className="flex flex-wrap gap-3 items-center mt-3">
+            {
+              lowStockCount > 0 && (
+                <div className="p-6 border w-52 border-red-300 rounded-xl flex flex-col items-center shadow-sm hover:bg-orange-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                  <div className="flex items-center justify-center rounded-2xl bg-orange-200 text-orange-600 p-4">
+                    <FaCube size={22}/>
+                  </div>
+                  <p className="text-center mt-3 text-md font-semibold text-gray-800">Emergency Medicine Stock</p>
+                  <p className="text-sm mt-3 text-center text-gray-700"><span className="font-semibold text-gray-900">{lowStockCount}</span> medicine(s) are below the required threshold</p>
+                  <button 
+                    onClick = {()=>{
+                      navigate('/stock-alerts');
+                      window.scroll(0,0)
+                    }}
+                    className="mt-8 px-3 py-1 bg-red-700 text-white text-sm rounded-xl hover:bg-red-800 cursor-pointer"
+                  >View Details</button>
+                </div>
+              )
+            }
+
+            {
+              expiringSoonCount > 0 && (
+                <div className="p-6 border w-54 border-red-300 rounded-xl flex flex-col items-center shadow-sm hover:bg-orange-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                  <div className="flex items-center justify-center rounded-2xl bg-orange-200 text-orange-600 p-4">
+                    <FaPills size={22}/>
+                  </div>
+                  <p className="text-center mt-3 text-md font-semibold text-gray-800">Expiring Soon Medicines</p>
+                  <p className="text-sm mt-3 text-center text-gray-700"><span className="font-semibold text-gray-900">{expiringSoonCount}</span> medicine(s) approaching their expiry date</p>
+                  <button
+                    onClick = {()=>{
+                      navigate('/stock-alerts');
+                      window.scroll(0,0);
+                    }} 
+                    className="mt-8 px-3 py-1 bg-red-700 text-white text-sm rounded-xl hover:bg-red-800 cursor-pointer"
+                  >View Details</button>
+                </div>
+              )
+            }
+
+            {
+              maintenanceEquipments > 0 && (
+                <div className="p-6 border w-54 border-red-300 rounded-xl flex flex-col items-center shadow-sm hover:bg-orange-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                  <div className="flex items-center justify-center rounded-2xl bg-orange-200 text-orange-600 p-4">
+                    <FaTools size={22}/>
+                  </div>
+                  <p className="text-center mt-3 text-md font-semibold text-gray-800">Equipment Maintenance</p>
+                  <p className="text-sm mt-3 text-center text-gray-700"><span className="font-semibold text-gray-900">{maintenanceEquipments}</span> Medical equipment is due for maintenance</p>
+                  <button 
+                    onClick = {()=> {
+                      navigate('/maintenance-log');
+                      window.scroll(0,0);
+                    }}
+                    className="mt-8 px-3 py-1 bg-red-700 text-white text-sm rounded-xl hover:bg-red-800 cursor-pointer"
+                  >View Details</button>
+                </div>
+              )
+            }
+
+            {
+              (pendingIssues > 0 || inProgressIssues > 0) && (
+                <div className="p-6 border w-54 border-red-300 rounded-xl flex flex-col items-center shadow-sm hover:bg-orange-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                  <div className="flex items-center justify-center rounded-2xl bg-orange-200 text-orange-600 p-4">
+                    <FaExclamationTriangle size={22}/>
+                  </div>
+                  <p className="text-center mt-3 text-md font-semibold text-gray-800">Infrastructure Maintenance Alerts</p>
+                  <p className="text-sm mt-3 text-center text-gray-700">
+                    { pendingIssues > 0 && <span className="font-semibold text-gray-900">{pendingIssues || 0} <span className="font-normal text-gray-700">pending</span> </span> } 
+                    { pendingIssues > 0 && inProgressIssues > 0 && <span>/</span> }
+                    { inProgressIssues > 0 && <span className="font-semibold text-gray-900">{inProgressIssues || 0} <span className="font-normal text-gray-700">in progress</span></span> } issues need to be resolved</p>
+                  <button 
+                    onClick={()=>{
+                      navigate('/issues-list');
+                      window.scroll(0,0);
+                    }}
+                    className="mt-8 px-3 py-1 bg-red-700 text-white text-sm rounded-xl hover:bg-red-800 cursor-pointer"
+                  >View Details</button>
+                </div>
+              )
+            }
+          </div>
+        </div>
+      )
+    }
+
+    {/* department wise bed occupancy */}
+    <div className="w-full px-5 py-3 mt-8 border border-gray-300 rounded-xl bg-white">
+
+    {/* heading */}
+    <div className="px-1 flex justify-between items-center">
+      <div className="flex gap-3 items-center">
+        <div className={`p-1 rounded-lg text-xl bg-fuchsia-100 text-fuchsia-600 border border-fuchsia-300`}>
+          <FaBed size={18}/>
+        </div>
+        <p className="font-medium text-gray-700">Department Wise Bed Occupancy</p>
+      </div>
+      <p className="bg-fuchsia-200 border-fuchsia-700 text-fuchsia-600 px-3 py-1 rounded-lg text-xs font-medium">Real-Time</p>
+    </div>
+
+    <div className="grid md:grid-cols-3 grid-cols-2 gap-3 mt-4 mb-3">
+    {
+      departmentStats?.map((dept, index)=>(
+        <div
+         key={index}
+         className="p-5 rounded-2xl border border-gray-300 shadow-sm hover:shadow-md transition"
+        >
+
+        {/* Header */}
+        <div className="flex justify-between mb-3">
+          <p className="text-sm font-semibold text-gray-700">
+            {dept.departmentName}
+          </p>
+
+          <span className="text-sm font-bold text-gray-800">
+            {dept.percentage}%
+          </span>
+        </div>
+
+        {/* Progress bar */}
+        <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden mb-4">
+
+          <div
+            className={`h-full ${dept.color} transition-all duration-500`}
+            style={{ width: `${dept.percentage}%` }}
+          />
+
+        </div>
+
+        {/* Stats */}
+        <div className="text-sm text-gray-600 space-y-1">
+
+          <p className="flex justify-between">
+            <span>Total Beds</span>
+            <span className="font-medium">{dept.totalBeds}</span>
+          </p>
+
+          <p className="flex justify-between">
+            <span>Occupied</span>
+            <span className="text-red-500 font-medium">
+              {dept.occupiedBeds}
+            </span>
+          </p>
+
+          <p className="flex justify-between">
+            <span>Available</span>
+            <span className="text-green-600 font-medium">
+              {dept.availableBeds}
+            </span>
+          </p>
+
+        </div>
+
+        {/* Status badge */}
+        <div
+          className={`mt-4 text-center py-2 rounded-lg text-sm font-semibold
+          ${dept.status === "High" && "bg-red-100 text-red-600"}
+          ${dept.status === "Moderate" && "bg-yellow-100 text-yellow-700"}
+          ${dept.status === "Low" && "bg-green-100 text-green-700"}
+          `}
+        >
+          {dept.status} Occupancy
+        </div>
+
+        </div>
+      ))
+    }
+    </div>
+
+    </div>
+
+    {/* quick actions */}
     <div className="bg-white border border-gray-400 rounded-xl p-5 w-full mt-8">
       <h3 className="text-md font-semibold text-gray-700 mb-4">
         Quick Actions
       </h3>
 
-      <div className="grid md:grid-cols-6 sm:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-6 grid-cols-3 gap-4">
         {actions.map((item, index) => (
           <div
             key={index}
             onClick={() => {navigate(item.path); window.scroll(0,0)}}
             className="
-              group cursor-pointer
-              border-2 border-purple-400 rounded-xl
+              group cursor-pointer 
+              border-2 border-purple-300 rounded-xl
               flex flex-col items-center justify-center
-              h-28
+              py-4
               transition-all duration-200
-              hover:bg-purple-50
-              hover:border-purple-300
+              hover:bg-purple-100
+              hover:border-purple-400
             "
           >
             <div
@@ -504,26 +787,4 @@ function AdminDashboard() {
 
 export default AdminDashboard
 
-const Card = ({ icon, iconBg, iconColor, title, value, sub, trend }) => (
-    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex justify-between items-start">
-        <div>
-            <p className="text-sm font-medium text-gray-500">{title}</p>
-            <h3 className="text-xl font-semibold text-gray-800 mt-1">{value}</h3>
-            {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
-            {trend && <div className="mt-2">{trend}</div>}
-        </div>
-
-        <div className={`p-3 rounded-lg ${iconBg}`}>
-            <span className={`text-xl ${iconColor}`}>{icon}</span>
-        </div>
-        </div>
-);
-
-// Trend analysis
-const Trend = ({ value }) => (
-    <div className={`flex items-center gap-1 text-sm font-medium ${value >= 0 ? "text-green-600" : "text-red-600"}`}>
-        {value >= 0 ? <FaArrowUp /> : <FaArrowDown />}
-        {Math.abs(value)}%
-    </div>
-);
 
