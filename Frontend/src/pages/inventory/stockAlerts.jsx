@@ -21,6 +21,7 @@ import { MedicineContext } from "../../context/MedicineContext";
 import Loading from "../Loading";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { AppContext } from "../../context/AppContext";
 
 const StockAlerts = () => {
   const navigate = useNavigate();
@@ -28,6 +29,8 @@ const StockAlerts = () => {
 
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("ALL");
+
+  const {userData} = useContext(AppContext)
 
   // Interaction State
   const [hiddenIds, setHiddenIds] = useState([]);
@@ -38,7 +41,6 @@ const StockAlerts = () => {
     fetchMedicines();
   }, [fetchMedicines]);
 
-  /* ---------- Logic Helpers ---------- */
   const daysLeft = (d) => {
     const expiry = new Date(d);
     expiry.setHours(0, 0, 0, 0);
@@ -47,8 +49,6 @@ const StockAlerts = () => {
     return (expiry - today) / (1000 * 60 * 60 * 24);
   };
 
-  /* ---------- Data Processing ---------- */
-  // 1. First, process all medicines into categories
   const processedData = useMemo(() => {
     const base = medicines.filter(
       (m) => !hiddenIds.includes(m.medicineId)
@@ -69,9 +69,6 @@ const StockAlerts = () => {
         expiringSoon.push({ ...item, alertType: "EXPIRING" });
       }
       
-      // Note: An item can be both Expiring AND Low Stock. 
-      // We prioritize Expired > Low Stock > Expiring for the "All" view to avoid duplicates if strictly needed,
-      // or we can just push to lowStock array.
       if (isLow && d > 0) {
         lowStock.push({ ...item, alertType: "LOW" });
       }
@@ -80,13 +77,11 @@ const StockAlerts = () => {
     return { expired, lowStock, expiringSoon };
   }, [medicines, hiddenIds]);
 
-  // 2. Flatten data based on Filter Selection & Search
   const tableData = useMemo(() => {
     let data = [];
     const { expired, lowStock, expiringSoon } = processedData;
 
     if (filterType === "ALL") {
-      // Merge all, remove duplicates by ID if an item appears in multiple lists (e.g. Low + Expiring)
       const combined = [...expired, ...lowStock, ...expiringSoon];
       const uniqueIds = new Set();
       data = combined.filter(item => {
@@ -112,7 +107,7 @@ const StockAlerts = () => {
     );
   }, [processedData, filterType, search]);
 
-  /* ---------- Actions ---------- */
+  /*Action */
   const toggleSelection = (id) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
@@ -156,7 +151,7 @@ const StockAlerts = () => {
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen">
       
-      {/* --- HEADER --- */}
+      {/* --- Header --- */}
       <div className="bg-white p-6 rounded-xl mb-6 flex flex-col md:flex-row justify-between items-center border border-gray-200 shadow-sm">
         <div className="mb-4 md:mb-0 w-full md:w-auto">
           <div className="flex gap-3 items-center">
@@ -169,13 +164,15 @@ const StockAlerts = () => {
         </div>
 
         <div className="flex gap-3 items-center w-full md:w-auto">
-          <button
+          { userData && (userData?.designation === 'Pharmacist' || userData?.designation === 'Admin') &&( <button
             onClick={handleDownloadPDF}
             className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
           >
-            <FaDownload /> Download Report
-          </button>
-          <button
+            <FaDownload /> Download List
+          </button> )}
+
+
+          {userData && (userData?.designation === 'Pharmacist' || userData?.designation === 'Admin') && (<button
             onClick={() => {
               setIsSelectionMode(!isSelectionMode);
               setSelectedIds([]);
@@ -187,7 +184,8 @@ const StockAlerts = () => {
             }`}
           >
             <FaListUl /> {isSelectionMode ? "Cancel Selection" : "Manage Items"}
-          </button>
+          </button>)}
+
         </div>
       </div>
 
@@ -263,7 +261,7 @@ const StockAlerts = () => {
           </div>
         </div>
 
-        {/* --- TABLE --- */}
+        {/* --- Table--- */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-fuchsia-50 text-gray-500 font-medium border-b border-gray-200">
@@ -341,16 +339,16 @@ const StockAlerts = () => {
 
                     <td className="px-6 py-4 text-center">
                       <div className="flex justify-center gap-2">
-                        <button
+                        {userData && (userData?.designation === 'Pharmacist' || userData?.designation === 'Admin') && (<button
                           onClick={() => navigate("/create-purchase-order", { state: { medicineId: m.medicineId } })}
-                          className="p-2 text-gray-400 hover:text-fuchsia-700 hover:bg-fuchsia-50 rounded-full transition-colors"
+                          className="p-2 text-gray-400 cursor-pointer hover:text-fuchsia-700 hover:bg-fuchsia-50 rounded-full transition-colors"
                           title="Order Stock"
                         >
                           <FaShoppingCart />
-                        </button>
+                        </button>)}
                         <button
                           onClick={() => navigate(`/medicine-details/${m.medicineId}`)}
-                          className="p-2 text-gray-400 hover:text-blue-700 hover:bg-blue-50 rounded-full transition-colors"
+                          className="p-2 text-gray-400 cursor-pointer hover:text-blue-700 hover:bg-blue-50 rounded-full transition-colors"
                           title="View Details"
                         >
                           <FaEye />

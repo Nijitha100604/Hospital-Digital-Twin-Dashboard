@@ -5,30 +5,39 @@ import {
   FaMapMarkerAlt,
   FaStickyNote,
   FaUniversity,
-  FaUpload,
   FaSave,
   FaTimes,
   FaArrowLeft,
   FaEdit,
+  FaFileCsv,
+  FaSearch,
+  FaFileAlt,
 } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { MedicineContext } from "../../context/MedicineContext"; 
-import Loading from "../Loading"; 
+import { MedicineContext } from "../../context/MedicineContext";
+import Loading from "../Loading";
 
 const EditSupplierDetails = () => {
-  const { id } = useParams(); 
+  const { id } = useParams();
   const navigate = useNavigate();
-  const fileRef = useRef(null);
+  const csvFileRef = useRef(null);
+  const docFileRef = useRef(null);
 
- 
   const { getSupplierById, updateSupplier } = useContext(MedicineContext);
 
   const [loading, setLoading] = useState(true);
-  const [fileName, setFileName] = useState("");
-  const [file, setFile] = useState(null);
 
- 
+  // CSV Import State
+  const [csvFileName, setCsvFileName] = useState("");
+  const [csvFile, setCsvFile] = useState(null);
+
+  // Document Upload State
+  const [docFileName, setDocFileName] = useState("");
+  const [docFile, setDocFile] = useState(null);
+  const [existingDocName, setExistingDocName] = useState(""); // Store DB file name
+
+  /* Form Fields */
   const [supplierName, setSupplierName] = useState("");
   const [contactPerson, setContactPerson] = useState("");
   const [email, setEmail] = useState("");
@@ -52,11 +61,16 @@ const EditSupplierDetails = () => {
   const [accountNumber, setAccountNumber] = useState("");
   const [ifsc, setIfsc] = useState("");
 
-  const [supplies, setSupplies] = useState("");
-  const [totalSupplies, setTotalSupplies] = useState(""); // Added Total Supplies
+  // Supplies State
+  const [supplyInput, setSupplyInput] = useState("");
+  const [itemsSupplied, setItemsSupplied] = useState([]);
+  const [showAllSupplies, setShowAllSupplies] = useState(false);
+
+  // New: Search State
+  const [supplySearch, setSupplySearch] = useState("");
+
   const [notes, setNotes] = useState("");
 
-  
   useEffect(() => {
     const fetchSupplier = async () => {
       const data = await getSupplierById(id);
@@ -85,16 +99,22 @@ const EditSupplierDetails = () => {
         setAccountNumber(data.bankDetails?.accountNumber || "");
         setIfsc(data.bankDetails?.ifsc || "");
 
-        
-        setSupplies(data.itemsSupplied ? data.itemsSupplied.join(", ") : "");
-        setTotalSupplies(data.totalSupplies || 0);
+        // Set Supplies
+        if (Array.isArray(data.itemsSupplied)) {
+          setItemsSupplied(data.itemsSupplied);
+        } else if (typeof data.itemsSupplied === "string") {
+          setItemsSupplied(data.itemsSupplied.split(",").map((i) => i.trim()));
+        } else {
+          setItemsSupplied([]);
+        }
+
         setNotes(data.notes || "");
 
+        // Set Existing Document Name
         if (data.documentName) {
-          setFileName(data.documentName);
+          setExistingDocName(data.documentName);
         }
       } else {
-        
         navigate("/suppliers-list");
       }
       setLoading(false);
@@ -103,12 +123,47 @@ const EditSupplierDetails = () => {
     fetchSupplier();
   }, [id, getSupplierById, navigate]);
 
-  
-  const handleFileChange = (e) => {
-    if (e.target.files[0]) {
-      setFileName(e.target.files[0].name);
-      setFile(e.target.files[0]);
+  // Handle CSV Selection (For importing items)
+  const handleCsvChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      if (
+        selectedFile.type === "text/csv" ||
+        selectedFile.type === "application/vnd.ms-excel"
+      ) {
+        setCsvFileName(selectedFile.name);
+        setCsvFile(selectedFile);
+      } else {
+        toast.error("Please upload a valid CSV file");
+        e.target.value = null;
+      }
     }
+  };
+
+  // Handle Document Selection (For saving file)
+  const handleDocChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setDocFileName(selectedFile.name);
+      setDocFile(selectedFile);
+    }
+  };
+
+  // Handle Supplies Input (Enter Key)
+  const handleSupplyKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const val = supplyInput.trim();
+      if (val && !itemsSupplied.includes(val)) {
+        setItemsSupplied([...itemsSupplied, val]);
+        setSupplyInput("");
+      }
+    }
+  };
+
+  // Remove Supply Item
+  const removeSupplyItem = (itemToRemove) => {
+    setItemsSupplied(itemsSupplied.filter((item) => item !== itemToRemove));
   };
 
   const handleSubmit = async (e) => {
@@ -150,17 +205,25 @@ const EditSupplierDetails = () => {
       formData.append("accountNumber", accountNumber);
       formData.append("ifsc", ifsc);
 
-      // Append Supplies & Notes
-      formData.append("itemsSupplied", supplies);
-      formData.append("totalSupplies", totalSupplies);
+      // Append Notes
       formData.append("notes", notes);
 
-      // Append File if a new one is selected
-      if (file) {
-        formData.append("document", file);
+      // Append Manual Supplies
+      if (itemsSupplied.length > 0) {
+        formData.append("itemsSupplied", itemsSupplied.join(","));
+      } else {
+        formData.append("itemsSupplied", "");
       }
 
-      // Call Update Function from Context
+      // Append CSV File (for bulk add)
+      if (csvFile) {
+        formData.append("document", csvFile);
+      }
+
+      if (!csvFile && docFile) {
+        formData.append("document", docFile);
+      }
+
       const success = await updateSupplier(id, formData);
 
       if (success) {
@@ -173,6 +236,20 @@ const EditSupplierDetails = () => {
       setLoading(false);
     }
   };
+
+  // --- Filtering Logic for Supplies ---
+  const filteredSupplies = itemsSupplied.filter((item) =>
+    item.toLowerCase().includes(supplySearch.toLowerCase()),
+  );
+
+  const VISIBLE_LIMIT = 10;
+  const visibleItems = supplySearch
+    ? filteredSupplies
+    : showAllSupplies
+      ? filteredSupplies
+      : filteredSupplies.slice(0, VISIBLE_LIMIT);
+
+  const hiddenCount = filteredSupplies.length - VISIBLE_LIMIT;
 
   if (loading) {
     return <Loading />;
@@ -259,16 +336,41 @@ const EditSupplierDetails = () => {
               <TwoCol>
                 <Select
                   label="Category"
+                  required
                   value={category}
                   onChange={setCategory}
-                  options={["Pharmaceutical", "Medical Equipment", "Consumables", "Distributor"]}
+                  options={[
+                    "Pharmaceuticals",
+                    "Medical Equipment & Devices",
+                    "Surgical Instruments",
+                    "Medical Consumables & Disposables",
+                    "Laboratory Reagents & Supplies",
+                    "Optical Supplies",
+                    "Dental Supplies",
+                    "Orthopedic & Implants",
+                    "Radiology & Imaging",
+                    "Hospital Furniture",
+                    "IT & Software Solutions",
+                    "PPE & Safety Gear",
+                    "Facility Management & Cleaning",
+                    "Biomedical Waste Management",
+                    "Food & Catering Services",
+                    "Maintenance Service Provider",
+                    "General Distributor",
+                  ]}
                 />
                 <Input label="Tax ID" value={taxId} onChange={setTaxId} />
                 <Select
                   label="Payment Terms"
                   value={paymentTerms}
                   onChange={setPaymentTerms}
-                  options={["Immediate", "15 Days", "30 Days", "45 Days", "60 Days"]}
+                  options={[
+                    "Immediate",
+                    "15 Days",
+                    "30 Days",
+                    "45 Days",
+                    "60 Days",
+                  ]}
                 />
                 <Input
                   label="Credit Limit"
@@ -301,18 +403,127 @@ const EditSupplierDetails = () => {
           {/* RIGHT */}
           <div className="space-y-6">
             <Card
-              title="Supplies"
+              title="Supplies Provided"
               icon={<FaTruck className="text-blue-600 text-2xl" />}
             >
-              <div className="flex flex-col gap-4">
-                <Textarea value={supplies} onChange={setSupplies} />
-                <Input
-                  label="Total Supplies Count"
-                  type="number"
-                  value={totalSupplies}
-                  onChange={setTotalSupplies}
+              {/* CSV Upload Section */}
+              <div className="mb-6 p-4 border border-dashed border-blue-300 bg-blue-50 rounded-lg text-center">
+                <FaFileCsv className="mx-auto text-3xl text-blue-500 mb-2" />
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  Bulk Add Items via CSV
+                </p>
+                <p className="text-xs text-gray-500 mb-3">
+                  Upload to append new items
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => csvFileRef.current.click()}
+                  className="bg-white border border-blue-200 text-blue-600 px-3 py-1.5 rounded-md text-xs font-bold hover:bg-blue-100 transition-colors"
+                >
+                  {csvFileName ? "Change File" : "Select CSV File"}
+                </button>
+
+                {csvFileName && (
+                  <div className="mt-2 text-xs text-green-600 font-semibold flex items-center justify-center gap-1">
+                    <span>{csvFileName}</span>
+                    <FaTimes
+                      className="cursor-pointer text-gray-400 hover:text-red-500"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCsvFileName("");
+                        setCsvFile(null);
+                        csvFileRef.current.value = null;
+                      }}
+                    />
+                  </div>
+                )}
+
+                <input
+                  type="file"
+                  ref={csvFileRef}
+                  onChange={handleCsvChange}
+                  className="hidden"
+                  accept=".csv"
                 />
               </div>
+
+              {/* Search Bar */}
+              <div className="relative mb-3">
+                <FaSearch className="absolute left-3 top-3 text-gray-400 text-xs" />
+                <input
+                  type="text"
+                  placeholder="Search added supplies..."
+                  value={supplySearch}
+                  onChange={(e) => setSupplySearch(e.target.value)}
+                  className="w-full pl-8 pr-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              {/* Manual Entry */}
+              <div className="w-full">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
+                  Add Item (Press Enter)
+                </label>
+                <input
+                  value={supplyInput}
+                  onChange={(e) => setSupplyInput(e.target.value)}
+                  onKeyDown={handleSupplyKeyDown}
+                  placeholder="e.g. Paracetamol, Gloves..."
+                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 bg-white focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent outline-none transition-all text-sm text-gray-700 placeholder-gray-400 mb-3"
+                />
+
+                {/* Badges Container */}
+                <div className="flex flex-wrap gap-2">
+                  {visibleItems.length > 0 ? (
+                    visibleItems.map((item, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-fuchsia-50 text-fuchsia-700 border border-fuchsia-200"
+                      >
+                        {item}
+                        <button
+                          type="button"
+                          onClick={() => removeSupplyItem(item)}
+                          className="hover:text-red-500 focus:outline-none"
+                        >
+                          <FaTimes size={10} />
+                        </button>
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-gray-400 italic">
+                      {supplySearch
+                        ? "No items match search."
+                        : itemsSupplied.length === 0
+                          ? "No items added."
+                          : ""}
+                    </span>
+                  )}
+
+                  {/* Show More / Show Less Button (Only show if not searching) */}
+                  {!supplySearch && filteredSupplies.length > VISIBLE_LIMIT && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllSupplies(!showAllSupplies)}
+                      className="text-xs text-blue-600 hover:text-blue-800 font-medium underline ml-1 self-center"
+                    >
+                      {showAllSupplies ? "Show Less" : `+${hiddenCount} more`}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            <Card
+              title="Notes"
+              icon={<FaStickyNote className="text-purple-800 text-2xl" />}
+            >
+              <Textarea
+                placeholder="Add additional notes about this supplier..."
+                value={notes}
+                onChange={setNotes}
+              />
             </Card>
 
             <Card
@@ -328,34 +539,6 @@ const EditSupplierDetails = () => {
                 />
                 <Input label="Rating" value={rating} onChange={setRating} />
               </TwoCol>
-            </Card>
-
-            <Card
-              title="Documents"
-              icon={<FaUpload className="text-red-600 text-2xl" />}
-            >
-              <div
-                onClick={() => fileRef.current.click()}
-                className="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center cursor-pointer hover:border-fuchsia-600 bg-gray-50 transition-colors"
-              >
-                <FaUpload className="mx-auto text-xl text-gray-500" />
-                <p className="text-sm mt-2 font-medium text-gray-700">
-                  Click to update file
-                </p>
-              </div>
-
-              {fileName && (
-                <div className="mt-3 bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded-md text-sm flex items-center gap-2">
-                  <FaStickyNote /> {fileName}
-                </div>
-              )}
-
-              <input
-                type="file"
-                ref={fileRef}
-                onChange={handleFileChange}
-                className="hidden"
-              />
             </Card>
 
             <div className="flex gap-4 lg:mt-4 justify-end">
@@ -383,7 +566,7 @@ const EditSupplierDetails = () => {
 
 export default EditSupplierDetails;
 
-/* ===== Reusable UI (Unchanged) ===== */
+/* ===== Reusable UI ===== */
 
 const Card = ({ title, icon, children }) => (
   <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-5">

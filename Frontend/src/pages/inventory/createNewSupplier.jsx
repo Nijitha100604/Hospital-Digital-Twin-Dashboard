@@ -10,22 +10,24 @@ import {
   FaTimes,
   FaArrowLeft,
   FaPlusCircle,
+  FaFileCsv,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import Loading from "../Loading"; 
+import Loading from "../Loading";
 import { MedicineContext } from "../../context/MedicineContext";
 
 const CreateNewSupplier = () => {
   const navigate = useNavigate();
   const fileRef = useRef(null);
-  
+
   const { addSupplier } = useContext(MedicineContext);
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const [fileName, setFileName] = useState("");
-  const [file, setFile] = useState(null); 
+  // CSV File State
+  const [csvFileName, setCsvFileName] = useState("");
+  const [csvFile, setCsvFile] = useState(null);
 
   /* Required fields */
   const [supplierName, setSupplierName] = useState("");
@@ -52,16 +54,44 @@ const CreateNewSupplier = () => {
   const [accountNumber, setAccountNumber] = useState("");
   const [ifsc, setIfsc] = useState("");
 
-  const [supplies, setSupplies] = useState("");
-  const [totalSupplies, setTotalSupplies] = useState("");
+  // Supplies State
+  const [supplyInput, setSupplyInput] = useState("");
+  const [itemsSupplied, setItemsSupplied] = useState([]); // Manual entry items
+
   const [notes, setNotes] = useState("");
 
-  // Handle File Selection
+  // Handle CSV File Selection
   const handleFileChange = (e) => {
-    if (e.target.files[0]) {
-      setFileName(e.target.files[0].name);
-      setFile(e.target.files[0]); 
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      if (
+        selectedFile.type === "text/csv" ||
+        selectedFile.type === "application/vnd.ms-excel"
+      ) {
+        setCsvFileName(selectedFile.name);
+        setCsvFile(selectedFile);
+      } else {
+        toast.error("Please upload a valid CSV file");
+        e.target.value = null;
+      }
     }
+  };
+
+  // Handle Supplies Input (Enter Key)
+  const handleSupplyKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const val = supplyInput.trim();
+      if (val && !itemsSupplied.includes(val)) {
+        setItemsSupplied([...itemsSupplied, val]);
+        setSupplyInput("");
+      }
+    }
+  };
+
+  // Remove Supply Item
+  const removeSupplyItem = (itemToRemove) => {
+    setItemsSupplied(itemsSupplied.filter((item) => item !== itemToRemove));
   };
 
   // Submit Handler
@@ -69,7 +99,14 @@ const CreateNewSupplier = () => {
     e.preventDefault();
 
     // Basic Validation
-    if (!supplierName || !contactPerson || !email || !phone || !category || !paymentTerms) {
+    if (
+      !supplierName ||
+      !contactPerson ||
+      !email ||
+      !phone ||
+      !category ||
+      !paymentTerms
+    ) {
       toast.error("Please fill all required fields");
       return;
     }
@@ -105,24 +142,27 @@ const CreateNewSupplier = () => {
       formData.append("accountNumber", accountNumber);
       formData.append("ifsc", ifsc);
 
-      // Append Notes & Supplies 
-      formData.append("itemsSupplied", supplies); 
+      // Append Notes
       formData.append("notes", notes);
 
-      // Append File 
-      if (file) {
-        formData.append("document", file);
+      // Append Manual Supplies
+      if (itemsSupplied.length > 0) {
+        formData.append("manualItems", itemsSupplied.join(","));
+      }
+
+      // Append CSV File for Bulk Supplies
+      if (csvFile) {
+        formData.append("document", csvFile); // Key matches multer setup in route (usually 'document' or 'file')
       }
 
       // Call Context Function
       const success = await addSupplier(formData);
 
       if (success) {
-        navigate("/suppliers-list"); 
+        navigate("/suppliers-list");
       } else {
         setIsLoading(false);
       }
-
     } catch (error) {
       console.error(error);
       toast.error("An unexpected error occurred");
@@ -245,7 +285,25 @@ const CreateNewSupplier = () => {
                   required
                   value={category}
                   onChange={setCategory}
-                  options={["Pharmaceutical", "Medical Equipment", "Consumables", " Medicine Distributor"]}
+                  options={[
+                    "Pharmaceuticals",
+                    "Medical Equipment & Devices",
+                    "Surgical Instruments",
+                    "Medical Consumables & Disposables",
+                    "Laboratory Reagents & Supplies",
+                    "Optical Supplies",
+                    "Dental Supplies",
+                    "Orthopedic & Implants",
+                    "Radiology & Imaging",
+                    "Hospital Furniture",
+                    "IT & Software Solutions",
+                    "PPE & Safety Gear",
+                    "Facility Management & Cleaning",
+                    "Biomedical Waste Management",
+                    "Food & Catering Services",
+                    "Maintenance Service Provider",
+                    "General Distributor",
+                  ]}
                 />
                 <Input
                   label="Tax ID / GST Number"
@@ -258,7 +316,13 @@ const CreateNewSupplier = () => {
                   required
                   value={paymentTerms}
                   onChange={setPaymentTerms}
-                  options={["Immediate", "15 Days", "30 Days", "45 Days", "60 Days"]}
+                  options={[
+                    "Immediate",
+                    "15 Days",
+                    "30 Days",
+                    "45 Days",
+                    "60 Days",
+                  ]}
                 />
                 <Input
                   label="Credit Limit"
@@ -299,23 +363,83 @@ const CreateNewSupplier = () => {
           {/* RIGHT */}
           <div className="space-y-6">
             <Card
-              title="Supplies"
+              title="Supplies Provided"
               icon={<FaTruck className="text-blue-500 text-2xl" />}
             >
-              <Textarea
-                placeholder="Enter supplies (comma separated, e.g. Paracetamol, Gloves)"
-                value={supplies}
-                onChange={setSupplies}
-              />
+              {/* CSV Upload Section */}
+              <div className="mb-6 p-4 border border-dashed border-blue-300 bg-blue-50 rounded-lg text-center">
+                <FaFileCsv className="mx-auto text-3xl text-blue-500 mb-2" />
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  Bulk Upload Items via CSV
+                </p>
+                <p className="text-xs text-gray-500 mb-3">
+                  Upload a CSV file containing items list
+                </p>
 
-              <Input
-                  label="Total Supplies Count"
-                  type="number"
-                  placeholder="e.g. 150"
-                  value={totalSupplies}
-                  onChange={setTotalSupplies}
+                <button
+                  type="button"
+                  onClick={() => fileRef.current.click()}
+                  className="bg-white border border-blue-200 text-blue-600 px-3 py-1.5 rounded-md text-xs font-bold hover:bg-blue-100 transition-colors"
+                >
+                  {csvFileName ? "Change File" : "Select CSV File"}
+                </button>
+
+                {csvFileName && (
+                  <div className="mt-2 text-xs text-green-600 font-semibold flex items-center justify-center gap-1">
+                    <span>{csvFileName}</span>
+                    <FaTimes
+                      className="cursor-pointer text-gray-400 hover:text-red-500"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCsvFileName("");
+                        setCsvFile(null);
+                        fileRef.current.value = null;
+                      }}
+                    />
+                  </div>
+                )}
+
+                <input
+                  type="file"
+                  ref={fileRef}
+                  onChange={handleFileChange}
+                  className="hidden"
+                  accept=".csv"
                 />
-                
+              </div>
+
+              {/* Manual Entry Section */}
+              <div className="w-full">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
+                  Add Item Manually (Press Enter)
+                </label>
+                <input
+                  value={supplyInput}
+                  onChange={(e) => setSupplyInput(e.target.value)}
+                  onKeyDown={handleSupplyKeyDown}
+                  placeholder="e.g. Paracetamol, Gloves..."
+                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 bg-white focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent outline-none transition-all text-sm text-gray-700 placeholder-gray-400 mb-3"
+                />
+
+                {/* Badges Container */}
+                <div className="flex flex-wrap gap-2">
+                  {itemsSupplied.map((item, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-fuchsia-50 text-fuchsia-700 border border-fuchsia-200"
+                    >
+                      {item}
+                      <button
+                        type="button"
+                        onClick={() => removeSupplyItem(item)}
+                        className="hover:text-red-500 focus:outline-none"
+                      >
+                        <FaTimes size={10} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
             </Card>
 
             <Card
@@ -348,38 +472,6 @@ const CreateNewSupplier = () => {
                   onChange={setRating}
                 />
               </TwoCol>
-            </Card>
-
-            <Card
-              title="Documents / Contract"
-              icon={<FaUpload className="text-red-600 text-2xl" />}
-            >
-              <div
-                onClick={() => fileRef.current.click()}
-                className="border-2 border-dashed border-gray-300 bg-gray-50 rounded-lg p-6 text-center cursor-pointer hover:border-fuchsia-600 hover:bg-fuchsia-50 transition-all"
-              >
-                <FaUpload className="mx-auto text-2xl text-gray-400 mb-2" />
-                <p className="text-sm font-medium text-gray-700">
-                  Drop file here or <span className="text-fuchsia-600 underline">click to upload</span>
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  PDF, DOC, DOCX (Max 10MB)
-                </p>
-              </div>
-
-              {fileName && (
-                <div className="mt-3 bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded-md text-sm flex items-center gap-2">
-                   <FaStickyNote /> {fileName}
-                </div>
-              )}
-
-              <input
-                type="file"
-                ref={fileRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept=".pdf,.doc,.docx,.jpg,.png"
-              />
             </Card>
 
             <div className="flex gap-4 lg:mt-4 justify-end">

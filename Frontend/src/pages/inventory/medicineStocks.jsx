@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { MedicineContext } from "../../context/MedicineContext"; 
+import { AppContext } from "../../context/AppContext"; 
 import { assets } from "../../assets/assets";
 import Loading from "../Loading";
 
@@ -20,6 +21,8 @@ import {
 
 const MedicineStocks = () => {
   const navigate = useNavigate();
+
+  const { userData } = useContext(AppContext);
 
   const { medicines: medicineList, loading, fetchMedicines } = useContext(MedicineContext);
 
@@ -43,7 +46,7 @@ const MedicineStocks = () => {
     const diffDays = diffTime / (1000 * 60 * 60 * 24);
     return diffDays >= 0 && diffDays <= 90; 
   };
-  // ------------------------
+
 
   const getStockStatus = (m) => {
     if (m.quantity <= m.minimumThreshold) return "Low Stock";
@@ -72,7 +75,7 @@ const MedicineStocks = () => {
     setVisibleCount(8);
   }, [search, categoryFilter, statusFilter]);
 
-  // --- Summary & Alert Calculations ---
+  //Summary & Alert Calculations
   const totalItems = medicineList.length;
   
   const lowStockCount = medicineList.filter(
@@ -123,13 +126,15 @@ const MedicineStocks = () => {
             )}
           </button>
 
-          <button
-            onClick={() => navigate("/add-new-medicine")}
-            className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
-          >
-            <FaPlus />
-            Add New Medicine
-          </button>
+          {userData && (userData.designation === 'Pharmacist' || userData.designation === 'Admin') && (
+            <button
+                onClick={() => navigate("/add-new-medicine")}
+                className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
+            >
+                <FaPlus />
+                Add New Medicine
+            </button>
+          )}
         </div>
       </div>
 
@@ -242,7 +247,9 @@ const MedicineStocks = () => {
               ? "Your inventory is currently empty."
               : "We couldn't find any matches for your search filters."}
           </p>
-          {medicineList.length === 0 && (
+          
+          {/* 4. Role Based Access in Empty State */}
+          {medicineList.length === 0 && userData && (userData.designation === 'Pharmacist' || userData.designation === 'Admin') && (
             <button
               onClick={() => navigate("/add-new-medicine")}
               className="mt-4 px-5 py-2 bg-fuchsia-800 text-white rounded-lg text-sm font-medium hover:bg-fuchsia-900 transition-colors"

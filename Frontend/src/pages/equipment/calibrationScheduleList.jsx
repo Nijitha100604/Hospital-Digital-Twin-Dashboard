@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { EquipmentContext } from "../../context/EquipmentContext";
+import { AppContext } from "../../context/AppContext"; 
 import CreateCalibrationSchedule from "./CreateCalibrationSchedule";
 import AddMaintenance from "./addMaintenance"; 
 import Loading from "../Loading";
@@ -13,18 +14,19 @@ import {
   FaCheckCircle,
   FaPlus,
   FaTools,
+  FaBan,
   FaFilter,
   FaArrowLeft,
   FaArrowRight,
-  FaSpinner,
-  FaBan
+  FaSpinner
 } from "react-icons/fa";
 
 const CalibrationScheduleList = () => {
   const navigate = useNavigate();
   
-  // Consume Contexts
   const { equipments, fetchEquipments, loading, maintenanceLogs, fetchMaintenanceLogs } = useContext(EquipmentContext);
+  const { userData } = useContext(AppContext);
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); 
   const [currentPage, setCurrentPage] = useState(1);
@@ -39,7 +41,6 @@ const CalibrationScheduleList = () => {
     fetchMaintenanceLogs();
   }, [fetchEquipments, fetchMaintenanceLogs]);
 
-  /* ---------- Helper Logic ---------- */
   const getDaysLeft = (dateString) => {
     if (!dateString) return null;
     const today = new Date();
@@ -70,7 +71,6 @@ const CalibrationScheduleList = () => {
     return null;
   };
 
-  /* ---------- Filtering ---------- */
   const filteredData = useMemo(() => {
     return equipments.filter((item) => {
       const name = item.basicInfo?.equipmentName?.toLowerCase() || "";
@@ -123,9 +123,9 @@ const CalibrationScheduleList = () => {
           <p className="text-gray-500 text-sm mt-1">Manage equipment calibration and compliance checks</p>
         </div>
         <div className="flex gap-3 items-center w-full md:w-auto">
-           <button onClick={handleAddSchedule} className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto">
+           { userData && (userData?.designation==='Technician' || userData?.designation ==='Admin') &&(<button onClick={handleAddSchedule} className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto">
             <FaPlus /> Add Schedule
-          </button>
+          </button>)}
         </div>
       </div>
 
@@ -212,6 +212,8 @@ const CalibrationScheduleList = () => {
                     const daysLeft = getDaysLeft(nextDate);
                     const activeStatus = getMaintenanceState(item.equipmentId);
 
+                    const isAuthorized = userData?.designation === 'Admin' || userData?.designation === 'Technician';
+
                     return (
                     <tr key={item.equipmentId} className="hover:bg-blue-50 transition-colors group">
                         <td className="px-6 py-4 font-medium text-gray-800 flex items-center gap-3">
@@ -248,12 +250,17 @@ const CalibrationScheduleList = () => {
                             </span>
                         ) : (
                             <button 
-                            onClick={() => handleMaintenanceClick(item)}
-                            className="text-gray-400 hover:text-fuchsia-800 hover:bg-fuchsia-50 p-2 rounded-full transition-all cursor-pointer tooltip group relative"
+                            onClick={() => isAuthorized && handleMaintenanceClick(item)}
+                            disabled={!isAuthorized}
+                            className={`p-2 rounded-full transition-all tooltip group relative ${
+                                isAuthorized 
+                                ? "text-gray-400 hover:text-fuchsia-800 hover:bg-fuchsia-50 cursor-pointer" 
+                                : "text-gray-300 cursor-not-allowed"
+                            }`}
                             >
                             <FaTools size={16} />
-                            <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-max px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                Log Maintenance
+                            <span className={`absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-max px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none`}>
+                                {isAuthorized ? "Log Maintenance" : "Restricted Access"}
                             </span>
                             </button>
                         )}
