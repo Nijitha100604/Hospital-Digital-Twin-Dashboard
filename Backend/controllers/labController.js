@@ -1,10 +1,13 @@
 import labReportModel from "../models/labReportModel.js";
 import { v2 as cloudinary } from "cloudinary";
 
-// --- 1. GET ALL LAB REPORTS ---
+// --- 1. GET ALL LAB REPORTS (Filtered) ---
 const getAllLabReports = async (req, res) => {
     try {
-        const reports = await labReportModel.find({}).sort({ createdAt: -1 });
+        // FIX: Only fetch reports that are NOT deleted
+        const reports = await labReportModel.find({ isDeleted: { $ne: true } })
+            .sort({ createdAt: -1 })
+            .limit(100);
         res.json({ success: true, data: reports });
     } catch (error) {
         console.error(error);
@@ -55,11 +58,17 @@ const submitLabResults = async (req, res) => {
             if (!correctionReason) {
                 return res.json({ success: false, message: "A reason is required to amend a completed report." });
             }
+            
+            // --- FIX IS HERE: Check if array exists, if not, create it ---
+            if (!report.revisionHistory) {
+                report.revisionHistory = [];
+            }
+            
             report.revisionHistory.push({
-                amendedBy: technicianName,
+                amendedBy: technicianName || "Technician",
                 amendedAt: new Date(),
                 reason: correctionReason,
-                previousResults: report.testResults,
+                previousResults: report.testResults, // Save old results
                 previousFile: null
             });
         }
@@ -77,7 +86,7 @@ const submitLabResults = async (req, res) => {
 
         await report.save();
 
-        res.json({ success: true, message: "Results saved successfully!" });
+        res.json({ success: true, message: "Results updated successfully!" });
 
     } catch (error) {
         console.log(error);
@@ -157,9 +166,40 @@ const uploadLabReportFile = async (req, res) => {
     }
 };
 
+// --- 5. SOFT DELETE LAB REPORT ---
+const deleteLabReport = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reason } = req.body; // Get reason from frontend
+
+        if (!reason) {
+            return res.json({ success: false, message: "Deletion reason is required." });
+        }
+
+        // Find and Soft Delete
+        const report = await labReportModel.findByIdAndUpdate(id, {
+            isDeleted: true,
+            deletedAt: new Date(),
+            deletionReason: reason,
+            status: "Cancelled" // Optional: Change status to Cancelled
+        });
+        
+        if (!report) {
+            return res.json({ success: false, message: "Report not found" });
+        }
+
+        res.json({ success: true, message: "Report marked as deleted." });
+
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
 export { 
     getAllLabReports, 
     getReportById, 
     submitLabResults, 
-    uploadLabReportFile 
+    uploadLabReportFile,
+    deleteLabReport 
 };
