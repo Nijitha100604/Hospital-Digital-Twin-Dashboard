@@ -1,14 +1,14 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
 import { 
   Save, Printer, CheckCircle, Activity, 
-  ChevronDown, FlaskConical, AlertCircle, FileUp, ArrowLeft, Search, Loader2
+  ChevronDown, FlaskConical, AlertCircle, FileUp, ArrowLeft, Search, Loader2, AlertTriangle, User, Calendar
 } from "lucide-react";
 import { useNavigate, useLocation, useParams } from "react-router-dom"; 
 import { LabContext } from "../../context/LabContext"; 
 import { StaffContext } from "../../context/StaffContext"; 
 import { PatientContext } from "../../context/PatientContext"; 
 
-// --- EXPANDED TEST TEMPLATES (CONFIGURATION) ---
+// --- 1. CONFIGURATION: PARAMETER DEFINITIONS ---
 const testTemplates = {
   "CBC (Hemogram)": [
     { id: "cbc1", param: "Hemoglobin", unit: "g/dL", min: 13.0, max: 17.0 },
@@ -71,7 +71,7 @@ const testTemplates = {
     { id: "ele4", param: "Bicarbonate", unit: "mEq/L", min: 22, max: 29 },
   ],
   "Urine Routine": [
-    { id: "uri1", param: "Colour", unit: "-", min: 0, max: 0, textType: true }, // Special case for text
+    { id: "uri1", param: "Colour", unit: "-", min: 0, max: 0, textType: true },
     { id: "uri2", param: "Appearance", unit: "-", min: 0, max: 0, textType: true },
     { id: "uri3", param: "pH", unit: "-", min: 4.5, max: 8.0 },
     { id: "uri4", param: "Specific Gravity", unit: "-", min: 1.005, max: 1.030 },
@@ -98,59 +98,115 @@ const testTemplates = {
   ]
 };
 
+// --- 2. ALIAS MAPPING (The Solution for Short Forms) ---
+// Keys = Canonical Name (Must match keys in testTemplates above)
+// Values = Array of possible short forms or variations
+const testAliases = {
+  "CBC (Hemogram)": ["CBC", "Hemogram", "Complete Blood Count", "C.B.C"],
+  "Liver Function Test (LFT)": ["LFT", "Liver Profile", "Liver Panel"],
+  "Kidney Function Test (KFT)": ["KFT", "RFT", "Renal Function Test", "Kidney Profile"],
+  "Thyroid Profile": ["TFT", "Thyroid Function Test", "Thyroid Panel"],
+  "Lipid Profile": ["Lipid Panel", "Cholesterol Test"],
+  "Glucometry (Diabetes)": ["Fasting Blood Sugar", "RBS", "FBS", "PPBS", "Glucose", "Sugar Test"],
+  "Urine Routine": ["Urine R/M", "Urine Analysis", "CUE"],
+  "Iron Profile": ["Iron Studies", "Anemia Profile"],
+  "Coagulation Profile": ["Coag Profile", "PT/INR"],
+};
+
+// --- 3. HELPER: Get Canonical Name ---
+const getCanonicalTestName = (inputName) => {
+  if (!inputName) return "";
+  
+  // 1. Check if exact match exists in templates
+  if (testTemplates[inputName]) return inputName;
+
+  // 2. Check aliases (Case Insensitive)
+  const lowerInput = inputName.trim().toLowerCase();
+  
+  for (const [canonicalName, aliases] of Object.entries(testAliases)) {
+    if (aliases.some(alias => alias.toLowerCase() === lowerInput)) {
+      return canonicalName; // Found matching alias! Return the main name.
+    }
+  }
+
+  // 3. No match found, return original (likely an Upload-only test like MRI)
+  return inputName;
+};
+
 export default function LabResultEntry() {
   const { id } = useParams(); 
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef(null);
   
-  // --- CONTEXT ---
   const { submitLabResults, fetchReportById, loading } = useContext(LabContext);
   const { staffs } = useContext(StaffContext);
-  const { patients } = useContext(PatientContext); 
 
-  // --- STATE ---
-  const [reportData, setReportData] = useState(location.state?.reportData || null);
+  const preloadedData = location.state?.reportData;
+  const [reportData, setReportData] = useState(preloadedData || null);
+  
   const [patientDetails, setPatientDetails] = useState({
-    patientId: "",
-    patientName: "",
-    age: "",
-    gender: "Male",
-    referringDr: "",
-    sampleDate: new Date().toISOString().split('T')[0],
-    dept: "Pathology"
+    patientId: preloadedData?.patientId || "",
+    patientName: preloadedData?.patientName || "",
+    age: preloadedData?.age || "",
+    gender: preloadedData?.gender || "Male",
+    referringDr: preloadedData?.doctorName || "", 
+    doctorId: preloadedData?.doctorId || "", 
+    sampleDate: preloadedData?.createdAt ? new Date(preloadedData.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
+    dept: preloadedData?.department || "Pathology"
   });
 
-  const [selectedTestType, setSelectedTestType] = useState("Glucometry (Diabetes)");
+  // FIX: Initialize with Normalized Name
+  const [selectedTestType, setSelectedTestType] = useState(
+    getCanonicalTestName(preloadedData?.testName || "")
+  );
+
   const [results, setResults] = useState({});
   const [comments, setComments] = useState("");
+  const [correctionReason, setCorrectionReason] = useState("");
 
-  // Searchable Dropdown State
   const [verifierName, setVerifierName] = useState(""); 
   const [verifiedBy, setVerifiedBy] = useState("");     
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // --- 1. LOAD DATA ON MOUNT ---
+  // --- LOAD DATA ---
   useEffect(() => {
     const loadData = async () => {
-      // Priority 1: Data passed via Navigation state (Instant)
-      if (location.state?.reportData) {
-        initializeForm(location.state.reportData);
-        return;
-      }
-
-      // Priority 2: Fetch from ID in URL (Handles Page Refresh)
-      if (id) {
+      if (!preloadedData && id) {
         const data = await fetchReportById(id);
-        if (data) {
-          initializeForm(data);
-        }
+        if (data) initializeForm(data);
+      } else if (preloadedData) {
+          if(preloadedData.testResults?.length > 0) {
+             const prefill = {};
+             // Use normalized name to find template
+             const normalizedName = getCanonicalTestName(preloadedData.testName);
+             const templateParams = testTemplates[normalizedName] || [];
+             
+             preloadedData.testResults.forEach((r) => {
+                 const foundParam = templateParams.find(p => p.param === r.parameter);
+                 if(foundParam) prefill[foundParam.id] = r.value;
+             });
+             setResults(prefill);
+             setComments(preloadedData.comments || "");
+             setVerifierName(preloadedData.technicianName || "");
+             setVerifiedBy(preloadedData.technicianId || "");
+          }
       }
     };
     loadData();
-  }, [id, location.state, fetchReportById]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, fetchReportById]);
 
-  // Helper to fill form states
+  // --- DYNAMIC DEPARTMENT LOOKUP ---
+  useEffect(() => {
+    if (staffs.length > 0 && patientDetails.doctorId) {
+        const doctor = staffs.find(s => s.staffId === patientDetails.doctorId);
+        if (doctor && doctor.department) {
+            setPatientDetails(prev => ({ ...prev, dept: doctor.department }));
+        }
+    }
+  }, [staffs, patientDetails.doctorId]);
+
   const initializeForm = (data) => {
     setReportData(data);
     setPatientDetails({
@@ -158,14 +214,28 @@ export default function LabResultEntry() {
       patientName: data.patientName || "",
       age: data.age || "",
       gender: data.gender || "Male",
-      referringDr: data.doctorName || "",
-      sampleDate: data.createdAt ? new Date(data.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      referringDr: data.doctorName || "", 
+      doctorId: data.doctorId || "", 
+      sampleDate: data.createdAt ? new Date(data.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
       dept: data.department || "Pathology"
     });
     
-    // Set Test Type if valid
-    if (data.testName && testTemplates[data.testName]) {
-      setSelectedTestType(data.testName);
+    // FIX: Set normalized name
+    setSelectedTestType(getCanonicalTestName(data.testName || ""));
+
+    if (data.testResults && data.testResults.length > 0) {
+        const prefill = {};
+        const normalizedName = getCanonicalTestName(data.testName);
+        const templateParams = testTemplates[normalizedName] || [];
+        
+        data.testResults.forEach(r => {
+            const foundParam = templateParams.find(p => p.param === r.parameter);
+            if(foundParam) prefill[foundParam.id] = r.value;
+        });
+        setResults(prefill);
+        setComments(data.comments || "");
+        setVerifierName(data.technicianName || "");
+        setVerifiedBy(data.technicianId || "");
     }
   };
 
@@ -175,39 +245,16 @@ export default function LabResultEntry() {
     (s.designation && s.designation.toLowerCase().includes("technician")) ||
     (s.role && s.role.toLowerCase().includes("technician"))
   );
-  const availableStaff = technicians.length > 0 ? technicians : staffs;
-  const filteredStaff = availableStaff.filter(staff => 
+  const filteredStaff = technicians.filter(staff => 
     staff.fullName.toLowerCase().includes(verifierName.toLowerCase())
   );
-
-  // --- HANDLERS ---
-
-  // Auto-Fill Patient Logic
-  const handleIdBlur = () => {
-    if (!patientDetails.patientId) return;
-    const found = patients.find(p => p.patientId.toLowerCase() === patientDetails.patientId.toLowerCase());
-    
-    if (found) {
-      setPatientDetails(prev => ({
-        ...prev,
-        patientName: found.personal.name,
-        age: found.personal.age,
-        gender: found.personal.gender,
-      }));
-    }
-  };
-
-  const handlePatientChange = (e) => {
-    const { name, value } = e.target;
-    setPatientDetails(prev => ({ ...prev, [name]: value }));
-  };
 
   const handleResultChange = (paramId, value) => {
     setResults(prev => ({ ...prev, [paramId]: value }));
   };
 
   const getFlag = (val, min, max, textType) => {
-    if (textType) return null; // No flags for text fields like 'Appearance'
+    if (textType) return null;
     if (val === "" || isNaN(val)) return null;
     const num = parseFloat(val);
     if (num < min) return { label: "Low", color: "bg-yellow-100 text-yellow-700 border-yellow-200", status: "Low" };
@@ -219,8 +266,12 @@ export default function LabResultEntry() {
       if(!patientDetails.patientId) return alert("Patient ID is required");
       if(!verifiedBy) return alert("Please select a verifier");
 
+      if (reportData?.status === "Completed" && !correctionReason.trim()) {
+          alert("⚠️ MANDATORY: You are amending a completed report. Please provide a 'Reason for Amendment'.");
+          return;
+      }
+
       const currentParams = testTemplates[selectedTestType] || [];
-      
       const formattedResults = currentParams.map(param => {
           const val = results[param.id] || "";
           const flag = getFlag(val, param.min, param.max, param.textType);
@@ -233,11 +284,9 @@ export default function LabResultEntry() {
           };
       });
 
-      // Use _id from reportData OR the ID from URL
       const finalReportId = reportData?._id || id;
-
       if (!finalReportId) {
-          alert("Error: Report ID missing. Please go back to the list and try again.");
+          alert("Error: Report ID missing.");
           return;
       }
 
@@ -246,14 +295,13 @@ export default function LabResultEntry() {
           comments,
           technicianId: verifiedBy,
           technicianName: verifierName,
-          sampleDate: patientDetails.sampleDate
+          correctionReason: correctionReason 
       };
 
       const success = await submitLabResults(finalReportId, payload);
       if(success) navigate('/lab-reports-list');
   };
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -292,6 +340,7 @@ export default function LabResultEntry() {
                 <FileUp size={16}/> Upload Report Instead
             </button>
             
+            {/* Template Selector (Shows Resolved Name) */}
             <div className="bg-white p-2 rounded-lg border border-gray-300 shadow-sm flex items-center gap-2 w-full md:w-auto">
                 <FlaskConical size={18} className="text-purple-600 shrink-0"/>
                 <span className="text-xs font-bold text-gray-500 uppercase whitespace-nowrap hidden sm:inline">Test Type:</span>
@@ -302,6 +351,8 @@ export default function LabResultEntry() {
                     className="font-bold text-gray-800 outline-none bg-transparent cursor-pointer text-sm w-full py-1 pr-4 truncate"
                 >
                     {Object.keys(testTemplates).map(t => <option key={t} value={t}>{t}</option>)}
+                    {/* Add fallback option if the current test name isn't in templates */}
+                    {!testTemplates[selectedTestType] && <option value={selectedTestType}>{selectedTestType}</option>}
                 </select>
                 <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14}/>
                 </div>
@@ -309,134 +360,126 @@ export default function LabResultEntry() {
         </div>
       </div>
 
-      {/* --- SECTION 1: PATIENT DETAILS --- */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mb-4 md:mb-6">
-        <h2 className="text-xs md:text-sm font-bold text-gray-900 uppercase tracking-wide mb-4 border-b border-gray-100 pb-2">
-          Patient Details
-        </h2>
+      {/* --- READ-ONLY PATIENT DETAILS --- */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-3">
+            <User size={20} className="text-purple-600"/>
+            <h2 className="text-lg font-bold text-gray-800">Request Details</h2>
+        </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-          <div className="space-y-1">
-            <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Patient ID</label>
-            <input 
-              type="text" 
-              name="patientId" 
-              placeholder="e.g. P-1024"
-              value={patientDetails.patientId} 
-              onChange={handlePatientChange}
-              onBlur={handleIdBlur} 
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm font-bold text-gray-700"
-            />
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-gray-500 uppercase">Patient</label>
+            <p className="text-sm font-bold text-gray-800">{patientDetails.patientName} ({patientDetails.patientId})</p>
           </div>
-
-          <div className="space-y-1">
-            <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Patient Name</label>
-            <input 
-                type="text" 
-                name="patientName"
-                value={patientDetails.patientName} 
-                onChange={handlePatientChange}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm font-bold text-gray-700"
-            />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-gray-500 uppercase">Age / Gender</label>
+            <p className="text-sm font-bold text-gray-800">{patientDetails.age} Yrs / {patientDetails.gender}</p>
           </div>
-
-          <div className="flex gap-2">
-             <div className="space-y-1 flex-1">
-                <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Age</label>
-                <input type="text" name="age" value={patientDetails.age} onChange={handlePatientChange} className="w-full p-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700"/>
-             </div>
-             <div className="space-y-1 flex-1">
-                <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Gender</label>
-                <select name="gender" value={patientDetails.gender} onChange={handlePatientChange} className="w-full p-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white">
-                    <option>Male</option><option>Female</option><option>Other</option>
-                </select>
-             </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-gray-500 uppercase">Test Type</label>
+            <p className="text-sm font-bold text-purple-700">{selectedTestType}</p>
           </div>
-
-          <div className="space-y-1">
-            <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Sample Date</label>
-            <input type="date" name="sampleDate" value={patientDetails.sampleDate} onChange={handlePatientChange} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm font-medium text-gray-700 cursor-pointer"/>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-gray-500 uppercase">Referring Dr</label>
+            <p className="text-sm font-bold text-gray-800">{patientDetails.referringDr}</p>
           </div>
-
-          <div className="space-y-1">
-            <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Referring Dr.</label>
-            <input 
-                type="text" 
-                name="referringDr" 
-                placeholder="Dr. Name"
-                value={patientDetails.referringDr} 
-                onChange={handlePatientChange} 
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm font-medium text-gray-700"
-            />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-gray-500 uppercase">Department</label>
+            <p className="text-sm font-bold text-gray-800">{patientDetails.dept}</p>
           </div>
-
-          <div className="space-y-1">
-            <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Department</label>
-            <input 
-                type="text" 
-                name="dept" 
-                value={patientDetails.dept} 
-                onChange={handlePatientChange} 
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm font-medium text-gray-700"
-            />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-gray-500 uppercase">Request Date</label>
+            <div className="flex items-center gap-1.5 text-sm font-bold text-gray-800">
+               <Calendar size={14} className="text-gray-400"/> {patientDetails.sampleDate}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* --- SECTION 2: RESULT ENTRY --- */}
+      {/* --- RESULT ENTRY TABLE --- */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mb-4 md:mb-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 border-b border-gray-100 pb-2 gap-2">
             <h2 className="text-xs md:text-sm font-bold text-gray-900 uppercase tracking-wide">
-               Test Results: <span className="text-purple-700">{selectedTestType}</span>
+               Enter Results
             </h2>
             <span className="text-[10px] text-gray-400 font-medium italic hidden sm:block">*Values flagged by ref. range</span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-50 text-gray-600 border-y border-gray-200">
-              <tr>
-                <th className="p-4 text-xs font-bold uppercase tracking-wider w-[30%]">Parameter</th>
-                <th className="p-4 text-xs font-bold uppercase tracking-wider w-[25%]">Input Value</th>
-                <th className="p-4 text-xs font-bold uppercase tracking-wider w-[15%]">Units</th>
-                <th className="p-4 text-xs font-bold uppercase tracking-wider w-[15%]">Range</th>
-                <th className="p-4 text-xs font-bold uppercase tracking-wider w-[15%] text-center">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {currentParams.map((item) => {
-                const currentVal = results[item.id] || "";
-                const flag = getFlag(currentVal, item.min, item.max, item.textType);
-                return (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-4 text-sm font-bold text-gray-700">{item.param}</td>
-                    <td className="p-4">
-                        <input 
-                         type={item.textType ? "text" : "number"} 
-                         placeholder={item.textType ? "Text" : "0.00"}
-                         className={`w-full p-2.5 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500 transition-all font-mono font-bold text-sm ${flag?.label === 'High' ? 'bg-red-50 border-red-200 text-red-700' : flag?.label === 'Low' ? 'bg-yellow-50 border-yellow-200 text-yellow-800' : 'bg-white border-gray-300 text-gray-800'}`}
-                         value={currentVal} onChange={(e) => handleResultChange(item.id, e.target.value)}
-                        />
-                    </td>
-                    <td className="p-4 text-sm text-gray-500 font-medium">{item.unit}</td>
-                    <td className="p-4 text-sm text-gray-500 font-medium whitespace-nowrap">{item.textType ? "-" : `${item.min} - ${item.max}`}</td>
-                    <td className="p-4 text-center">
-                      {flag && (
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border ${flag.color}`}>
-                           {flag.label === "High" ? <AlertCircle size={10}/> : null}
-                           {flag.label}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        {currentParams.length > 0 ? (
+            <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+                <thead className="bg-gray-50 text-gray-600 border-y border-gray-200">
+                <tr>
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider w-[30%]">Parameter</th>
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider w-[25%]">Input Value</th>
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider w-[15%]">Units</th>
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider w-[15%]">Range</th>
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider w-[15%] text-center">Status</th>
+                </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                {currentParams.map((item) => {
+                    const currentVal = results[item.id] || "";
+                    const flag = getFlag(currentVal, item.min, item.max, item.textType);
+                    return (
+                    <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="p-4 text-sm font-bold text-gray-700">{item.param}</td>
+                        <td className="p-4">
+                            <input 
+                            type={item.textType ? "text" : "number"} 
+                            placeholder={item.textType ? "Text" : "0.00"}
+                            className={`w-full p-2.5 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500 transition-all font-mono font-bold text-sm ${flag?.label === 'High' ? 'bg-red-50 border-red-200 text-red-700' : flag?.label === 'Low' ? 'bg-yellow-50 border-yellow-200 text-yellow-800' : 'bg-white border-gray-300 text-gray-800'}`}
+                            value={currentVal} onChange={(e) => handleResultChange(item.id, e.target.value)}
+                            />
+                        </td>
+                        <td className="p-4 text-sm text-gray-500 font-medium">{item.unit}</td>
+                        <td className="p-4 text-sm text-gray-500 font-medium whitespace-nowrap">{item.textType ? "-" : `${item.min} - ${item.max}`}</td>
+                        <td className="p-4 text-center">
+                        {flag && (
+                            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border ${flag.color}`}>
+                            {flag.label === "High" ? <AlertCircle size={10}/> : null}
+                            {flag.label}
+                            </span>
+                        )}
+                        </td>
+                    </tr>
+                    );
+                })}
+                </tbody>
+            </table>
+            </div>
+        ) : (
+            <div className="py-8 text-center text-gray-400">
+                <p>No manual entry parameters defined for <strong>{selectedTestType}</strong>.</p>
+                <p className="text-xs mt-1">Please use the "Upload Report" button above for this test type.</p>
+            </div>
+        )}
       </div>
 
-      {/* --- SECTION 3: FOOTER ACTIONS --- */}
+      {/* --- FOOTER (Amendment & Submit) --- */}
+      {reportData?.status === "Completed" && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 animate-in fade-in">
+            <div className="flex items-start gap-3">
+                <AlertTriangle className="text-orange-600 shrink-0 mt-1" size={20}/>
+                <div className="flex-1">
+                    <h3 className="text-orange-800 font-bold text-sm mb-1">Amendment Required</h3>
+                    <p className="text-orange-700 text-xs mb-3">
+                        This report was previously finalized. To make changes, you must provide a reason for the audit trail.
+                    </p>
+                    <label className="text-[10px] font-bold text-orange-800 uppercase block mb-1">Reason for Change <span className="text-red-500">*</span></label>
+                    <textarea 
+                        className="w-full p-2 border border-orange-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+                        rows="2"
+                        placeholder="e.g. Typo in result, Wrong patient ID..."
+                        value={correctionReason}
+                        onChange={(e) => setCorrectionReason(e.target.value)}
+                    ></textarea>
+                </div>
+            </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
@@ -453,7 +496,6 @@ export default function LabResultEntry() {
                <div className="mb-4 lg:mb-0">
                   <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-2 block">Verified By <span className="text-red-500">*</span></label>
                   
-                  {/* SEARCHABLE DROPDOWN */}
                   <div className="relative" ref={dropdownRef}>
                     <div className="relative">
                         <input 
@@ -501,8 +543,21 @@ export default function LabResultEntry() {
                <div className="grid grid-cols-3 gap-2 mt-4">
                   <button className="col-span-1 py-2.5 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 font-bold rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer text-xs md:text-sm"><Save size={14} /> Draft</button>
                   <button className="col-span-1 py-2.5 bg-white text-purple-700 border border-purple-200 hover:bg-purple-50 font-bold rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer text-xs md:text-sm"><Printer size={14} /> Print</button>
-                  <button onClick={handleSubmit} disabled={loading} className="col-span-1 py-2.5 bg-purple-700 text-white hover:bg-purple-800 font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-1 cursor-pointer text-xs md:text-sm disabled:opacity-50">
-                      {loading ? '...' : <><CheckCircle size={14} /> Submit</>}
+                  
+                  <button 
+                    onClick={handleSubmit} 
+                    disabled={loading} 
+                    className={`col-span-1 py-2.5 text-white font-bold rounded-lg shadow-sm flex items-center justify-center gap-1 cursor-pointer text-xs md:text-sm disabled:opacity-50 transition-all ${
+                        reportData?.status === "Completed" 
+                        ? "bg-orange-600 hover:bg-orange-700" 
+                        : "bg-purple-700 hover:bg-purple-800"
+                    }`}
+                  >
+                      {loading ? '...' : (
+                          reportData?.status === "Completed" 
+                          ? <><AlertCircle size={14} /> Amend</> 
+                          : <><CheckCircle size={14} /> Submit</>
+                      )}
                   </button>
                </div>
             </div>

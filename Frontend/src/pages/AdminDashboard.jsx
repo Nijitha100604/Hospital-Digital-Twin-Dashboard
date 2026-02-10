@@ -28,6 +28,15 @@ import { MedicineContext } from '../context/MedicineContext';
 import { EquipmentContext } from '../context/EquipmentContext';
 import { DeptContext } from '../context/DeptContext';
 
+// Helper to get today's date in YYYY-MM-DD format (Same as Attendance Page)
+const getToday = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
 function AdminDashboard() {
 
     const [currentTime, setCurrentTime] = useState("");
@@ -48,7 +57,10 @@ function AdminDashboard() {
     const {token} = useContext(AppContext);
     const { patients, fetchPatients, appointments, fetchAppointments } = useContext(PatientContext);
     const { reports, fetchLabReports } = useContext(LabContext);
-    const { staffs, fetchStaffs} = useContext(StaffContext);
+    
+    // --- FIX 1: Get attendance data from StaffContext ---
+    const { staffs, fetchStaffs, attendance, fetchAttendance } = useContext(StaffContext);
+    
     const { medicines, fetchMedicines } = useContext(MedicineContext);
     const { equipments, fetchEquipments } = useContext(EquipmentContext);
     const { departments, fetchDepartments, beds, fetchBeds, issues, fetchIssues } = useContext(DeptContext);
@@ -71,9 +83,13 @@ function AdminDashboard() {
       r => r?.status === "Completed"
     ).length || 0;
 
-    // staffs data
+    // --- FIX 2: Calculate Present Staffs Dynamically ---
     const totalStaffs = staffs?.length || 0;
-    const presentStaffs = 0;
+    
+    // Filter attendance array for today's 'Present' entries
+    const presentStaffs = attendance?.filter(
+        a => a.status === "Present"
+    ).length || 0;
 
     // medicines data
     const totalMedicines = medicines?.length || 0;
@@ -183,11 +199,14 @@ function AdminDashboard() {
 
     useEffect(()=>{
       if(token){
+        const today = getToday(); // Get current date string
         Promise.all([
           fetchPatients(),
           fetchAppointments(),
           fetchLabReports(),
           fetchStaffs(),
+          // --- FIX 3: Fetch Attendance for Today ---
+          fetchAttendance(today),
           fetchMedicines(),
           fetchEquipments(),
           fetchDepartments(),
@@ -199,7 +218,6 @@ function AdminDashboard() {
     }, [token])
 
     // refresh
-
     const handleRefresh = () => {
         window.location.reload(); 
     };
@@ -786,5 +804,3 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard
-
-

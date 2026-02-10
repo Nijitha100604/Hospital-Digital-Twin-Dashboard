@@ -1,72 +1,34 @@
 import React, { useState, useContext, useEffect } from "react";
-import { Upload, FileText, X, CheckCircle, Calendar, User, FlaskConical, Hash, Keyboard, ArrowLeft } from "lucide-react";
+import { Upload, FileText, X, CheckCircle, Calendar, User, FlaskConical, Hash, Keyboard, ArrowLeft, AlertCircle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { LabContext } from "../../context/LabContext";
 import { PatientContext } from "../../context/PatientContext";
 import { StaffContext } from "../../context/StaffContext";
 
-const TEST_TYPES = [
-  "CBC (Hemogram)", "Lipid Profile", "Liver Function Test (LFT)", "Kidney Function Test (KFT)",
-  "Thyroid Profile", "Glucometry (Diabetes)", "Electrolytes", "Iron Profile", "Vitamin Profile",
-  "Coagulation Profile", "Urine Routine", "MRI Scan", "X-Ray", "Ultrasound", "CT Scan"
-];
-
 export default function UploadReport() {
   const navigate = useNavigate();
   const location = useLocation();
   const { uploadLabReport, loading } = useContext(LabContext);
-  const { patients } = useContext(PatientContext);
-  const { staffs } = useContext(StaffContext);
 
+  // Get data passed from the list
   const reportData = location.state?.reportData;
-const [correctionReason, setCorrectionReason] = useState("");
+  
+  const [correctionReason, setCorrectionReason] = useState("");
   const [file, setFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
 
-  // Initialize State
-  const [patientData, setPatientData] = useState({
+  // Initialize Read-Only Patient Data
+  const [patientData] = useState({
     patientId: reportData?.patientId || "",
     patientName: reportData?.patientName || "",
-    ageGender: reportData ? `${reportData.age} / ${reportData.gender}` : "",
+    ageGender: reportData ? `${reportData.age} Yrs / ${reportData.gender}` : "",
     testType: reportData?.testName || "",
     referringDr: reportData?.doctorName || "",
-    sampleDate: reportData?.createdAt ? new Date(reportData.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    sampleDate: reportData?.createdAt ? new Date(reportData.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
     dept: reportData?.department || "Pathology",
-    techId: "",
-    techName: ""
   });
 
-  // --- AUTO-FILL LOGIC ---
-  const handleIdBlur = () => {
-    if (!patientData.patientId) return;
-    const found = patients.find(p => p.patientId.toLowerCase() === patientData.patientId.toLowerCase());
-    
-    if (found) {
-      setPatientData(prev => ({
-        ...prev,
-        patientName: found.personal.name,
-        ageGender: `${found.personal.age} / ${found.personal.gender}`,
-        // Only fill if empty to allow editing
-        referringDr: prev.referringDr || "", 
-        dept: prev.dept || "Pathology"
-      }));
-    }
-  };
-
-  const handleTechIdBlur = () => {
-    if(!patientData.techId) return;
-    const found = staffs.find(s => s.staffId.toLowerCase() === patientData.techId.toLowerCase());
-    if(found) {
-        setPatientData(prev => ({ ...prev, techName: found.fullName }));
-    }
-  };
-
-  // --- HANDLERS ---
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setPatientData(prev => ({ ...prev, [name]: value }));
-  };
-
+  // --- FILE HANDLERS ---
   const handleDrag = (e) => {
     e.preventDefault(); e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
@@ -83,12 +45,26 @@ const [correctionReason, setCorrectionReason] = useState("");
   };
 
   const handleSubmit = async () => {
-    if (!patientData.patientId) return alert("Please enter Patient ID");
-    if (!patientData.testType) return alert("Please select a Test Type");
     if (!file) return alert("Please upload a file.");
     
-    // Pass reportId (if exists) OR null (for new), plus the patient data
-    const success = await uploadLabReport(reportData?._id || null, file, patientData);
+    // STRICT CHECK: We must have an existing Report ID from the list
+    if (!reportData?._id) {
+        alert("Invalid Workflow: You must select a pending request from the 'Lab Report List' to upload a result.");
+        return;
+    }
+
+    // Security Check for Amendment
+    if (reportData?.status === "Completed" && !correctionReason.trim()) {
+        alert("⚠️ MANDATORY: You are overwriting a completed report. Please enter a 'Reason for Amendment'.");
+        return;
+    }
+
+    const payload = {
+        correctionReason: correctionReason 
+    };
+
+    // pass reportData._id explicitly
+    const success = await uploadLabReport(reportData._id, file, payload);
     if(success) navigate('/lab-reports-list');
   };
 
@@ -115,84 +91,40 @@ const [correctionReason, setCorrectionReason] = useState("");
         </button>
       </div>
 
-      {/* FORM SECTION */}
+      {/* READ-ONLY INFO CARD */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-3">
             <User size={20} className="text-purple-600"/>
-            <h2 className="text-lg font-bold text-gray-800">Patient & Test Details</h2>
+            <h2 className="text-lg font-bold text-gray-800">Request Details</h2>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          {/* Patient ID */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-gray-500 uppercase">Patient ID</label>
-            <div className="relative">
-                <input 
-                  type="text" name="patientId" placeholder="e.g. P000123" 
-                  value={patientData.patientId} onChange={handleInputChange} onBlur={handleIdBlur}
-                  className="w-full p-2.5 pl-9 bg-white border border-gray-300 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-purple-500" 
-                />
-                <Hash className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={16}/>
-            </div>
+            <label className="text-xs font-bold text-gray-500 uppercase">Patient</label>
+            <p className="text-sm font-bold text-gray-800">{patientData.patientName} ({patientData.patientId})</p>
           </div>
-
-          {/* Age/Gender */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase">Age / Gender</label>
-            <input type="text" name="ageGender" placeholder="Auto-filled" value={patientData.ageGender} readOnly className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium outline-none" />
+            <p className="text-sm font-bold text-gray-800">{patientData.ageGender}</p>
           </div>
-
-          {/* Test Type */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase">Test Type</label>
-            <div className="relative">
-                <select name="testType" value={patientData.testType} onChange={handleInputChange} className="w-full p-2.5 pl-9 bg-white border border-gray-300 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer">
-                    <option value="">Select Test Type</option>
-                    {TEST_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
-                </select>
-                <FlaskConical className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={16}/>
-            </div>
+            <p className="text-sm font-bold text-purple-700">{patientData.testType}</p>
           </div>
-
-          {/* Patient Name */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-gray-500 uppercase">Patient Name</label>
-            <input type="text" name="patientName" placeholder="Enter Full Name" value={patientData.patientName} onChange={handleInputChange} className="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-purple-500" />
+            <label className="text-xs font-bold text-gray-500 uppercase">Referring Dr</label>
+            <p className="text-sm font-bold text-gray-800">{patientData.referringDr}</p>
           </div>
-
-          {/* Referring Dr (EDITABLE) */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-gray-500 uppercase">Referring Dr.</label>
-            <input 
-              type="text" name="referringDr" placeholder="Dr. Name" 
-              value={patientData.referringDr} onChange={handleInputChange} 
-              className="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-purple-500" 
-            />
-          </div>
-
-          {/* Department (EDITABLE) */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase">Department</label>
-            <input 
-              type="text" name="dept" placeholder="Department" 
-              value={patientData.dept} onChange={handleInputChange} 
-              className="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-purple-500" 
-            />
+            <p className="text-sm font-bold text-gray-800">{patientData.dept}</p>
           </div>
-
-          {/* Technician ID */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-gray-500 uppercase">Technician ID</label>
-            <input type="text" name="techId" placeholder="Tech ID" value={patientData.techId} onChange={handleInputChange} onBlur={handleTechIdBlur} className="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-purple-500" />
+            <label className="text-xs font-bold text-gray-500 uppercase">Request Date</label>
+            <div className="flex items-center gap-1.5 text-sm font-bold text-gray-800">
+               <Calendar size={14} className="text-gray-400"/> {patientData.sampleDate}
+            </div>
           </div>
-
-          {/* Technician Name */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-gray-500 uppercase">Technician Name</label>
-            <input type="text" name="techName" placeholder="Auto-filled" value={patientData.techName} readOnly className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm font-medium outline-none" />
-          </div>
-
         </div>
       </div>
 
@@ -226,14 +158,35 @@ const [correctionReason, setCorrectionReason] = useState("");
         </div>
       </div>
 
+      {/* --- AMENDMENT REASON (Only if Completed) --- */}
+      {reportData?.status === "Completed" && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mt-6 animate-in fade-in">
+            <h3 className="text-orange-800 font-bold text-sm mb-2 flex items-center gap-2">
+                <AlertCircle size={16}/> Reason for Re-upload (Mandatory)
+            </h3>
+            <textarea 
+                className="w-full p-2 border border-orange-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+                placeholder="e.g. Previous scan was blurry, Wrong file attached..."
+                value={correctionReason}
+                onChange={(e) => setCorrectionReason(e.target.value)}
+            ></textarea>
+        </div>
+      )}
+
       {/* SUBMIT BUTTON */}
       <div className="mt-6 flex justify-end pb-8">
         <button 
             onClick={handleSubmit} 
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold shadow-lg shadow-blue-200 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+            className={`px-8 py-3 rounded-lg font-bold shadow-lg text-white transition-all flex items-center gap-2 ${
+                reportData?.status === "Completed" ? "bg-orange-600 hover:bg-orange-700" : "bg-blue-600 hover:bg-blue-700"
+            }`}
         >
-          {loading ? "Uploading..." : <><CheckCircle size={20} /> Submit Report</>}
+          {loading ? "Processing..." : (
+              reportData?.status === "Completed" 
+              ? <><AlertCircle size={20} /> Amend Report</> 
+              : <><CheckCircle size={20} /> Submit Report</>
+          )}
         </button>
       </div>
     </div>

@@ -90,48 +90,71 @@ const LabContextProvider = (props) => {
         try {
             const formData = new FormData();
             
-            if (reportId) formData.append("reportId", reportId);
-            
+            // Required: Report ID
+            formData.append("reportId", reportId);
             formData.append("reportFile", file);
             
-            // Append metadata for new creations
-            formData.append("patientId", patientData.patientId);
-            formData.append("patientName", patientData.patientName);
-            formData.append("testName", patientData.testType); 
-            formData.append("doctorName", patientData.referringDr);
-            
-            // Safe parsing for Age/Gender string "25 / Male"
-            const ageVal = patientData.ageGender ? patientData.ageGender.split('/')[0]?.trim() : "0";
-            const genderVal = patientData.ageGender ? patientData.ageGender.split('/')[1]?.trim() : "Unknown";
-            
-            formData.append("age", ageVal);
-            formData.append("gender", genderVal);
-            formData.append("department", patientData.dept);
-            formData.append("sampleDate", patientData.sampleDate);
+            // Optional: Correction Reason (for amendments)
+            if (patientData.correctionReason) {
+                formData.append("correctionReason", patientData.correctionReason);
+            }
 
             const { data } = await axios.post(
                 `${backendUrl}/api/reports/upload`, 
                 formData,
-                { headers: { token } } 
+                { 
+                    headers: { token },
+                    timeout: 120000 // FIX: Set timeout to 2 minutes (120,000 ms) for slow uploads
+                } 
             );
 
             if (data.success) {
-                toast.success("Report uploaded successfully");
-                fetchLabReports(); // Refresh list
+                toast.success(data.message);
+                fetchLabReports(); 
                 return true;
             } else {
                 toast.error(data.message);
                 return false;
             }
         } catch (error) {
-            console.error(error);
-            toast.error("Failed to upload report");
+            console.error("Upload Error:", error);
+            // specific error message handling
+            const msg = error.response?.data?.message || error.message || "Failed to upload";
+            toast.error(msg);
             return false;
         } finally {
             setLoading(false);
         }
     };
 
+    // --- 5. DELETE REPORT (Soft Delete) ---
+    const deleteLabReport = async (reportId, reason) => {
+        if (!token) return false;
+        setLoading(true);
+        try {
+            // Note: Use axios.post or axios.put because DELETE requests usually don't carry a body in some server configs. 
+            // However, axios.delete supports 'data'. Let's stick to standard DELETE with data config.
+            const { data } = await axios.delete(`${backendUrl}/api/reports/delete/${reportId}`, { 
+                headers: { token },
+                data: { reason } // Pass reason in body
+            });
+
+            if (data.success) {
+                toast.success(data.message);
+                fetchLabReports(); 
+                return true;
+            } else {
+                toast.error(data.message);
+                return false;
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error("Failed to delete report");
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const value = {
         loading,
@@ -140,7 +163,8 @@ const LabContextProvider = (props) => {
         setReports,
         fetchReportById,
         submitLabResults,
-        uploadLabReport // <--- THIS WAS MISSING IN YOUR CODE
+        uploadLabReport,
+        deleteLabReport
     }
 
     return (

@@ -1,24 +1,23 @@
-import React, { useContext, useRef, useState } from 'react'
+import { useContext, useRef, useState } from 'react'
 import { FaArrowLeft, FaUserPlus } from "react-icons/fa";
 import { FaUpload } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
 import { FaSave } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
-import axios from "axios";
 import { AppContext } from './../../context/AppContext';
 import { PatientContext } from '../../context/PatientContext';
+import AccessDenied from './../../components/AccessDenied';
 
 function AddNewPatient() {
 
   const fileRef = useRef(null);
   const [fileName, setFileName] = useState("");
   const [loading, setLoading] = useState(false);
-  const { backendUrl, token } = useContext(AppContext);
-  const { fetchPatients } = useContext(PatientContext);
+  const { addNewPatient, addPatientLoading } = useContext(PatientContext);
+  const { userData } = useContext(AppContext);
 
-  // User Data
-
+  // patient Data
   const[name, setName] = useState('');
   const[age, setAge] = useState('');
   const[gender, setGender] = useState('');
@@ -68,7 +67,6 @@ function AddNewPatient() {
 
   const handleSubmit = async(e) =>{
     e.preventDefault();
-    setLoading(true);
     
     try{
 
@@ -91,24 +89,11 @@ function AddNewPatient() {
         formData.append("idProof", idProof);
       }
 
-      const {data} = await axios.post(`${backendUrl}/api/patient/add-patient`, 
-          formData, 
-          {
-            headers: {
-              token: token,
-              "Content-Type": "multipart/form-data",
-            },
-          });
-      if(data.success){
-        toast.success(data.message, { autoClose: 2000 });
-        await fetchPatients();
-        setTimeout(() => {
-          navigate("/patient-list");
-        }, 1000);
-      }
-      else{
-        toast.error(data.message);
-        setLoading(false);
+      const result = await addNewPatient(formData);
+      if(result){
+        setTimeout(()=>{
+            navigate("/patient-list");
+        },1000);
       }
 
     } catch(error){
@@ -144,11 +129,17 @@ function AddNewPatient() {
   toast.info("All fields cleared !");
   };
 
+  const role = userData?.designation;
+
+  if(role === "Support" || role === "Pharmacist" || role === "Technician" || role === "Nurse" || role === "Doctor"){
+    return <AccessDenied />
+  }
 
   return (
     <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
 
-      {loading && (
+      {/* loading */}
+      {addPatientLoading && (
         <div className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-white/40 backdrop-blur-md">
           <div className="flex flex-col items-center gap-4 bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
             <div className="w-14 h-14 border-4 border-gray-200 border-t-fuchsia-700 rounded-full animate-spin"></div>
@@ -187,14 +178,13 @@ function AddNewPatient() {
       </div>
       </div>
 
-      {/* Input fields */}
+      {/* Patient Form */}
       <form 
         className="bg-white px-4 py-2 mt-4 rounded-lg border border-gray-400"
         onSubmit = {handleSubmit}
       >
       
       {/* Personal Information */}
-
       <p className="text-gray-900 font-semibold text-md mb-3">Personal Information</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-3">
@@ -304,7 +294,6 @@ function AddNewPatient() {
       </div>
 
       {/* Guardian Information */}
-
       <p className="text-gray-900 font-semibold text-md mb-3">Guardian Information</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-3">
@@ -336,7 +325,6 @@ function AddNewPatient() {
       </div>
 
       {/* Medical Information */}
-
       <p className="text-gray-900 font-semibold text-md mb-3 mt-4">Medical Information</p>
 
       <div className="flex flex-col gap-3 px-3">
@@ -368,7 +356,6 @@ function AddNewPatient() {
       </div>
 
       {/* Upload ID proof */}
-
       <div className="mt-3">
         <label className="text-sm text-gray-800 font-semibold">Upload ID Proof</label>
 
@@ -409,6 +396,7 @@ function AddNewPatient() {
       {/* Action Buttons */}
       <div className="mt-10 flex gap-4 items-center justify-end mb-5">
 
+        {/* cancel button */}
         <button 
           type="button"
           disabled={loading}
@@ -422,18 +410,25 @@ function AddNewPatient() {
           <FaTimes /> Cancel
         </button>
 
-        <button 
-          type = "submit"
-          disabled={loading}
-          className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800
-          transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
-        >
-          <FaSave /> Save Patient
-        </button>
+        {/* submit button */}
+        {
+          (role === "Receptionist" || role === "Admin") && (
+            <button 
+              type = "submit"
+              disabled={loading}
+              className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800
+              transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
+            >
+              <FaSave /> Save Patient
+            </button>
+          )
+        }
+        
 
       </div>
 
       </form>
+
     </div>
   )
 }
