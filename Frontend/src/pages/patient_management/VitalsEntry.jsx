@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { 
     FaNotesMedical,
     FaCalendarAlt,
@@ -17,12 +17,14 @@ import VitalModal from './../../components/modals/VitalModal';
 import { useContext } from 'react';
 import { PatientContext } from './../../context/PatientContext';
 import { AppContext } from '../../context/AppContext';
-import { useEffect } from 'react';
+import AccessDenied from './../../components/AccessDenied';
 
 function VitalsEntry() {
 
   const {appointments,fetchAppointments, patients, fetchPatients} = useContext(PatientContext);
-  const {token} = useContext(AppContext);
+  const {token, userData} = useContext(AppContext);
+
+  const role = userData?.designation;
 
   const getAppointmentStatus = (appointmentId, patientId)=>{
 
@@ -52,6 +54,7 @@ function VitalsEntry() {
     // Filters
     const [openFilter, setOpenFilter] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
+    const filterRef = useRef(null);
     const [filters, setFilters] = useState({
         status: null,
         date: null
@@ -71,17 +74,13 @@ function VitalsEntry() {
     const filteredData = vitalsList.filter((item)=>{
         
       const searchMatch = searchTerm.trim() === "" || item?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || item?.patientId?.toLowerCase().includes(searchTerm.toLowerCase());
-      
       const statusMatch = !filters.status || item?.status === filters.status;
-      
       const dateMatch = !filters.date || item?.date === filters.date;
-        
       return searchMatch && statusMatch && dateMatch;
     
     });
 
     // Paginated data
-
     const records_per_page = 10;
     const [currentPage, setCurrentPage] = useState(1);
     const startIndex = (currentPage - 1)*records_per_page;
@@ -90,7 +89,7 @@ function VitalsEntry() {
         startIndex,
         startIndex + records_per_page
     );
-    const totalPages = Math.ceil(filteredData.length / records_per_page);
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / records_per_page));
 
     const getStatusClass = (status) =>{
     switch(status?.toLowerCase()){
@@ -104,19 +103,37 @@ function VitalsEntry() {
     }
 
     // PopUp screens
-
     const [openPopUp, setOpenPopUp] = useState(false);
     const [popUpType, setPopUpType] = useState(null);
     const [selectedPatient, setSelectedPatient] = useState(null);
+
+    useEffect(() => {
+    
+      const handleClickOutside = (event) => {
+      if (!openFilter) return;
+    
+        if (filterRef.current && !filterRef.current.contains(event.target)) {
+          setOpenFilter(null);
+        }
+      };
+      document.addEventListener("mousedown", handleClickOutside);
+    
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    
+    }, [openFilter]);
 
     useEffect(()=>{
       if(token){
         fetchAppointments();
         fetchPatients();
       }
+    }, [token, fetchAppointments, fetchPatients]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token])
+    if( role === "Pharmacist" || role === "Support" || role === "Technician" || role === "Doctor" || role === "Receptionist" ){
+      return <AccessDenied />
+    }
 
   return (
     <>
@@ -190,7 +207,7 @@ function VitalsEntry() {
         </div>
           
         {/* Filters */}
-        <div className = "flex gap-3">
+        <div ref={filterRef} className = "flex gap-3">
           
             {/* Date */}
             <div className="relative flex flex-col">

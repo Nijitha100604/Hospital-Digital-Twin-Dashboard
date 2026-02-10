@@ -19,6 +19,7 @@ const PatientContextProvider = (props) =>{
     const [patientLoading, setPatientLoading] = useState(false);
     const [appLoading, setAppLoading] = useState(false);
     const [conLoading, setConLoading] = useState(false);
+    const [bookAppLoading, setBookAppLoading] = useState(false);
     
     // get all patients
     const fetchPatients = useCallback(async() =>{
@@ -77,6 +78,40 @@ const PatientContextProvider = (props) =>{
         }
     }
 
+    // book appointment
+    const bookNewAppointment = async(infoData) => {
+
+        if(!token) return;
+        setBookAppLoading(true);
+
+        try {
+            
+            const {data} = await axios.post(
+                `${backendUrl}/api/appointment/book-appointment`,
+                infoData,
+                {headers: {token}}
+            );
+
+            if(data.success){
+                toast.success(data.message, {autoClose: 2000})
+                await fetchAppointments();
+                return true;
+            } else{
+                toast.error(data.message);
+                return false;
+            }
+
+
+        } catch (error) {
+            console.log(error);
+            toast.error("Internal Server Error");
+            return false;
+        } finally{
+            setBookAppLoading(false);
+        }
+
+    }
+
     // get all appointments
     const fetchAppointments = useCallback(async() =>{
 
@@ -100,6 +135,54 @@ const PatientContextProvider = (props) =>{
         }
 
     }, [token, backendUrl])
+
+    // save vitals
+    const savePatientVitals = async(vitalsData) =>{
+        if(!token) return;
+        try{
+            const {data} = await axios.post(
+                `${backendUrl}/api/patient/add-vitals`,
+                vitalsData,
+                {headers: {token}}
+            );
+            if(data.success){
+                toast.success("Vitals saved successfully", { autoClose: 2000 });
+                await fetchPatients();
+                return true;
+            } else{
+                toast.error(data.message);
+                return false;
+            }
+        } catch(error){
+            console.log(error);
+            toast.error("Internal Server Error");
+            return false;
+        }
+    }
+
+    const updatePatientVitals = async(updatedData) =>{
+        if(!token) return;
+
+        try{
+            const {data} = await axios.post(
+                `${backendUrl}/api/patient/add-vitals`,
+                updatedData,
+                {headers: {token}}
+            );
+            if(data.success){
+                toast.success("Vitals Updated" , { autoClose: 2000 });
+                await fetchPatients();
+                return true;
+            } else{
+                toast.error(data.message);
+                return false;
+            }
+        } catch(error){
+            console.log(error);
+            toast.error("Internal Server Error");
+            return false;
+        }
+    }
 
     // get all consultations
     const fetchConsultations = useCallback(async() =>{
@@ -127,9 +210,10 @@ const PatientContextProvider = (props) =>{
 
     const value = {
         patients, patientLoading, fetchPatients,
-        appointments, fetchAppointments, appLoading,
+        appointments, fetchAppointments, appLoading, bookNewAppointment, bookAppLoading,
         conLoading, consultations, fetchConsultations,
-        addNewPatient, addPatientLoading
+        addNewPatient, addPatientLoading,
+        savePatientVitals, updatePatientVitals
     }
 
     return (

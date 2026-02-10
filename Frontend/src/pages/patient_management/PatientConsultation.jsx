@@ -27,6 +27,8 @@ function PatientConsultation() {
     const [selectedMedicine, setSelectedMedicine] = useState(null);
     const [showDropdown, setShowDropdown] = useState(false);
     const [bedType, setBedType] = useState("");
+    const [email, setEmail] = useState("");
+    const [link, setLink] = useState("");
 
     const { fetchPatients, consultations, fetchConsultations } = useContext(PatientContext);
     const { fetchMedicines, medicines } = useContext(MedicineContext);
@@ -317,6 +319,13 @@ function PatientConsultation() {
       return value >= 60 && value <= 100;
     }
 
+    const assignConsultation = () => {
+      if(!email || !link){
+        toast.error("Required Email and Meet link to assign consultation");
+        return;
+      }
+    }
+
     const reportStatusMap = reports?.reduce((acc, report) => {
       acc[report.labReportId] = report.status;
       return acc;
@@ -400,7 +409,6 @@ function PatientConsultation() {
     </div>
 
     {/* General details and Vital Parameters */}
-
     <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-4 mt-4">
 
       {/* General details */}
@@ -519,6 +527,48 @@ function PatientConsultation() {
       </div>
 
     </div>
+
+    {/* online meet */}
+    {appointment?.consultationType === "Online" && (
+    
+    <div className="px-3 py-2 w-full rounded-lg bg-white border border-gray-300 mt-5">
+
+      <p className="text-sm font-medium text-gray-600 mb-3 mt-2">Online Consultation</p>
+
+      <div className="flex flex-wrap gap-3 px-3">
+        {/* Email */}
+        <div className="flex-1 min-w-50">
+          <label className="text-sm font-medium text-gray-800">Patient Email <span className="text-red-600">*</span></label>
+          <input 
+            value={email}
+            type="email"
+            placeholder="Enter patient Email ID"
+            onChange={(e)=>setEmail(e.target.value)}
+            className="w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+          />
+        </div>
+
+        {/* Meet Link */}
+        <div className="flex-1 min-w-50">
+          <label className="text-sm font-medium text-gray-800">Meet Link <span className="text-red-600">*</span></label>
+          <input 
+            value={link}
+            type="link"
+            placeholder="Enter Meet Link"
+            onChange={(e)=>setLink(e.target.value)}
+            className="w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+          />
+        </div>
+      </div>
+
+      <button 
+        onClick={assignConsultation}
+        className="mt-4 mb-3 px-4 py-2 flex items-center gap-2 cursor-pointer bg-fuchsia-800 hover:bg-fuchsia-700 text-white text-sm font-medium rounded-lg transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
+      >
+        Send Mail
+      </button>
+  </div>
+)}
 
     {/* Add Diagnosis and Add Remarks */}
     <div className="w-full bg-white px-3 py-3 mt-4 rounded-lg border border-gray-300">
@@ -1034,7 +1084,6 @@ function PatientConsultation() {
       }
       
     </div>
-
 
     {/* Action Buttons */}
     <div className="w-full flex justify-end items-center mt-5 gap-3">

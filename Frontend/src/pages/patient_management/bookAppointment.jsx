@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import {
   FaCalendarPlus,
   FaEye,
@@ -14,7 +14,7 @@ import { StaffContext } from '../../context/StaffContext';
 import { AppContext } from '../../context/AppContext';
 import { useEffect } from 'react';
 import { PatientContext } from '../../context/PatientContext';
-import axios from 'axios';
+import AccessDenied from '../../components/AccessDenied';
 
 function BookAppointment() {
 
@@ -24,11 +24,12 @@ function BookAppointment() {
   const [selectedDoc, setSelectedDoc] = useState("");
   const [doctorId, setDoctorId] = useState("");
   const [doctorName, setDoctorName] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const {staffs, fetchStaffs} = useContext(StaffContext);
-  const {patients, fetchPatients, fetchAppointments} = useContext(PatientContext);
-  const {token, backendUrl} = useContext(AppContext);
+  const {patients, fetchPatients, bookNewAppointment, bookAppLoading} = useContext(PatientContext);
+  const {token, userData} = useContext(AppContext);
+
+  const role = userData?.designation;
 
   const[name, setName] = useState("");
   const[patientId, setPatientId] = useState("");
@@ -79,48 +80,35 @@ function BookAppointment() {
 
   const handleSubmit = async(e) =>{
     e.preventDefault();
-    
-    if(!token){
-      toast.error("Unauthorized. Please login again");
-      return;
-    }
-    setLoading(true);
 
     try{
-
-      const {data} = await axios.post(`${backendUrl}/api/appointment/book-appointment`, 
-        {
-          patientId,
-          docId: doctorId,
-          appointmentType,
-          department: selectedDept,
-          doctorName,
-          consultationType,
-          date,
-          timeSlot,
-          remarks,
-          name,
-          age,
-          gender,
-          bloodGroup,
-          contact
-        },
-        {headers: {token}});
-      if(data.success){
-        toast.success(data.message, { autoClose: 2000 });
-        await fetchAppointments();
-        setTimeout(() => {
-          navigate("/all-appointments");
-        }, 1000);
-      } else{
-        toast.error(data.message);
-        setLoading(false);
+      const infoData = {
+        patientId,
+        docId: doctorId,
+        appointmentType,
+        department: selectedDept,
+        doctorName,
+        consultationType,
+        date,
+        timeSlot,
+        remarks,
+        name,
+        age,
+        gender,
+        bloodGroup,
+        contact
+      }
+      const result = await bookNewAppointment(infoData);
+      if(result){
+        setTimeout(()=>{
+            navigate("/all-appointments");
+        },1000);
       }
 
     } catch(error){
       console.log(error);
       toast.error("Internal Server Error");
-      setLoading(false);
+
     }
   }
 
@@ -162,15 +150,18 @@ function BookAppointment() {
       fetchPatients();    
     }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token])
+  }, [fetchPatients, fetchStaffs, token])
+
+  if(role === "Support" || role === "Pharmacist" || role === "Technician" || role === "Nurse" || role === "Doctor"){
+    return <AccessDenied />
+  }
 
   return (
     <>
 
     <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
 
-    {loading && (
+    {bookAppLoading && (
         <div className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-white/40 backdrop-blur-md">
           <div className="flex flex-col items-center gap-4 bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
             <div className="w-14 h-14 border-4 border-gray-200 border-t-fuchsia-700 rounded-full animate-spin"></div>
@@ -446,14 +437,19 @@ function BookAppointment() {
           <FaTimesCircle /> Cancel
         </button>
       
-        <button 
-          type = "submit"
-          disabled={loading}
-          className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800
-          transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
-        >
-          <FaSave /> Book Appointment
-        </button>
+        {
+          (role === "Admin" || role === "Receptionist") && (
+            <button 
+              type = "submit"
+              disabled={bookAppLoading}
+              className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800
+              transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
+            >
+              <FaSave /> Book Appointment
+            </button>
+          )
+        }
+        
       
       </div>
 

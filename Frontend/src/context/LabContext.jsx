@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useState } from "react";
 import { AppContext } from "./AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -13,7 +13,7 @@ const LabContextProvider = (props) => {
     const [reports, setReports] = useState([]);
 
     // --- 1. FETCH ALL REPORTS ---
-    const fetchLabReports = async () => {
+    const fetchLabReports = useCallback(async () => {
         if (!token) return;
         setLoading(true);
         try {
@@ -29,7 +29,7 @@ const LabContextProvider = (props) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, backendUrl]);
 
     // --- 2. FETCH SINGLE REPORT ---
     const fetchReportById = async (reportId) => {

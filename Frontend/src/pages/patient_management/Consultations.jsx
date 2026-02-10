@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { 
   FaCalendarAlt, 
   FaCheckCircle, 
@@ -19,13 +19,16 @@ import { useContext } from 'react';
 import { PatientContext } from '../../context/PatientContext';
 import { AppContext } from '../../context/AppContext';
 import { useEffect } from 'react';
+import AccessDenied from './../../components/AccessDenied';
 
 function Consultations() {
 
   const navigate = useNavigate();
 
   const {appointments, fetchAppointments, appLoading} = useContext(PatientContext);
-  const {token} = useContext(AppContext);
+  const {token, userData} = useContext(AppContext);
+
+  const role = userData?.designation;
 
   const totalAppointments = appointments?.length;
   const completed = appointments?.filter(
@@ -41,14 +44,13 @@ function Consultations() {
   // Filters
   const [openFilter, setOpenFilter] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const filterRef = useRef(null);
   const [filters, setFilters] = useState({
     status: null,
     consultation: null,
     date: null
   })
 
-  // eslint-disable-next-line no-unused-vars
-  const isActive = (name) => openFilter === name;
 
   const handleFilterSelect = (type, value) =>{
     setFilters((prev)=>(
@@ -73,7 +75,6 @@ function Consultations() {
   });
 
   // Paginated data
-
   const records_per_page = 10;
   const [currentPage, setCurrentPage] = useState(1);
   const startIndex = (currentPage - 1)*records_per_page;
@@ -82,7 +83,7 @@ function Consultations() {
     startIndex,
     startIndex + records_per_page
   );
-  const totalPages = Math.ceil(filteredData.length / records_per_page);
+  const totalPages =Math.max(1, Math.ceil(filteredData.length / records_per_page));
 
   const getStatusClass = (status) =>{
     switch(status?.toLowerCase()){
@@ -97,14 +98,34 @@ function Consultations() {
     }
   }
 
+  useEffect(() => {
+  
+      const handleClickOutside = (event) => {
+        if (!openFilter) return;
+  
+        if (filterRef.current && !filterRef.current.contains(event.target)) {
+          setOpenFilter(null);
+        }
+      };
+      document.addEventListener("mousedown", handleClickOutside);
+  
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+  
+  }, [openFilter]);
+
   useEffect(()=>{
 
     if(token){
       fetchAppointments();
     }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token])
+  }, [token, fetchAppointments])
+
+  if( role === "Nurse" || role === "Support" || role === "Pharmacist" || role === "Technician" || role === "Receptionist" ){
+    return <AccessDenied />
+  }
 
   if(appLoading){
     return(
@@ -205,7 +226,7 @@ function Consultations() {
       </div>
           
       {/* Filters */}
-      <div className = "flex gap-3">
+      <div ref={filterRef} className = "flex gap-3">
           
       {/* Date */}
       <div className="relative">
