@@ -5,38 +5,30 @@ import { LabContext } from "../../context/LabContext";
 import { PatientContext } from "../../context/PatientContext";
 import { StaffContext } from "../../context/StaffContext";
 
-const TEST_TYPES = [
-  "CBC (Hemogram)", "Lipid Profile", "Liver Function Test (LFT)", "Kidney Function Test (KFT)",
-  "Thyroid Profile", "Glucometry (Diabetes)", "Electrolytes", "Iron Profile", "Vitamin Profile",
-  "Coagulation Profile", "Urine Routine", "MRI Scan", "X-Ray", "Ultrasound", "CT Scan"
-];
-
 export default function UploadReport() {
   const navigate = useNavigate();
   const location = useLocation();
   const { uploadLabReport, loading } = useContext(LabContext);
-  const { patients } = useContext(PatientContext);
-  const { staffs } = useContext(StaffContext);
 
+  // Get data passed from the list
   const reportData = location.state?.reportData;
+  
   const [correctionReason, setCorrectionReason] = useState("");
   const [file, setFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
 
-  // Initialize State
-  const [patientData, setPatientData] = useState({
+  // Initialize Read-Only Patient Data
+  const [patientData] = useState({
     patientId: reportData?.patientId || "",
     patientName: reportData?.patientName || "",
-    ageGender: reportData ? `${reportData.age} / ${reportData.gender}` : "",
+    ageGender: reportData ? `${reportData.age} Yrs / ${reportData.gender}` : "",
     testType: reportData?.testName || "",
     referringDr: reportData?.doctorName || "",
-    sampleDate: reportData?.createdAt ? new Date(reportData.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    sampleDate: reportData?.createdAt ? new Date(reportData.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
     dept: reportData?.department || "Pathology",
-    techId: "",
-    techName: ""
   });
 
-  // --- HANDLERS ---
+  // --- FILE HANDLERS ---
   const handleDrag = (e) => {
     e.preventDefault(); e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
@@ -67,10 +59,7 @@ export default function UploadReport() {
         return;
     }
 
-    // Only send what is needed for an UPDATE
     const payload = {
-        // We don't need patient details here because the backend 
-        // already has them in the existing report record.
         correctionReason: correctionReason 
     };
 
@@ -78,8 +67,6 @@ export default function UploadReport() {
     const success = await uploadLabReport(reportData._id, file, payload);
     if(success) navigate('/lab-reports-list');
   };
-
-  // ... (Header and Form UI remains the same as your code) ...
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6 font-sans">
@@ -104,25 +91,39 @@ export default function UploadReport() {
         </button>
       </div>
 
-      {/* INFO CARD (Read Only) */}
+      {/* READ-ONLY INFO CARD */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-3">
             <User size={20} className="text-purple-600"/>
             <h2 className="text-lg font-bold text-gray-800">Request Details</h2>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase">Patient</label>
             <p className="text-sm font-bold text-gray-800">{patientData.patientName} ({patientData.patientId})</p>
           </div>
           <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-gray-500 uppercase">Age / Gender</label>
+            <p className="text-sm font-bold text-gray-800">{patientData.ageGender}</p>
+          </div>
+          <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase">Test Type</label>
-            <p className="text-sm font-bold text-gray-800">{patientData.testType}</p>
+            <p className="text-sm font-bold text-purple-700">{patientData.testType}</p>
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase">Referring Dr</label>
             <p className="text-sm font-bold text-gray-800">{patientData.referringDr}</p>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-gray-500 uppercase">Department</label>
+            <p className="text-sm font-bold text-gray-800">{patientData.dept}</p>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-gray-500 uppercase">Request Date</label>
+            <div className="flex items-center gap-1.5 text-sm font-bold text-gray-800">
+               <Calendar size={14} className="text-gray-400"/> {patientData.sampleDate}
+            </div>
           </div>
         </div>
       </div>

@@ -11,19 +11,23 @@ import {
   FaFilter,
   FaArrowLeft,
   FaArrowRight,
-  FaBoxOpen,
+  FaUserSlash, 
+  FaLayerGroup 
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { MedicineContext } from "../../context/MedicineContext";
 import ViewSupplierModal from "../../components/modals/viewSupplierModal";
 import Loading from "../Loading";
+import { AppContext } from "../../context/AppContext";
 
 const SuppliersList = () => {
   const navigate = useNavigate();
   const { suppliers, loading, fetchSuppliers } = useContext(MedicineContext);
+  const { userData } = useContext(AppContext);
 
   const [search, setSearch] = useState("");
-  const [statusSort, setStatusSort] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [categoryFilter, setCategoryFilter] = useState("All Categories"); // New State for Category
   const [selectedSupplier, setSelectedSupplier] = useState(null);
 
   // Pagination State
@@ -37,33 +41,50 @@ const SuppliersList = () => {
   /* --- Calculations --- */
   const totalSuppliers = suppliers.length;
   const activeSuppliers = suppliers.filter((s) => s.status === "Active").length;
+  
+  // New Calculation: Inactive Suppliers
+  const inactiveSuppliers = suppliers.filter((s) => s.status !== "Active").length;
+
   const averageRating =
     totalSuppliers > 0
       ? (suppliers.reduce((acc, s) => acc + (s.rating || 0), 0) / totalSuppliers).toFixed(1)
       : 0;
-  const totalItemsSupplied = suppliers.reduce((acc, s) => acc + (s.totalSupplies || 0), 0);
+
+  // Extract Unique Categories for Dropdown
+  const categories = ["All Categories", ...new Set(suppliers.map(s => s.category))];
 
   /* --- Filters --- */
   const filteredSuppliers = useMemo(() => {
     return suppliers.filter((s) => {
+      // Search Filter
       const searchMatch =
         s.supplierName.toLowerCase().includes(search.toLowerCase()) ||
         s.supplierId.toLowerCase().includes(search.toLowerCase());
 
+      // Status Filter
       const statusMatch =
-        statusSort === "ALL" ||
-        (statusSort === "ACTIVE" && s.status === "Active") ||
-        (statusSort === "INACTIVE" && s.status !== "Active");
+        statusFilter === "ALL" ||
+        (statusFilter === "ACTIVE" && s.status === "Active") ||
+        (statusFilter === "INACTIVE" && s.status !== "Active");
 
-      return searchMatch && statusMatch;
+      // Category Filter 
+      const categoryMatch = 
+        categoryFilter === "All Categories" || s.category === categoryFilter;
+
+      return searchMatch && statusMatch && categoryMatch;
     });
-  }, [search, statusSort, suppliers]);
+  }, [search, statusFilter, categoryFilter, suppliers]);
 
   /* --- Pagination --- */
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentSuppliers = filteredSuppliers.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter, categoryFilter]);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
@@ -95,13 +116,15 @@ const SuppliersList = () => {
         </div>
 
         <div className="flex gap-3 items-center w-full md:w-auto">
-          <button
-            onClick={() => navigate("/create-new-supplier")}
-            className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm  md:w-auto"
-          >
-            <FaPlus />
-            Add New Supplier
-          </button>
+          {userData && (userData?.designation === 'Pharmacist'|| userData.designation === 'Admin') && (
+            <button
+              onClick={() => navigate("/create-new-supplier")}
+              className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
+            >
+              <FaPlus />
+              Add New Supplier
+            </button> 
+          )}
         </div>
       </div>
 
@@ -131,12 +154,13 @@ const SuppliersList = () => {
           border="border-yellow-200"
         />
 
+        {/* Inactive Suppliers */}
         <SummaryCard
-          title="Items Supplied"
-          value={totalItemsSupplied}
-          icon={<FaBoxOpen className="text-blue-600" />}
-          bg="bg-blue-100"
-          border="border-blue-200"
+          title="Inactive Suppliers"
+          value={inactiveSuppliers}
+          icon={<FaUserSlash className="text-red-600" />}
+          bg="bg-red-100"
+          border="border-red-200"
         />
       </div>
 
@@ -146,6 +170,7 @@ const SuppliersList = () => {
         {/* Filters Toolbar */}
         <div className="p-4 border-b border-gray-100 bg-white">
           <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
             <div className="relative w-full flex-1">
               <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
@@ -157,12 +182,28 @@ const SuppliersList = () => {
               />
             </div>
 
-            <div className="flex gap-4 w-full md:w-auto">
-              <div className="relative w-full md:w-48">
+            <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+              
+              {/* Category Filter */}
+              <div className="relative w-full sm:w-48">
+                <FaLayerGroup className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="w-full pl-9 h-10 pr-8 rounded-lg outline-none border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-fuchsia-500 cursor-pointer appearance-none"
+                >
+                  {categories.map((cat, index) => (
+                    <option key={index} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Status Filter */}
+              <div className="relative w-full sm:w-48">
                 <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                 <select
-                  value={statusSort}
-                  onChange={(e) => setStatusSort(e.target.value)}
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
                   className="w-full pl-9 h-10 pr-8 rounded-lg outline-none border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-fuchsia-500 cursor-pointer appearance-none"
                 >
                   <option value="ALL">All Status</option>
@@ -170,6 +211,7 @@ const SuppliersList = () => {
                   <option value="INACTIVE">Inactive</option>
                 </select>
               </div>
+
             </div>
           </div>
         </div>
@@ -181,8 +223,8 @@ const SuppliersList = () => {
               <tr>
                 <th className="px-6 py-4">ID</th>
                 <th className="px-6 py-4">Supplier Name</th>
+                <th className="px-6 py-4">Category</th>
                 <th className="px-6 py-4">Contact</th>
-                <th className="px-6 py-4">Supplies Count</th>
                 <th className="px-6 py-4">Rating</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-center">Actions</th>
@@ -191,11 +233,15 @@ const SuppliersList = () => {
             <tbody className="divide-y divide-gray-100">
               {currentSuppliers.length > 0 ? (
                 currentSuppliers.map((s) => (
-                  <tr key={s.supplierId} className="hover:bg-fuchsia-200/30 transition-colors group">
-                    <td className="px-6 py-4  text-sm text-gray-500">{s.supplierId}</td>
+                  <tr key={s.supplierId} className="hover:bg-fuchsia-50 transition-colors group">
+                    <td className="px-6 py-4 text-sm text-gray-500 font-mono">{s.supplierId}</td>
                     <td className="px-6 py-4 font-medium text-gray-800">{s.supplierName}</td>
+                    <td className="px-6 py-4 text-gray-600">
+                        <span className="inline-block px-2 py-0.5 bg-gray-100 rounded text-xs font-medium border border-gray-200">
+                            {s.category}
+                        </span>
+                    </td>
                     <td className="px-6 py-4 text-gray-600">{s.phone}</td>
-                    <td className="px-6 py-4 text-gray-600 font-medium">{s.totalSupplies}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1.5 bg-yellow-50 text-yellow-700 px-2.5 py-1 rounded-md w-fit border border-yellow-100">
                         <FaStar className="text-yellow-500 text-xs" />
@@ -252,7 +298,7 @@ const SuppliersList = () => {
               disabled={currentPage === 1}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
                 currentPage === 1
-                  ? "bg-gray-50 text-gray-300  border-gray-200 cursor-not-allowed"
+                  ? "bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed"
                   : "bg-white text-gray-700 cursor-pointer border-gray-300 hover:bg-gray-50"
               }`}
             >
@@ -260,7 +306,7 @@ const SuppliersList = () => {
             </button>
             <button
               onClick={handleNextPage}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === totalPages || totalPages === 0}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
                 currentPage === totalPages || totalPages === 0
                   ? "bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed"

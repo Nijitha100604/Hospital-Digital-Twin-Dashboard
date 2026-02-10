@@ -1,16 +1,20 @@
 import supplierModel from "../models/supplierModel.js";
-import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
+import csv from "csv-parser"; 
 
-// Helper to determine resource type
-const getResourceType = (mimetype) => {
-  if (
-    mimetype.includes("pdf") ||
-    mimetype.includes("document") ||
-    mimetype.includes("text")
-  ) {
-    return "raw"; 
-  }
-  return "auto"; 
+// Helper to parse CSV file
+const parseCSV = (filePath) => {
+  return new Promise((resolve, reject) => {
+    const results = [];
+    fs.createReadStream(filePath)
+      .pipe(csv(['item'])) 
+      .on('data', (data) => {
+          const val = Object.values(data)[0];
+          if(val) results.push(val.trim());
+      })
+      .on('end', () => resolve(results))
+      .on('error', (error) => reject(error));
+  });
 };
 
 // Add New Supplier 
@@ -33,19 +37,13 @@ const addSupplier = async (req, res) => {
       bankName,
       accountNumber,
       ifsc,
-      itemsSupplied, 
-      totalSupplies,
       notes,
       status,
       rating,
-      // Allow passing document details via JSON body if file isn't uploaded 
-      documentName: bodyDocName,
-      documentUrl: bodyDocUrl
+      manualItems
     } = req.body;
 
     const file = req.file; 
-    let documentUrl = bodyDocUrl || "";
-    let documentName = bodyDocName || "";
 
     // Required fields check
     if (
@@ -71,26 +69,30 @@ const addSupplier = async (req, res) => {
       });
     }
 
-    // Upload document if provided
-    if (file) {
-      const resourceType = getResourceType(file.mimetype);
-      const uploadResult = await cloudinary.uploader.upload(file.path, {
-        resource_type: resourceType,
-        use_filename: true,
-        unique_filename: false,
-      });
-      documentUrl = uploadResult.secure_url;
-      documentName = file.originalname;
+    // Process Supplies
+    let suppliesArray = [];
+
+    if (manualItems) {
+        const manualParsed = typeof manualItems === "string" 
+            ? manualItems.split(",").map(i => i.trim()).filter(i => i) 
+            : manualItems;
+        suppliesArray = [...suppliesArray, ...manualParsed];
     }
 
-    // Process itemsSupplied
-    let suppliesArray = [];
-    if (itemsSupplied) {
-      suppliesArray =
-        typeof itemsSupplied === "string"
-          ? itemsSupplied.split(",").map((item) => item.trim())
-          : itemsSupplied; // Accepts Array if sent via JSON
+    if (file && (file.mimetype === 'text/csv' || file.mimetype === 'application/vnd.ms-excel')) {
+       try {
+           const csvItems = await parseCSV(file.path);
+           suppliesArray = [...suppliesArray, ...csvItems];
+           // Clean up file after reading
+           fs.unlinkSync(file.path); 
+       } catch (err) {
+           console.error("CSV Parse Error:", err);
+           return res.json({ success: false, message: "Error parsing CSV file" });
+       }
     }
+
+    // Remove duplicates
+    suppliesArray = [...new Set(suppliesArray)];
 
     const newSupplier = new supplierModel({
       supplierName,
@@ -114,12 +116,9 @@ const addSupplier = async (req, res) => {
         ifsc: ifsc || req.body.bankDetails?.ifsc || "",
       },
       itemsSupplied: suppliesArray,
-      totalSupplies: totalSupplies || 0,
       notes: notes || "",
       status: status || "Active",
       rating: rating || 0,
-      documentUrl,
-      documentName,
     });
 
     await newSupplier.save();
@@ -194,29 +193,31 @@ const updateSupplier = async (req, res) => {
       return res.json({ success: false, message: "Supplier not found!" });
     }
 
-    const file = req.file;
-    let documentUrl = existing.documentUrl;
-    let documentName = existing.documentName;
-
-    // Upload new document if provided
-    if (file) {
-      const resourceType = getResourceType(file.mimetype);
-      const uploadResult = await cloudinary.uploader.upload(file.path, {
-        resource_type: resourceType,
-        use_filename: true,
-        unique_filename: false,
-      });
-      documentUrl = uploadResult.secure_url;
-      documentName = file.originalname;
-    }
-
+    const file = req.file; // CSV file for update
+    
     let suppliesArray = existing.itemsSupplied;
+
+    // Handle Manual Items update
     if (req.body.itemsSupplied) {
       suppliesArray =
         typeof req.body.itemsSupplied === "string"
           ? req.body.itemsSupplied.split(",").map((item) => item.trim())
           : req.body.itemsSupplied;
     }
+
+    // Handle CSV Append/Replace logic (Here assuming append/merge for simplicity)
+    if (file && (file.mimetype === 'text/csv' || file.mimetype === 'application/vnd.ms-excel')) {
+        try {
+            const csvItems = await parseCSV(file.path);
+            suppliesArray = [...suppliesArray, ...csvItems];
+            fs.unlinkSync(file.path);
+        } catch (err) {
+            console.error("CSV Parse Error", err);
+        }
+    }
+    
+    // Remove duplicates
+    suppliesArray = [...new Set(suppliesArray)];
 
     const updateData = {
       supplierName: req.body.supplierName ?? existing.supplierName,
@@ -240,12 +241,9 @@ const updateSupplier = async (req, res) => {
         ifsc: req.body.ifsc ?? existing.bankDetails.ifsc,
       },
       itemsSupplied: suppliesArray,
-      totalSupplies: req.body.totalSupplies ?? existing.totalSupplies,
       notes: req.body.notes ?? existing.notes,
       status: req.body.status ?? existing.status,
       rating: req.body.rating ?? existing.rating,
-      documentUrl: documentUrl,
-      documentName: documentName,
     };
 
     await supplierModel.updateOne({ supplierId: id }, updateData);

@@ -8,7 +8,7 @@ import { LabContext } from "../../context/LabContext";
 import { StaffContext } from "../../context/StaffContext"; 
 import { PatientContext } from "../../context/PatientContext"; 
 
-// --- TEST TEMPLATES (Configuration) ---
+// --- 1. CONFIGURATION: PARAMETER DEFINITIONS ---
 const testTemplates = {
   "CBC (Hemogram)": [
     { id: "cbc1", param: "Hemoglobin", unit: "g/dL", min: 13.0, max: 17.0 },
@@ -98,33 +98,69 @@ const testTemplates = {
   ]
 };
 
+// --- 2. ALIAS MAPPING (The Solution for Short Forms) ---
+// Keys = Canonical Name (Must match keys in testTemplates above)
+// Values = Array of possible short forms or variations
+const testAliases = {
+  "CBC (Hemogram)": ["CBC", "Hemogram", "Complete Blood Count", "C.B.C"],
+  "Liver Function Test (LFT)": ["LFT", "Liver Profile", "Liver Panel"],
+  "Kidney Function Test (KFT)": ["KFT", "RFT", "Renal Function Test", "Kidney Profile"],
+  "Thyroid Profile": ["TFT", "Thyroid Function Test", "Thyroid Panel"],
+  "Lipid Profile": ["Lipid Panel", "Cholesterol Test"],
+  "Glucometry (Diabetes)": ["Fasting Blood Sugar", "RBS", "FBS", "PPBS", "Glucose", "Sugar Test"],
+  "Urine Routine": ["Urine R/M", "Urine Analysis", "CUE"],
+  "Iron Profile": ["Iron Studies", "Anemia Profile"],
+  "Coagulation Profile": ["Coag Profile", "PT/INR"],
+};
+
+// --- 3. HELPER: Get Canonical Name ---
+const getCanonicalTestName = (inputName) => {
+  if (!inputName) return "";
+  
+  // 1. Check if exact match exists in templates
+  if (testTemplates[inputName]) return inputName;
+
+  // 2. Check aliases (Case Insensitive)
+  const lowerInput = inputName.trim().toLowerCase();
+  
+  for (const [canonicalName, aliases] of Object.entries(testAliases)) {
+    if (aliases.some(alias => alias.toLowerCase() === lowerInput)) {
+      return canonicalName; // Found matching alias! Return the main name.
+    }
+  }
+
+  // 3. No match found, return original (likely an Upload-only test like MRI)
+  return inputName;
+};
+
 export default function LabResultEntry() {
   const { id } = useParams(); 
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef(null);
   
-  // --- CONTEXT ---
   const { submitLabResults, fetchReportById, loading } = useContext(LabContext);
   const { staffs } = useContext(StaffContext);
 
-  // --- STATE ---
   const preloadedData = location.state?.reportData;
   const [reportData, setReportData] = useState(preloadedData || null);
   
-  // Initialize patient details
   const [patientDetails, setPatientDetails] = useState({
     patientId: preloadedData?.patientId || "",
     patientName: preloadedData?.patientName || "",
     age: preloadedData?.age || "",
     gender: preloadedData?.gender || "Male",
     referringDr: preloadedData?.doctorName || "", 
-    doctorId: preloadedData?.doctorId || "", // Store doctor ID for lookup
+    doctorId: preloadedData?.doctorId || "", 
     sampleDate: preloadedData?.createdAt ? new Date(preloadedData.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
-    dept: preloadedData?.department || "Pathology" // Default from DB
+    dept: preloadedData?.department || "Pathology"
   });
 
-  const [selectedTestType, setSelectedTestType] = useState(preloadedData?.testName || "");
+  // FIX: Initialize with Normalized Name
+  const [selectedTestType, setSelectedTestType] = useState(
+    getCanonicalTestName(preloadedData?.testName || "")
+  );
+
   const [results, setResults] = useState({});
   const [comments, setComments] = useState("");
   const [correctionReason, setCorrectionReason] = useState("");
@@ -133,18 +169,19 @@ export default function LabResultEntry() {
   const [verifiedBy, setVerifiedBy] = useState("");     
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // --- 1. LOAD DATA ON MOUNT ---
+  // --- LOAD DATA ---
   useEffect(() => {
     const loadData = async () => {
       if (!preloadedData && id) {
         const data = await fetchReportById(id);
-        if (data) {
-          initializeForm(data);
-        }
+        if (data) initializeForm(data);
       } else if (preloadedData) {
-          if(preloadedData.testResults && preloadedData.testResults.length > 0) {
+          if(preloadedData.testResults?.length > 0) {
              const prefill = {};
-             const templateParams = testTemplates[preloadedData.testName] || [];
+             // Use normalized name to find template
+             const normalizedName = getCanonicalTestName(preloadedData.testName);
+             const templateParams = testTemplates[normalizedName] || [];
+             
              preloadedData.testResults.forEach((r) => {
                  const foundParam = templateParams.find(p => p.param === r.parameter);
                  if(foundParam) prefill[foundParam.id] = r.value;
@@ -160,9 +197,7 @@ export default function LabResultEntry() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, fetchReportById]);
 
-  // --- 2. DYNAMIC DEPARTMENT LOOKUP ---
-  // This hook runs whenever 'staffs' (from Context) or the current doctorId changes.
-  // It finds the doctor in the staff list and updates the displayed department.
+  // --- DYNAMIC DEPARTMENT LOOKUP ---
   useEffect(() => {
     if (staffs.length > 0 && patientDetails.doctorId) {
         const doctor = staffs.find(s => s.staffId === patientDetails.doctorId);
@@ -180,16 +215,19 @@ export default function LabResultEntry() {
       age: data.age || "",
       gender: data.gender || "Male",
       referringDr: data.doctorName || "", 
-      doctorId: data.doctorId || "", // Capture Doctor ID
+      doctorId: data.doctorId || "", 
       sampleDate: data.createdAt ? new Date(data.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
       dept: data.department || "Pathology"
     });
     
-    setSelectedTestType(data.testName || "");
+    // FIX: Set normalized name
+    setSelectedTestType(getCanonicalTestName(data.testName || ""));
 
     if (data.testResults && data.testResults.length > 0) {
         const prefill = {};
-        const templateParams = testTemplates[data.testName] || [];
+        const normalizedName = getCanonicalTestName(data.testName);
+        const templateParams = testTemplates[normalizedName] || [];
+        
         data.testResults.forEach(r => {
             const foundParam = templateParams.find(p => p.param === r.parameter);
             if(foundParam) prefill[foundParam.id] = r.value;
@@ -229,7 +267,7 @@ export default function LabResultEntry() {
       if(!verifiedBy) return alert("Please select a verifier");
 
       if (reportData?.status === "Completed" && !correctionReason.trim()) {
-          alert("⚠️ MANDATORY: You are amending a completed report. Please provide a 'Reason for Amendment' at the bottom of the page.");
+          alert("⚠️ MANDATORY: You are amending a completed report. Please provide a 'Reason for Amendment'.");
           return;
       }
 
@@ -248,7 +286,7 @@ export default function LabResultEntry() {
 
       const finalReportId = reportData?._id || id;
       if (!finalReportId) {
-          alert("Error: Report ID missing. Please go back to the list and try again.");
+          alert("Error: Report ID missing.");
           return;
       }
 
@@ -301,6 +339,24 @@ export default function LabResultEntry() {
             >
                 <FileUp size={16}/> Upload Report Instead
             </button>
+            
+            {/* Template Selector (Shows Resolved Name) */}
+            <div className="bg-white p-2 rounded-lg border border-gray-300 shadow-sm flex items-center gap-2 w-full md:w-auto">
+                <FlaskConical size={18} className="text-purple-600 shrink-0"/>
+                <span className="text-xs font-bold text-gray-500 uppercase whitespace-nowrap hidden sm:inline">Test Type:</span>
+                <div className="relative flex-1 min-w-0">
+                <select 
+                    value={selectedTestType}
+                    onChange={(e) => { setSelectedTestType(e.target.value); setResults({}); }}
+                    className="font-bold text-gray-800 outline-none bg-transparent cursor-pointer text-sm w-full py-1 pr-4 truncate"
+                >
+                    {Object.keys(testTemplates).map(t => <option key={t} value={t}>{t}</option>)}
+                    {/* Add fallback option if the current test name isn't in templates */}
+                    {!testTemplates[selectedTestType] && <option value={selectedTestType}>{selectedTestType}</option>}
+                </select>
+                <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14}/>
+                </div>
+            </div>
         </div>
       </div>
 
@@ -341,7 +397,7 @@ export default function LabResultEntry() {
         </div>
       </div>
 
-      {/* --- SECTION 2: RESULT ENTRY TABLE --- */}
+      {/* --- RESULT ENTRY TABLE --- */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mb-4 md:mb-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 border-b border-gray-100 pb-2 gap-2">
             <h2 className="text-xs md:text-sm font-bold text-gray-900 uppercase tracking-wide">
@@ -401,7 +457,7 @@ export default function LabResultEntry() {
         )}
       </div>
 
-      {/* --- SECTION 3: FOOTER ACTIONS --- */}
+      {/* --- FOOTER (Amendment & Submit) --- */}
       {reportData?.status === "Completed" && (
         <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 animate-in fade-in">
             <div className="flex items-start gap-3">

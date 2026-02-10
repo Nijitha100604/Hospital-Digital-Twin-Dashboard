@@ -15,6 +15,7 @@ import {
   FaHeartbeat,
   FaBell,
 } from "react-icons/fa";
+import { AppContext } from "../../context/AppContext";
 
 const EquipmentList = () => {
   const { equipments, fetchEquipments, loading } = useContext(EquipmentContext);
@@ -23,6 +24,7 @@ const EquipmentList = () => {
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [visibleCount, setVisibleCount] = useState(8);
+  const {userData} = useContext(AppContext);
 
   const navigate = useNavigate();
 
@@ -40,7 +42,7 @@ const EquipmentList = () => {
   };
 
   const calibrationAlertCount = equipments.filter((e) => {
-    const days = getDaysLeft(e.serviceSchedule?.nextService); // Access nested prop
+    const days = getDaysLeft(e.serviceSchedule?.nextService); 
     return days <= 30;
   }).length;
 
@@ -67,7 +69,6 @@ const EquipmentList = () => {
     });
   }, [search, departmentFilter, statusFilter, equipments]);
 
-  /* ---------- Reset count on filter change ---------- */
   useEffect(() => {
     setVisibleCount(8);
   }, [search, departmentFilter, statusFilter]);
@@ -123,13 +124,13 @@ const EquipmentList = () => {
           </button>
 
           {/* Add Equipment Button */}
-          <button
+          { userData && (userData?.designation === 'Technician' || userData?.designation === 'Admin') && (<button
             onClick={() => navigate("/add-equipment")}
             className="flex items-center cursor-pointer justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
           >
             <FaPlus />
             Add New Equipment
-          </button>
+          </button>)}
         </div>
       </div>
 

@@ -127,6 +127,35 @@ const LabContextProvider = (props) => {
         }
     };
 
+    // --- 5. DELETE REPORT (Soft Delete) ---
+    const deleteLabReport = async (reportId, reason) => {
+        if (!token) return false;
+        setLoading(true);
+        try {
+            // Note: Use axios.post or axios.put because DELETE requests usually don't carry a body in some server configs. 
+            // However, axios.delete supports 'data'. Let's stick to standard DELETE with data config.
+            const { data } = await axios.delete(`${backendUrl}/api/reports/delete/${reportId}`, { 
+                headers: { token },
+                data: { reason } // Pass reason in body
+            });
+
+            if (data.success) {
+                toast.success(data.message);
+                fetchLabReports(); 
+                return true;
+            } else {
+                toast.error(data.message);
+                return false;
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error("Failed to delete report");
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const value = {
         loading,
         reports,
@@ -134,7 +163,8 @@ const LabContextProvider = (props) => {
         setReports,
         fetchReportById,
         submitLabResults,
-        uploadLabReport // <--- THIS WAS MISSING IN YOUR CODE
+        uploadLabReport,
+        deleteLabReport
     }
 
     return (

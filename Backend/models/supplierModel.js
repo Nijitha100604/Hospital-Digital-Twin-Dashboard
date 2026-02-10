@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-
 async function generateSupplierId() {
   const lastSupplier = await mongoose
     .model("supplier")
@@ -36,9 +35,9 @@ const supplierSchema = new mongoose.Schema(
     },
 
     // Business Information
-    category: { type: String, required: true }, // Pharmaceutical, Medical Equipment...
-    taxId: { type: String, default: "" }, // GST or Tax ID
-    paymentTerms: { type: String, required: true }, // Immediate, 15 Days...
+    category: { type: String, required: true }, 
+    taxId: { type: String, default: "" }, 
+    paymentTerms: { type: String, required: true }, 
     creditLimit: { type: Number, default: 0 },
 
     // Banking Information
@@ -49,26 +48,27 @@ const supplierSchema = new mongoose.Schema(
     },
 
     // Supplies and notes
-    itemsSupplied: { type: [String], default: [] }, // Array of strings
-    totalSupplies: { type: Number, default: 0 }, // Can be calculated based on orders later
+    itemsSupplied: { type: [String], default: [] }, 
     notes: { type: String, default: "" },
 
     // Status and Rating
     status: { type: String, default: "Active" },
     rating: { type: Number, default: 0 },
-
-    // Document
-    documentName: { type: String, default: "" },
-    documentUrl: { type: String, default: "" },
   },
   { timestamps: true }
 );
 
-// Auto-generate ID before saving
 supplierSchema.pre("save", async function () {
   if (!this.supplierId) {
     this.supplierId = await generateSupplierId();
   };
+});
+
+supplierSchema.set('toJSON', { virtuals: true });
+supplierSchema.set('toObject', { virtuals: true });
+
+supplierSchema.virtual('totalSupplies').get(function() {
+  return this.itemsSupplied ? this.itemsSupplied.length : 0;
 });
 
 const supplierModel =

@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { MedicineContext } from "../../context/MedicineContext";
 import Loading from "../Loading";
 import { toast } from "react-toastify";
+import { AppContext } from "../../context/AppContext";
 
 const PurchaseOrder = () => {
   const navigate = useNavigate();
@@ -28,16 +29,15 @@ const PurchaseOrder = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  // --- SELECTION STATE ---
+  const{userData} = useContext(AppContext)
+
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
 
-  // Ensure data is fresh
   useEffect(() => {
     fetchPurchaseOrders();
   }, [fetchPurchaseOrders]);
 
-  /* ---------------- FILTER & SEARCH ---------------- */
   const filteredOrders = useMemo(() => {
     return purchaseOrders.filter((o) => {
       const matchesSearch =
@@ -50,7 +50,6 @@ const PurchaseOrder = () => {
     });
   }, [purchaseOrders, search, statusFilter]);
 
-  /* ---------------- SUMMARY COUNTS ---------------- */
   const totalCount = purchaseOrders.length;
   const requestedCount = purchaseOrders.filter(
     (o) => o.status === "Requested"
@@ -62,7 +61,6 @@ const PurchaseOrder = () => {
     (o) => o.status === "Received"
   ).length;
 
-  /* ---------------- SELECTION HANDLERS ---------------- */
   const toggleSelection = (id) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
@@ -71,13 +69,12 @@ const PurchaseOrder = () => {
 
   const handleSelectAll = () => {
     if (selectedIds.length === filteredOrders.length) {
-      setSelectedIds([]); // Deselect All
+      setSelectedIds([]); 
     } else {
-      setSelectedIds(filteredOrders.map((o) => o.orderId)); // Select All Visible
+      setSelectedIds(filteredOrders.map((o) => o.orderId));
     }
   };
 
-  /* ---------------- DELETE HANDLER (SINGLE & BATCH) ---------------- */
   const handleDeleteSingle = async (orderId) => {
     const confirm = window.confirm(
       "Are you sure you want to remove this order record?"
@@ -120,7 +117,7 @@ const PurchaseOrder = () => {
         </div>
 
         <div className="flex gap-3 items-center w-full md:w-auto">
-          <button
+          {userData && (userData?.designation === 'Pharmacist' || userData?.designation === 'Admin') &&(<button
             onClick={() => {
               setIsSelectionMode(!isSelectionMode);
               setSelectedIds([]);
@@ -132,19 +129,19 @@ const PurchaseOrder = () => {
             }`}
           >
             <FaListUl /> {isSelectionMode ? "Cancel Selection" : "Manage Items"}
-          </button>
+          </button>)}
 
-          <button
+          {userData && (userData?.designation === 'Pharmacist' || userData?.designation === 'Admin' ) && (<button
             onClick={() => navigate("/create-purchase-order")}
             className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
           >
             <FaPlus />
             Create New Order
-          </button>
+          </button>)}
         </div>
       </div>
 
-      {/* SUMMARY CARDS */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <SummaryCard
           title="Total Orders"
@@ -266,7 +263,7 @@ const PurchaseOrder = () => {
 
 export default PurchaseOrder;
 
-/* ================= COMPONENTS ================= */
+/*COMPONENTS */
 
 const SummaryCard = ({ title, value, icon, bg, color, border }) => (
   <div
@@ -288,6 +285,8 @@ const OrderCard = ({
   isSelected,
   onToggle,
 }) => {
+
+  const {userData} = useContext(AppContext)
   const statusStyles = {
     Requested: "bg-yellow-50 text-yellow-700 border-yellow-200",
     Ordered: "bg-blue-50 text-blue-700 border-blue-200",
@@ -351,16 +350,16 @@ const OrderCard = ({
               <div className="flex gap-2">
                 {(order.status === "Requested" ||
                   order.status === "Ordered") && (
-                  <button
+                  userData && (userData?.designation === 'Pharmacist' || userData?.designation === 'Admin') && (<button
                     onClick={onEdit}
                     className="flex cursor-pointer items-center gap-1.5 text-xs font-bold border border-gray-200 bg-gray-50 hover:bg-white hover:border-fuchsia-300 hover:text-fuchsia-700 text-gray-600 px-3 py-2 rounded-lg transition-all"
                   >
                     <FaEdit /> Update
-                  </button>
+                  </button>)
                 )}
 
                 {(order.status === "Received" ||
-                  order.status === "Cancelled") && (
+                  order.status === "Cancelled") && userData && (userData?.designation === 'Pharmacist' || userData?.designation === 'Admin') && (
                   <button
                     onClick={onDelete}
                     className="flex cursor-pointer items-center gap-1.5 text-xs font-bold border border-red-100 bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded-lg transition-all"
