@@ -55,8 +55,12 @@ const staffProfile = async(req, res) => {
        } 
        const staffData = {
         fullName: staff.fullName,
+        staffId: staff.staffId,
+        gender: staff.gender,
+        contact: staff.contactNumber,
         email: staff.email,
         designation: staff.designation,
+        department: staff.department,
         profilePhoto: staff.profilePhoto
        }
        return res.json({success: true, data: staffData});

@@ -15,10 +15,13 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { PatientContext } from '../../context/PatientContext';
 import { formatDate } from '../../utils/formatDate';
+import { AppContext } from '../../context/AppContext';
+import AccessDenied from './../../components/AccessDenied';
 
 function PatientList() {
 
-  const { patients, patientLoading } = useContext(PatientContext);
+  const { patients, patientLoading, fetchPatients } = useContext(PatientContext);
+  const { token, userData, fetchUserProfile } = useContext(AppContext);
 
   const [openFilter, setOpenFilter] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -29,7 +32,6 @@ function PatientList() {
   })
 
   // data filter 
-
   const filteredData = patients.filter((item)=>{
     const searchMatch = searchTerm.trim() === "" || item.personal?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || item.patientId?.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -58,11 +60,11 @@ function PatientList() {
   const startIndex = (currentPage - 1)*records_per_page;
 
   // Paginating the data
-
   const paginatedData = filteredData.slice(
     startIndex,
     startIndex + records_per_page
   );
+
   const totalPages = Math.ceil(filteredData.length / records_per_page);
 
   const handleFilterSelect = (type, value) =>{
@@ -78,15 +80,27 @@ function PatientList() {
 
   const navigate = useNavigate();
 
+  const role = userData?.designation;
+
   useEffect(()=>{
     window.scroll(0,0);
-  })
+  });
+
+  useEffect(()=>{
+    if(token){
+      fetchPatients();
+      fetchUserProfile(token)
+    }
+  }, [token, fetchPatients, fetchUserProfile])
+
+  if(role === "Support" || role === "Pharmacist" || role === "Technician"){
+    return <AccessDenied />
+  }
 
   return (
     <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
 
       {/* Top Section */}
-      
       <div className="w-full px-4 py-4 gap-3 flex flex-wrap justify-between items-center">
         
         {/* Page description */}
@@ -102,14 +116,19 @@ function PatientList() {
         </div>
 
         {/* Add New Patient Button */}
-        <button 
-          className="flex gap-2 items-center text-white bg-fuchsia-800 px-4 py-3 cursor-pointer rounded-xl 
-          leading-none transition-all duration-300 ease-in-out hover:bg-fuchsia-900 hover:scale-105 active:scale-95"
-          onClick={()=>navigate("/add-new-patient")}
-        >
-          <FaPlus size={16} />Add New Patient
-        </button>
-
+        {
+          (role === "Admin" || role === "Receptionist") && (
+            <button 
+              className="flex gap-2 items-center text-white bg-fuchsia-800 px-4 py-3 cursor-pointer rounded-xl 
+              leading-none transition-all duration-300 ease-in-out hover:bg-fuchsia-900 hover:scale-105 active:scale-95"
+              onClick={()=>navigate("/add-new-patient")}
+            >
+              <FaPlus size={16} />Add New Patient
+            </button>
+          )
+        }
+        
+        {/* Search and filters */}
         <div className="w-full flex flex-wrap gap-4 items-center">
 
           {/* Search button */}
@@ -288,13 +307,11 @@ function PatientList() {
 
       </div>
 
-      {/* Bottom Section */}
-
+      {/* Patient List */}
       <div className="mt-2 rounded-lg bg-white-50 p-4">
         <div className="w-full overflow-x-auto">
 
           {/* patient records table */}
-
           {
             patientLoading ? (
               <div className="flex items-center justify-center gap-2 py-10 text-gray-600 text-lg">
@@ -302,7 +319,7 @@ function PatientList() {
                 Loading Patients...
               </div>
             ) : filteredData.length === 0 ? (
-              <div className="flex gap-3 items-center text-fuchsia-800 justify-center py-10 font-medium text-lg">
+              <div className="flex gap-3 items-center text-fuchsia-800 justify-center py-10 font-medium text-sm">
                 <FaExclamationCircle size={18}/>
                 No patient data found.
               </div>
@@ -332,12 +349,13 @@ function PatientList() {
                     <td className="px-4 py-3">{formatDate(item.createdAt)}</td>
                     <td className="px-4 py-3">{item.personal?.contact}</td>
                     <td className="px-4 py-3">
-                      <button 
-                        className="text-gray-600 hover:text-gray-900 cursor-pointer"
-                        onClick={()=> {navigate(`/patient-profile/${item.patientId}`); window.scrollTo(0, 0) }}
-                      >
-                        <FaEye size={20} />
-                      </button>
+                          <button 
+                            className="text-gray-600 hover:text-gray-900 cursor-pointer"
+                            onClick={()=> {navigate(`/patient-profile/${item.patientId}`); window.scrollTo(0, 0) }}
+                          >
+                            <FaEye size={20} />
+                          </button>
+                        
                     </td>
 
                   </tr>
@@ -345,16 +363,13 @@ function PatientList() {
               }
             </tbody>
 
-          </table>
+            </table>
           )
-          }
-
-          
+          }  
 
         </div>
 
-        {/* Bottom of the table */}
-
+        {/* table bottom */}
         <div className="flex justify-between items-center mt-4">
 
           <div className="text-gray-600 text-sm">
@@ -384,8 +399,8 @@ function PatientList() {
           </div>
 
         </div>
-      </div>
 
+      </div>
       
     </div>
   )

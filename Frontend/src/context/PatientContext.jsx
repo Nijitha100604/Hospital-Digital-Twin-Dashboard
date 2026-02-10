@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import { createContext } from "react";
 import { AppContext } from "./AppContext";
 import { toast } from "react-toastify";
@@ -11,14 +11,17 @@ const PatientContextProvider = (props) =>{
 
     const {token, backendUrl} = useContext(AppContext);
     const [patients, setPatients] = useState([]);
+    const [appointments, setAppointments] = useState([]);
+    const [consultations, setConsultations] = useState([]);
+
+    // loading states
+    const [addPatientLoading, setAddPatientLoading] = useState(false);
     const [patientLoading, setPatientLoading] = useState(false);
     const [appLoading, setAppLoading] = useState(false);
-    const [appointments, setAppointments] = useState([]);
     const [conLoading, setConLoading] = useState(false);
-    const [consultations, setConsultations] = useState([]);
     
-
-    const fetchPatients = async() =>{
+    // get all patients
+    const fetchPatients = useCallback(async() =>{
 
         if(!token) return;
         setPatientLoading(true);
@@ -40,9 +43,42 @@ const PatientContextProvider = (props) =>{
         } finally{
             setPatientLoading(false);
         }
+    }, [token, backendUrl])
+
+    // add new patient
+    const addNewPatient = async(formData) =>{
+        if(!token) return;
+
+        setAddPatientLoading(true);
+        try{
+
+            const {data} = await axios.post(
+                `${backendUrl}/api/patient/add-patient`,
+                formData,
+                {
+                    headers: {token, "Content-Type": "multipart/form-data"}
+                }
+            );
+            if(data.success){
+                toast.success(data.message, {autoClose:2000})
+                await fetchPatients();
+                return true;
+            } else{
+                toast.error(data.message);
+                return false;
+            }
+
+        } catch(error){
+            console.log(error);
+            toast.error("Internal Server Error");
+            return false;
+        } finally{
+            setAddPatientLoading(false);
+        }
     }
 
-    const fetchAppointments = async() =>{
+    // get all appointments
+    const fetchAppointments = useCallback(async() =>{
 
         if(!token) return;
         setAppLoading(true);
@@ -63,9 +99,10 @@ const PatientContextProvider = (props) =>{
             setAppLoading(false);
         }
 
-    }
+    }, [token, backendUrl])
 
-    const fetchConsultations = async() =>{
+    // get all consultations
+    const fetchConsultations = useCallback(async() =>{
 
         if(!token) return;
         setConLoading(true);
@@ -86,31 +123,13 @@ const PatientContextProvider = (props) =>{
             setConLoading(false);
         }
 
-    }
-
-    
-    useEffect(()=>{
-        if(token){
-            fetchPatients();
-            fetchAppointments();
-            fetchConsultations();
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token]);
+    }, [token, backendUrl])
 
     const value = {
-        patients,
-        patientLoading,
-        fetchPatients,
-        setPatients,
-        appointments,
-        fetchAppointments,
-        setAppointments,
-        appLoading,
-        conLoading,
-        consultations,
-        setConsultations,
-        fetchConsultations
+        patients, patientLoading, fetchPatients,
+        appointments, fetchAppointments, appLoading,
+        conLoading, consultations, fetchConsultations,
+        addNewPatient, addPatientLoading
     }
 
     return (

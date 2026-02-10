@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createContext } from "react";
 import { isTokenValid } from "../utils/auth.js";
 import { jwtDecode } from "jwt-decode";
@@ -11,12 +11,12 @@ export const AppContext = createContext();
 const AppContextProvider = (props) =>{
 
     const storedToken = localStorage.getItem('token');
-
     const [token, setToken] = useState(storedToken && isTokenValid(storedToken) ? storedToken : "");
     const [userData, setUserData] = useState(null);
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-    const fetchUserProfile = async(passedToken) =>{
+    // Get staff profile
+    const fetchUserProfile = useCallback(async(passedToken) =>{
         const authToken = passedToken || token;
         if(!authToken) return;
         try{
@@ -32,7 +32,7 @@ const AppContextProvider = (props) =>{
             toast.error("Internal Server Error");
         }
 
-    }
+    }, [token, backendUrl])
 
     useEffect(() => {
         if (!token) return;
