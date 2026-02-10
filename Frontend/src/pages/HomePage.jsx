@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FaUserInjured, 
@@ -28,8 +28,7 @@ const HomePage = ({ setActiveCategory }) => {
     if(token){
       fetchUserProfile(token)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token])
+  }, [token, fetchUserProfile])
 
   // Quick Access Modules Configuration 
   const quickLinks = [
@@ -41,7 +40,7 @@ const HomePage = ({ setActiveCategory }) => {
       bg: "bg-purple-600",
       route: "/patient-list",
       category: "PATIENT SERVICE",
-      roles: ["Admin", "Doctor", "Nurse", "Reception Incharge"]
+      roles: ["Admin", "Doctor", "Nurse", "Receptionist"]
     },
     {
       id: 2,
@@ -61,7 +60,7 @@ const HomePage = ({ setActiveCategory }) => {
       bg: "bg-green-600",
       route: "/departments-list",
       category: "INFRASTRUCTURE",
-      roles: ["Admin", "Nurse", "Reception Incharge"]
+      roles: ["Admin", "Nurse", "Receptionist", "Techician", "Doctor", "Support", "Pharmacist"]
     },
     {
       id: 4,
@@ -71,7 +70,7 @@ const HomePage = ({ setActiveCategory }) => {
       bg: "bg-orange-600",
       route: "/equipment-list",
       category: "EQUIPMENT",
-      roles: ["Admin", "Inventory Incharge"]
+      roles: ["Admin", "Pharmacist"]
     },
     {
       id: 5,
@@ -81,7 +80,7 @@ const HomePage = ({ setActiveCategory }) => {
       bg: "bg-teal-600",
       route: "/medicine-stocks",
       category: "INVENTORY",
-      roles: ["Admin", "Inventory Incharge", "Lab Tech"]
+      roles: ["Admin", "Pharmacist", "Technician"]
     },
     {
       id: 6,
@@ -91,7 +90,7 @@ const HomePage = ({ setActiveCategory }) => {
       bg: "bg-indigo-600",
       route: "/staff-list",
       category: "WORKFORCE",
-      roles: ["Admin"]
+      roles: ["Admin", "Support", "Pharmacist", "Technician", "Nurse", "Doctor", "Receptionist"]
     },
     {
       id: 7,
@@ -101,7 +100,7 @@ const HomePage = ({ setActiveCategory }) => {
       bg: "bg-pink-600",
       route: "/lab-reports-list",
       category: "LABORATORY",
-      roles: ["Admin", "Doctor", "Lab Tech"]
+      roles: ["Admin", "Doctor", "Technician"]
     },
     {
       id: 8,
@@ -111,9 +110,30 @@ const HomePage = ({ setActiveCategory }) => {
       bg: "bg-yellow-500",
       route: "/all-appointments",
       category: "PATIENT SERVICE",
-      roles: ["Admin", "Doctor", "Reception Incharge"]
+      roles: ["Admin", "Doctor", "Receptionist"]
     }
   ];
+
+  const getInitials = (fullName) => {
+  if (!fullName) return "";
+
+  const titles = ["dr", "mr", "mrs", "ms", "miss", "prof"];
+
+  const nameParts = fullName
+    .replace(/\./g, "")
+    .split(" ")
+    .filter(word => !titles.includes(word.toLowerCase()));
+
+  if (nameParts.length === 0) return "";
+
+  if (nameParts.length === 1) {
+    return nameParts[0][0].toUpperCase();
+  }
+
+  return (
+    nameParts[0][0] + nameParts[1][0]
+  ).toUpperCase();
+};
 
   // Navigation Handler 
   const handleNavigation = (route, category) => {
@@ -139,7 +159,7 @@ const HomePage = ({ setActiveCategory }) => {
         </div>
         
         <div className="w-16 h-16 rounded-full border-4 border-fuchsia-800 flex items-center justify-center bg-white text-fuchsia-900 text-xl font-bold shadow-md">
-          HW
+          {getInitials(userData?.fullName)}
         </div>
       </div>
 

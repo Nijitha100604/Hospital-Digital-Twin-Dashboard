@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useContext } from 'react';
 import { 
   FaPlusSquare,
@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import { DeptContext } from '../../context/DeptContext';
 import { StaffContext } from './../../context/StaffContext';
 import { AppContext } from '../../context/AppContext';
+import AccessDenied from '../../components/AccessDenied';
 
 function AddDepartment() {
 
@@ -40,8 +41,10 @@ function AddDepartment() {
   const [selectedHod, setSelectedHod] = useState("");
 
   const { addDepartment } = useContext(DeptContext);
-  const { token } = useContext(AppContext);
+  const { token, userData } = useContext(AppContext);
   const { staffs, fetchStaffs } = useContext(StaffContext);
+
+  const role = userData?.designation;
 
   const handleSubmit = async(e) =>{
     e.preventDefault();
@@ -104,8 +107,11 @@ function AddDepartment() {
     if(token){
       fetchStaffs();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, fetchStaffs]);
+
+  if( role !== "Admin" ){
+    return <AccessDenied />
+  }
 
   return (
     <>

@@ -160,6 +160,7 @@ const PatientContextProvider = (props) =>{
         }
     }
 
+    // update patient vitals
     const updatePatientVitals = async(updatedData) =>{
         if(!token) return;
 
@@ -208,12 +209,139 @@ const PatientContextProvider = (props) =>{
 
     }, [token, backendUrl])
 
+    // save remarks and diagnosis
+    const saveRemarksAndDiagnosis = async(diagnosisData) =>{
+        if(!token) return;
+        try {
+            
+            const {data} = await axios.post(
+                `${backendUrl}/api/consultation/add-diagnosis-remarks`,
+                diagnosisData,
+                { headers: {token} }
+            );
+            if(data.success){
+                toast.success(data.message, {autoClose: 2000});
+                await fetchConsultations();
+                return true;
+            } else{
+                toast.error(data.message);
+                return false;
+            }
+
+        } catch (error) {
+            console.log(error);
+            toast.error("Internal Server Error");
+            return false;
+        }
+    }
+
+    // save prescriptions
+    const savePrescriptions = async(presData) =>{
+        if(!token) return;
+        try {
+           const {data} = await axios.post(
+            `${backendUrl}/api/consultation/add-prescriptions`,
+            presData,
+            {headers : {token}}
+           );
+           if(data.success){
+            toast.success(data.message, {autoClose: 2000});
+            await fetchConsultations();
+            return true;
+           } else{
+            toast.error(data.message);
+            return false;
+           }
+        } catch (error) {
+            console.log(error);
+            toast.error("Internal Server Error");
+            return false;
+        }
+    }
+
+    // save lab Reports
+    const saveLabReports = async(labData) =>{
+        if(!token) return;
+        try {
+            const {data} = await axios.post(
+                `${backendUrl}/api/consultation/add-labReports`,
+                labData,
+                {headers: {token}}
+            );
+            if(data.success){
+                toast.success(data.message, {autoClose: 2000});
+                await fetchConsultations();
+                return true;
+            } else{
+                toast.error(data.message);
+                return false;
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error("Internal Server Error");
+            return false;
+        }
+    }
+
+    // update appointment action
+    const updateAppointmentAction = async(statusData) =>{
+        if(!token) return;
+
+        try{
+        const {data} = await axios.put(
+            `${backendUrl}/api/appointment/update-status`,
+            statusData,
+            {headers: {token}}
+        )
+        if(data.success){
+            toast.success(data.message, {autoClose: 2000});
+            await fetchConsultations();
+            return true;
+        } else{
+            toast.error(data.message);
+            return false;
+        }
+        } catch(error){
+            console.log(error);
+            toast.error("Internal Server Error");
+            return false;
+        }
+    }
+
+    // request admission
+    const requestAddmission = async(requestData) =>{
+        if(!token) return;
+
+        try{
+
+            const {data} = await axios.post(
+                `${backendUrl}/api/consultation/request-admission`,
+                requestData,
+                {headers: {token}}
+            );
+            if(data.success){
+                toast.success("Admission requested successfully");
+                await fetchConsultations();
+                return true;
+            } else{
+                toast.error(data.message);
+                return false;
+            }
+
+        } catch(error){
+            console.log(error);
+            toast.error("Internal Server Error");
+            return false;
+        }
+    }
+
     const value = {
         patients, patientLoading, fetchPatients,
         appointments, fetchAppointments, appLoading, bookNewAppointment, bookAppLoading,
         conLoading, consultations, fetchConsultations,
         addNewPatient, addPatientLoading,
-        savePatientVitals, updatePatientVitals
+        savePatientVitals, updatePatientVitals,
+        saveRemarksAndDiagnosis, savePrescriptions, saveLabReports, updateAppointmentAction, requestAddmission
     }
 
     return (

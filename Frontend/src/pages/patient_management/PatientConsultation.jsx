@@ -8,6 +8,7 @@ import axios from 'axios';
 import { LabContext } from '../../context/LabContext';
 import { MedicineContext } from './../../context/MedicineContext';
 import { formatDate } from './../../utils/formatDate';
+import AccessDenied from '../../components/AccessDenied';
 
 function PatientConsultation() {
 
@@ -27,15 +28,15 @@ function PatientConsultation() {
     const [selectedMedicine, setSelectedMedicine] = useState(null);
     const [showDropdown, setShowDropdown] = useState(false);
     const [bedType, setBedType] = useState("");
-    const [email, setEmail] = useState("");
-    const [link, setLink] = useState("");
 
-    const { fetchPatients, consultations, fetchConsultations } = useContext(PatientContext);
+    const { fetchPatients, consultations, fetchConsultations, saveRemarksAndDiagnosis, savePrescriptions, saveLabReports, updateAppointmentAction, requestAddmission } = useContext(PatientContext);
     const { fetchMedicines, medicines } = useContext(MedicineContext);
-    const { token, backendUrl } = useContext(AppContext);
+    const { token, backendUrl, userData } = useContext(AppContext);
     const { fetchLabReports, reports } = useContext(LabContext);
     const [ patient, setPatient ] = useState({});
     const [ appointment, setAppointment ] = useState({});
+
+    const role = userData?.designation;
 
     const patientDetails = async(id) =>{
 
@@ -78,24 +79,16 @@ function PatientConsultation() {
         return;
       }
 
-      try{
-        const {data} = await axios.post(`${backendUrl}/api/consultation/add-diagnosis-remarks`, { 
-          appointmentId : consultation?.appointmentId,
-          diagnosis,
-          remarks: doctorRemarks 
-        }, {headers: {token}});
+      const diagnosisData = {
+        appointmentId : consultation?.appointmentId,
+        diagnosis,
+        remarks: doctorRemarks
+      }
 
-        if(data.success){
-          toast.success(data.message, {autoClose: 2000});
-          await fetchConsultations();
-          setDiagnosis("");
-          setDoctorRemarks("");
-        } else{
-          toast.error(data.message);
-        }
-      } catch(error){
-        console.log(error);
-        toast.error("Internal Server Error");
+      const result = await saveRemarksAndDiagnosis(diagnosisData);
+      if(result){
+        setDiagnosis("");
+        setDoctorRemarks("");
       }
 
     }
@@ -149,24 +142,14 @@ function PatientConsultation() {
         return;
       }
 
-      try{
+      const presData = {
+        appointmentId: consultation?.appointmentId,
+        prescriptions: prescriptionsList
+      }
 
-        const {data} = await axios.post(`${backendUrl}/api/consultation/add-prescriptions`, {
-          appointmentId: consultation?.appointmentId,
-          prescriptions: prescriptionsList
-        }, {headers: {token}});
-
-        if(data.success){
-          toast.success(data.message, {autoClose: 2000});
-          await fetchConsultations();
-          setPrescriptionsList([]);
-        } else{
-          toast.error(data.message);
-        }
-
-      } catch(error){
-        console.log(error);
-        toast.error("Internal Server Error");
+      const result = await savePrescriptions(presData);
+      if(result){
+        setPrescriptionsList([]);
       }
 
     };
@@ -194,29 +177,20 @@ function PatientConsultation() {
         toast.error("Add at least one lab test");
         return;
       }
-      try{
 
-        const {data} = await axios.post(`${backendUrl}/api/consultation/add-labReports`,{
-          appointmentId: consultation.appointmentId,
-          consultationId: consultation.consultationId,
-          patientId: consultation.patientId,
-          labTests: newLabReports.map(test => ({
-            testName: test.testName
-          }))
-        }, {headers: {token}})
+      const labData = {
+        appointmentId: consultation.appointmentId,
+        consultationId: consultation.consultationId,
+        patientId: consultation.patientId,
+        labTests: newLabReports.map(test => ({
+          testName: test.testName
+        }))
+      }
 
-        if(data.success){
-          toast.success(data.message, {autoClose: 2000});
-          setNewLabReports([]);
-          await fetchConsultations();
-          await fetchLabReports();
-        } else {
-          toast.error(data.message);
-        }
-
-      } catch(error){
-        console.log(error);
-        toast.error("Internal Server Error");
+      const result = await saveLabReports(labData);
+      if(result){
+        setNewLabReports([]);
+        await fetchLabReports();
       }
 
     };
@@ -241,38 +215,29 @@ function PatientConsultation() {
 
     const handleAppointmentAction = async(status) =>{
 
-      try{
+      if(status !== "In Progress" && status !== "Completed"){
+        toast.error("Invalid action");
+        return;
+      }
 
-        if(status !== "In Progress" && status !== "Completed"){
-          toast.error("Invalid action");
-          return;
-        }
-
-        if(status === "Completed" && 
-          (
-            !consultation?.doctor?.diagnosis?.trim() ||
-            !consultation?.doctor?.remarks?.trim() ||
-            !consultation?.prescriptions || consultation.prescriptions.length === 0
-          )){
+      if(status === "Completed" && 
+        (
+          !consultation?.doctor?.diagnosis?.trim() ||
+          !consultation?.doctor?.remarks?.trim() ||
+          !consultation?.prescriptions || consultation.prescriptions.length === 0
+        )){
           toast.error("Enter the diagnosis, remarks and prescriptions before completing the status");
           return;
         }
 
-        const {data} = await axios.put(`${backendUrl}/api/appointment/update-status`, {
-          appointmentId: consultation?.appointmentId,
-          status
-        }, {headers: {token}});
+      const statusData = {
+        appointmentId: consultation?.appointmentId,
+        status
+      }
 
-        if(data.success){
-          toast.success(data.message, {autoClose: 2000});
-          await fetchConsultations();
-        } else{
-          toast.error(data.message);
-        }
-
-      } catch(error){
-        console.log(error);
-        toast.error("Internal Server Error");
+      const result = await updateAppointmentAction(statusData);
+      if(result){
+        return;
       }
 
     }
@@ -283,30 +248,20 @@ function PatientConsultation() {
         return;
       }
 
-      try {
-        const {data} = await axios.post(`${backendUrl}/api/consultation/request-admission`,{
-          consultationId: consultation.consultationId,
-          appointmentId: consultation.appointmentId,
-          patientId: consultation.patientId,
-          patientName: patient?.personal?.name,
-          doctorId: consultation.doctorId,
-          bedType
-        },
-        {headers: {token}}
-        );
-
-        if(data.success){
-          toast.success("Admission requested successfully");
-          setBedType("");
-          await fetchConsultations();
-        } else{
-          toast.error(data.message);
-        }
-
-      } catch (error) {
-        console.log(error);
-        toast.error("Internal Server Error");
+      const requestData = {
+        consultationId: consultation.consultationId,
+        appointmentId: consultation.appointmentId,
+        patientId: consultation.patientId,
+        patientName: patient?.personal?.name,
+        doctorId: consultation.doctorId,
+        bedType
       }
+
+      const result = await requestAddmission(requestData);
+      if(result){
+        setBedType("");
+      }
+      
     }
 
     const checkBP = (value) =>{
@@ -317,13 +272,6 @@ function PatientConsultation() {
 
     const checkHR = (value) => {
       return value >= 60 && value <= 100;
-    }
-
-    const assignConsultation = () => {
-      if(!email || !link){
-        toast.error("Required Email and Meet link to assign consultation");
-        return;
-      }
     }
 
     const reportStatusMap = reports?.reduce((acc, report) => {
@@ -372,7 +320,6 @@ function PatientConsultation() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [consultation, reports])
 
-
     const getStatusClass = (status) =>{
     switch(status?.toLowerCase()){
       case "completed":
@@ -384,6 +331,10 @@ function PatientConsultation() {
       default:
         return "bg-white"
       }
+    }
+
+    if( role === "Nurse" || role === "Support" || role === "Pharmacist" || role === "Technician" || role === "Receptionist" ){
+      return <AccessDenied />
     }
 
   return consultation ? (
@@ -527,48 +478,6 @@ function PatientConsultation() {
       </div>
 
     </div>
-
-    {/* online meet */}
-    {appointment?.consultationType === "Online" && (
-    
-    <div className="px-3 py-2 w-full rounded-lg bg-white border border-gray-300 mt-5">
-
-      <p className="text-sm font-medium text-gray-600 mb-3 mt-2">Online Consultation</p>
-
-      <div className="flex flex-wrap gap-3 px-3">
-        {/* Email */}
-        <div className="flex-1 min-w-50">
-          <label className="text-sm font-medium text-gray-800">Patient Email <span className="text-red-600">*</span></label>
-          <input 
-            value={email}
-            type="email"
-            placeholder="Enter patient Email ID"
-            onChange={(e)=>setEmail(e.target.value)}
-            className="w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
-          />
-        </div>
-
-        {/* Meet Link */}
-        <div className="flex-1 min-w-50">
-          <label className="text-sm font-medium text-gray-800">Meet Link <span className="text-red-600">*</span></label>
-          <input 
-            value={link}
-            type="link"
-            placeholder="Enter Meet Link"
-            onChange={(e)=>setLink(e.target.value)}
-            className="w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
-          />
-        </div>
-      </div>
-
-      <button 
-        onClick={assignConsultation}
-        className="mt-4 mb-3 px-4 py-2 flex items-center gap-2 cursor-pointer bg-fuchsia-800 hover:bg-fuchsia-700 text-white text-sm font-medium rounded-lg transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
-      >
-        Send Mail
-      </button>
-  </div>
-)}
 
     {/* Add Diagnosis and Add Remarks */}
     <div className="w-full bg-white px-3 py-3 mt-4 rounded-lg border border-gray-300">

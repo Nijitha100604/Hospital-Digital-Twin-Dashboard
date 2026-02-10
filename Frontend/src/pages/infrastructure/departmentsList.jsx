@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { 
   FaEye,
@@ -22,7 +22,8 @@ function DepartmentsList() {
 
   const navigate = useNavigate(); 
   const { departments, fetchDepartments, loading } = useContext(DeptContext);
-  const { token } = useContext(AppContext);
+  const { token, userData } = useContext(AppContext);
+  const role = userData?.designation;
 
   const totalDept = departments?.length;
   const activeDept = departments?.filter(
@@ -35,10 +36,10 @@ function DepartmentsList() {
     item => item.deptType === "Laboratory"
   ).length;
 
-
   // Filters
   const [openFilter, setOpenFilter] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const filterRef = useRef(null);
   const [filters, setFilters] = useState({
     status: null,
     floor: null
@@ -74,14 +75,30 @@ function DepartmentsList() {
     startIndex,
     startIndex + records_per_page
   );
-  const totalPages = Math.ceil(filteredData.length / records_per_page);
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / records_per_page));
+
+  useEffect(() => {
+
+    const handleClickOutside = (event) => {
+      if (!openFilter) return;
+
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setOpenFilter(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+
+  }, [openFilter]);
   
   useEffect(()=>{
     if(token){
       fetchDepartments();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token])
+  }, [token, fetchDepartments])
 
 
   if(loading){
@@ -116,13 +133,18 @@ function DepartmentsList() {
         <p className="text-gray-500 text-sm">Complete list of hospital departments and their status</p>
       </div>
 
-      <button 
-        className="flex gap-2 items-center text-white bg-fuchsia-800 px-3 py-3 cursor-pointer rounded-xl leading-none shadow-sm shadow-fuchsia-600 
-        transition-all duration-300 ease-in-out hover:bg-fuchsia-900 hover:scale-105 active:scale-95"
-        onClick={()=>navigate("/add-department")}
-      >
-        <FaPlus size={16} />Add Department
-      </button>
+      {
+        role === "Admin" && (
+          <button 
+            className="flex gap-2 items-center text-white bg-fuchsia-800 px-3 py-3 cursor-pointer rounded-xl leading-none shadow-sm shadow-fuchsia-600 
+            transition-all duration-300 ease-in-out hover:bg-fuchsia-900 hover:scale-105 active:scale-95"
+            onClick={()=>navigate("/add-department")}
+          >
+            <FaPlus size={16} />Add Department
+          </button>
+        )
+      }
+      
 
     </div>
 
@@ -195,7 +217,7 @@ function DepartmentsList() {
       </div>
               
       {/* Filters */}
-      <div className = "flex gap-3">
+      <div ref={filterRef} className = "flex gap-3">
            
         {/* Floor Filter */}
         <div className="relative">

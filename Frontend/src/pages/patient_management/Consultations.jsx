@@ -29,15 +29,20 @@ function Consultations() {
   const {token, userData} = useContext(AppContext);
 
   const role = userData?.designation;
+  const staffId = userData?.staffId;
 
-  const totalAppointments = appointments?.length;
-  const completed = appointments?.filter(
+  const roleBasedAppointments = role === "Doctor"
+  ? appointments?.filter(item => item?.doctorId === staffId) || []
+  : appointments || [];
+
+  const totalAppointments = roleBasedAppointments?.length;
+  const completed = roleBasedAppointments?.filter(
     item => item?.status === "Completed"
   ).length;
-  const inProgress = appointments?.filter(
+  const inProgress = roleBasedAppointments?.filter(
     item => item?.status === "In Progress"
   ).length;
-  const scheduled = appointments?.filter(
+  const scheduled = roleBasedAppointments?.filter(
     item => item?.status === "Scheduled"
   ).length;
 
@@ -63,7 +68,7 @@ function Consultations() {
     setOpenFilter(null)
   }
 
-  const filteredData = appointments?.filter((item)=>{
+  const filteredData = roleBasedAppointments?.filter((item)=>{
           
     const searchMatch = searchTerm.trim() === "" || item?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || item.patientId?.toLowerCase().includes(searchTerm.toLowerCase());
     const statusMatch = !filters.status || item?.status === filters.status;

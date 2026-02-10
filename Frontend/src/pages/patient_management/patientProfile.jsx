@@ -20,6 +20,7 @@ import { useState } from 'react';
 import { StaffContext } from './../../context/StaffContext';
 import { LabContext } from './../../context/LabContext';
 import { formatDate } from '../../utils/formatDate';
+import AccessDenied from '../../components/AccessDenied';
 
 function PatientProfile() {
 
@@ -29,10 +30,12 @@ function PatientProfile() {
   const {patients, fetchPatients, consultations, fetchConsultations, appointments, fetchAppointments} = useContext(PatientContext);
   const {staffs, fetchStaffs} = useContext(StaffContext);
   const {reports, fetchLabReports} = useContext(LabContext);
-  const {token} = useContext(AppContext);
+  const {token, userData} = useContext(AppContext);
   const [patient, setPatient] = useState({});
   const [consultation, setConsultation] = useState([]);
   const [vitals, setVitals] = useState(null);
+
+  const role = userData?.designation;
 
   const getPatient = () =>{
     const found = patients.find(p => p.patientId === id) || {};
@@ -172,6 +175,10 @@ function PatientProfile() {
     if (consultations.length && id) getPatientConsultations();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [consultations, id])
+
+  if( role === "Support" || role === "Pharmacist" || role === "Technician" ){
+    return <AccessDenied />
+  }
 
   return (
     <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
@@ -515,7 +522,7 @@ function PatientProfile() {
                   className="inline-flex items-center text-sm font-medium bg-blue-300 px-3 py-1 rounded-lg cursor-pointer transition-all duration-300 ease-in-out
                           hover:bg-blue-400 hover:scale-105
                           active:scale-95"
-                  onClick={()=>{navigate(`/lab-reports-list/${item.labReportId}`); window.scroll(0,0)}}
+                  onClick={()=>{navigate(`/patient-wise-reports/${item.labReportId}`); window.scroll(0,0)}}
                   >View</button>
                 }
                 

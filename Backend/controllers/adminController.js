@@ -4,7 +4,6 @@ import staffModel from './../models/staffModel.js';
 import bcrypt from 'bcrypt';
 
 // API for login
-
 const login = async(req, res) =>{
     try{
         const {email, password} = req.body;
@@ -46,7 +45,6 @@ const login = async(req, res) =>{
 }
 
 // staff profile
- 
 const staffProfile = async(req, res) => {
     try {
        const staff = await staffModel.findById(req.user.id).select("-password");

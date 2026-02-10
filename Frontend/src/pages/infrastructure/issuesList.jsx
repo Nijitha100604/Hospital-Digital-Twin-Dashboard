@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState, useRef } from 'react'
 import { 
   FaExclamationCircle, 
   FaPlus,
@@ -25,20 +25,27 @@ function IssuesList() {
 
   const navigate = useNavigate();
 
-  const { token } = useContext(AppContext);
+  const { token, userData } = useContext(AppContext);
   const { fetchIssues, issues, issueLoading, updateIssueStatus } = useContext(DeptContext);
 
-  const totalIssues = issues?.length;
-  const completed = issues?.filter(
+  const role = userData?.designation;
+  const staffId = userData?.staffId;
+
+  const roleBasedIssues = role !== "Admin"
+  ? issues?.filter(item => item?.reporterId === staffId) || []
+  : issues || [];
+
+  const totalIssues = roleBasedIssues ?.length;
+  const completed = roleBasedIssues ?.filter(
     item => item.status === "Resolved"
   ).length;
-  const pending = issues?.filter(
+  const pending = roleBasedIssues ?.filter(
     item => item.status === "Pending"
   ).length;
-  const inProgress = issues?.filter(
+  const inProgress = roleBasedIssues ?.filter(
     item => item.status === "In Progress"
   ).length;
-  const onHold = issues?.filter(
+  const onHold = roleBasedIssues ?.filter(
     item => item.status === "On Hold"
   ).length;
 
@@ -47,6 +54,7 @@ function IssuesList() {
   const [searchTerm, setSearchTerm] = useState("");
   const records_per_page = 10;
   const [currentPage, setCurrentPage] = useState(1);
+  const filterRef = useRef(null);
   const [filters, setFilters] = useState({
       status: null,
       priority: null
@@ -64,7 +72,7 @@ function IssuesList() {
     setOpenFilter(null)
   }
 
-  const filteredData = issues?.filter((item)=>{
+  const filteredData = roleBasedIssues ?.filter((item)=>{
               
     const searchMatch = searchTerm.trim() === "" || item.issueType?.toLowerCase().includes(searchTerm.toLowerCase());
     const statusMatch = !filters.status || item.status === filters.status;
@@ -134,14 +142,30 @@ function IssuesList() {
     }
   };
 
+  useEffect(() => {
+
+    const handleClickOutside = (event) => {
+      if (!openFilter) return;
+
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setOpenFilter(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+
+  }, [openFilter]);
+
   useEffect(()=>{
 
     if(token){
       fetchIssues();
     }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token])
+  }, [token, fetchIssues])
 
   if(issueLoading){
     return(
@@ -265,7 +289,7 @@ function IssuesList() {
     </div>
 
     {/* Filters */}
-    <div className = "flex gap-3">
+    <div ref={filterRef} className = "flex gap-3">
                
       {/* Status Filter */}
       <div className="relative">
@@ -367,7 +391,24 @@ function IssuesList() {
 
     </div>
 
+    {!issueLoading && paginatedData.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-75 gap-4 text-center">
+            <div className="bg-gray-200 p-4 rounded-full">
+              <FaCalendarTimes className="text-gray-600 text-3xl" />
+            </div>
+            <p className="text-gray-800 text-lg font-semibold">
+              No consultations found
+            </p>
+            <p className="text-gray-500 text-sm max-w-sm">
+              There are currently no consultations available.  
+            </p>
+        
+          </div>
+    )}
+
     {/* Content */}
+    {
+      !issueLoading && paginatedData.length > 0 && ( 
     <div className="mt-4 w-full px-2 flex flex-col gap-3">
       {
         paginatedData.map((item,index)=>(
@@ -419,9 +460,9 @@ function IssuesList() {
                   <p className="text-sm font-medium text-gray-700">{item?.description}</p>
                 </div>
 
-                
+
                 {
-                  item.status !== "Resolved" && (
+                  role === "Admin" && item.status !== "Resolved" && (
                     <div className="relative">
                     <button
                       onClick={() =>
@@ -451,7 +492,7 @@ function IssuesList() {
                     ))}
                     </div>
                 )}
-    </div>
+                    </div>
                   )
                 }
 
@@ -462,7 +503,8 @@ function IssuesList() {
         ))
       }
     </div>
-
+     )
+    }
 
     {/* Bottom */}
     <div className="flex justify-between items-center mt-4">
