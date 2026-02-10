@@ -27,14 +27,17 @@ import {
   FaCheckCircle,
   FaSpinner,
   FaPauseCircle,
-  FaMoneyBillWave
+  FaMoneyBillWave,
+  FaArrowLeft,
+  FaArrowRight
 } from "react-icons/fa";
+import { AppContext } from "../../context/AppContext";
 
 const MaintenanceLog = () => {
-  // 2. Consume Contexts
-  const { maintenanceLogs, fetchMaintenanceLogs, addMaintenanceLog, updateMaintenanceLog, loading } = useContext(EquipmentContext);
-  const { equipments } = useContext(EquipmentContext);
+
+  const {maintenanceLogs, fetchMaintenanceLogs, addMaintenanceLog, updateMaintenanceLog, loading, equipments } = useContext(EquipmentContext);
   const { staffs } = useContext(StaffContext);
+  const {userData} = useContext(AppContext)
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -42,6 +45,10 @@ const MaintenanceLog = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLog, setEditingLog] = useState(null); 
   const [viewReportLog, setViewReportLog] = useState(null); 
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Fetch data on mount
   useEffect(() => {
@@ -62,9 +69,22 @@ const MaintenanceLog = () => {
     });
   }, [search, statusFilter, maintenanceLogs]);
 
-  // --- Summary Statistics Logic (Updated) ---
+  // --- Pagination Logic ---
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentLogs = filteredLogs.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handleNextPage = () => { if (currentPage < totalPages) setCurrentPage(prev => prev + 1); };
+  const handlePrevPage = () => { if (currentPage > 1) setCurrentPage(prev => prev - 1); };
+
+  // Reset pagination when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
+
+  // --- Summary Statistics Logic ---
   const totalEntries = maintenanceLogs.length;
-  
   const completedCount = maintenanceLogs.filter(l => l.status === "Completed").length;
   const inProgressCount = maintenanceLogs.filter(l => l.status === "In Progress").length;
   const pendingCount = maintenanceLogs.filter(l => l.status === "Pending Parts").length;
@@ -82,7 +102,6 @@ const MaintenanceLog = () => {
 
   const handleSaveLog = async (formData) => {
     let success = false;
-    
     if (editingLog) {
        if(updateMaintenanceLog) {
            success = await updateMaintenanceLog(formData.logId, formData);
@@ -99,7 +118,7 @@ const MaintenanceLog = () => {
     }
   };
 
-  // --- Helper for Status Colors ---
+  // --- Helper Functions ---
   const getStatusColor = (status) => {
     switch(status) {
       case "Completed": return "bg-green-100 text-green-700 border-green-200";
@@ -109,7 +128,6 @@ const MaintenanceLog = () => {
     }
   };
 
-  // --- Helper to get Staff ID ---
   const getTechnicianDisplay = (name) => {
     const staff = staffs.find(s => s.fullName === name);
     return staff ? `${name} (${staff.staffId})` : name;
@@ -131,16 +149,16 @@ const MaintenanceLog = () => {
         </div>
 
         <div className="w-full md:w-auto">
-          <button
+          {userData && (userData?.designation==='Technician' || userData?.designation ==='Admin') && (<button
             onClick={handleAddClick}
             className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
           >
             <FaPlus /> Add Entry
-          </button>
+          </button>)}
         </div>
       </div>
 
-      {/* Summary Cards (Updated) */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <SummaryCard 
           title="Total Entries" 
@@ -200,101 +218,132 @@ const MaintenanceLog = () => {
 
       {/* Log List */}
       <div className="space-y-4">
-        {filteredLogs.map((log) => (
-          <div key={log.logId} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-shadow">
-            
-            {/* Row 1: Header Info */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
-              <div className="flex items-center gap-3">
-                <h3 className="font-bold text-gray-800 text-lg">{log.equipmentName}</h3>
-                <span className="px-2 py-0.5 bg-fuchsia-100 text-fuchsia-700 text-xs font-bold rounded uppercase tracking-wide">
-                  {log.logId}
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(log.status)}`}>
-                  {log.status}
-                </span>
+        {currentLogs.length > 0 ? (
+            currentLogs.map((log) => (
+            <div key={log.logId} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-shadow">
                 
-                {/* Update Button */}
-                <button 
-                  onClick={() => handleEditClick(log)}
-                  className="flex cursor-pointer items-center gap-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-lg transition-colors border border-blue-200"
-                >
-                  <FaEdit /> Update
-                </button>
-
-                {/* View Report Button */}
-                <button 
-                  onClick={() => setViewReportLog(log)}
-                  className="flex cursor-pointer items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors border border-gray-200"
-                >
-                  <FaFileAlt /> Report
-                </button>
-              </div>
-            </div>
-
-            {/* Row 2: ID & Date */}
-            <div className="text-xs text-gray-500 font-medium mb-6 flex gap-4">
-              <span>ID: {log.equipmentId}</span>
-              <span>•</span>
-              <span>{new Date(log.maintenanceDate).toLocaleDateString()}</span>
-            </div>
-
-            {/* Row 3: Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="flex gap-3">
-                <div className="shrink-0 mt-0.5">
-                  <FaExclamationCircle className="text-orange-500" />
+                {/* Row 1: Header Info */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
+                <div className="flex items-center gap-3">
+                    <h3 className="font-bold text-gray-800 text-lg">{log.equipmentName}</h3>
+                    <span className="px-2 py-0.5 bg-fuchsia-100 text-fuchsia-700 text-xs font-bold rounded uppercase tracking-wide">
+                    {log.logId}
+                    </span>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase mb-1">Issue Reported</p>
-                  <p className="text-sm text-gray-700 leading-relaxed">{log.issueReported}</p>
+                <div className="flex items-center gap-3">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(log.status)}`}>
+                    {log.status}
+                    </span>
+                    
+                    {/* Update Button */}
+                    {userData && (userData?.designation==='Technician' || userData?.designation ==='Admin') && (<button 
+                    onClick={() => handleEditClick(log)}
+                    className="flex cursor-pointer items-center gap-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-lg transition-colors border border-blue-200"
+                    >
+                    <FaEdit /> Update
+                    </button>)}
+
+                    {/* View Report Button */}
+                    <button 
+                    onClick={() => setViewReportLog(log)}
+                    className="flex cursor-pointer items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors border border-gray-200"
+                    >
+                    <FaFileAlt /> Report
+                    </button>
                 </div>
-              </div>
-              <div className="flex gap-3">
-                <div className="shrink-0 mt-0.5">
-                  <FaWrench className="text-green-500" />
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase mb-1">Actions Taken</p>
-                  <p className="text-sm text-gray-700 leading-relaxed">{log.actionsTaken}</p>
+
+                {/* Row 2: ID & Date */}
+                <div className="text-xs text-gray-500 font-medium mb-6 flex gap-4">
+                <span>ID: {log.equipmentId}</span>
+                <span>•</span>
+                <span>{new Date(log.maintenanceDate).toLocaleDateString()}</span>
                 </div>
-              </div>
+
+                {/* Row 3: Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="flex gap-3">
+                    <div className="shrink-0 mt-0.5">
+                    <FaExclamationCircle className="text-orange-500" />
+                    </div>
+                    <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase mb-1">Issue Reported</p>
+                    <p className="text-sm text-gray-700 leading-relaxed">{log.issueReported}</p>
+                    </div>
+                </div>
+                <div className="flex gap-3">
+                    <div className="shrink-0 mt-0.5">
+                    <FaWrench className="text-green-500" />
+                    </div>
+                    <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase mb-1">Actions Taken</p>
+                    <p className="text-sm text-gray-700 leading-relaxed">{log.actionsTaken}</p>
+                    </div>
+                </div>
+                </div>
+
+                {/* Row 4: Footer Stats */}
+                <div className="border-t border-gray-100 pt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <FooterStat 
+                    icon={<FaUserCog />} 
+                    label="Technician" 
+                    value={getTechnicianDisplay(log.technicianName)} 
+                />
+                <FooterStat 
+                    icon={<FaClock />} 
+                    label="Duration" 
+                    value={`${log.duration} hours`} 
+                />
+                <FooterStat 
+                    icon={<FaMoneyBillWave />} 
+                    label="Cost" 
+                    value={`₹${Number(log.cost).toLocaleString()}`} 
+                />
+                <FooterStat 
+                    icon={<FaCalendarCheck />} 
+                    label="Next Scheduled" 
+                    value={new Date(log.nextScheduled).toLocaleDateString()} 
+                />
+                </div>
+
             </div>
-
-            {/* Row 4: Footer Stats */}
-            <div className="border-t border-gray-100 pt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-              <FooterStat 
-                icon={<FaUserCog />} 
-                label="Technician" 
-                value={getTechnicianDisplay(log.technicianName)} 
-              />
-              <FooterStat 
-                icon={<FaClock />} 
-                label="Duration" 
-                value={`${log.duration} hours`} 
-              />
-              <FooterStat 
-                icon={<FaMoneyBillWave />} 
-                label="Cost" 
-                value={`₹${Number(log.cost).toLocaleString()}`} 
-              />
-              <FooterStat 
-                icon={<FaCalendarCheck />} 
-                label="Next Scheduled" 
-                value={new Date(log.nextScheduled).toLocaleDateString()} 
-              />
+            ))
+        ) : (
+            <div className="text-center py-12 text-gray-500 bg-white rounded-xl border border-gray-200 border-dashed">
+                No maintenance records found matching your search.
             </div>
-
-          </div>
-        ))}
-
-        {filteredLogs.length === 0 && (
-          <div className="text-center py-12 text-gray-500 bg-white rounded-xl border border-gray-200 border-dashed">
-            No maintenance records found matching your search.
-          </div>
         )}
+      </div>
+
+      {/* Pagination Footer */}
+      <div className="p-6 mt-4 flex flex-col md:flex-row justify-between items-center gap-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+        <p className="text-xs text-gray-500">
+            Showing <span className="font-medium text-gray-800">{currentLogs.length > 0 ? indexOfFirstItem + 1 : 0}</span> to <span className="font-medium text-gray-800">{Math.min(indexOfLastItem, filteredLogs.length)}</span> of <span className="font-medium text-gray-800">{filteredLogs.length}</span> entries
+        </p>
+        <div className="flex gap-2">
+            <button
+            onClick={handlePrevPage}
+            disabled={currentPage === 1}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                currentPage === 1
+                ? "bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed"
+                : "bg-white text-gray-700 border-gray-300 cursor-pointer hover:bg-gray-50"
+            }`}
+            >
+            <FaArrowLeft size={12} /> Previous
+            </button>
+            <button
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages || totalPages === 0}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                currentPage === totalPages || totalPages === 0
+                ? "bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed"
+                : "bg-white text-gray-700 border-gray-300 cursor-pointer hover:bg-gray-50"
+            }`}
+            >
+            Next <FaArrowRight size={12} />
+            </button>
+        </div>
       </div>
 
       {/* MODALS */}
@@ -322,7 +371,7 @@ const MaintenanceLog = () => {
 /* --- Reusable Components --- */
 
 const SummaryCard = ({ title, value, icon, bg, border }) => (
-  <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex justify-between items-center">
+  <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex justify-between items-center hover:shadow-md transition-shadow">
     <div>
       <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
       <p className="text-2xl font-bold text-gray-800">{value}</p>

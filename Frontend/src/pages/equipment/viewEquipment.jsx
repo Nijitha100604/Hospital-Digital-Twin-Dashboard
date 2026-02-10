@@ -20,6 +20,7 @@ import {
   FaFileInvoiceDollar,
   FaTruck,
 } from "react-icons/fa";
+import { AppContext } from "../../context/AppContext";
 
 const ViewEquipmentDetails = () => {
   const { id } = useParams();
@@ -93,6 +94,8 @@ const ViewEquipmentDetails = () => {
     }
   };
 
+  const {userData} = useContext(AppContext)
+
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen">
       {/* Header */}
@@ -123,13 +126,13 @@ const ViewEquipmentDetails = () => {
             Back
           </button>
 
-          <button
+          {userData && (userData?.designation === 'Technician' || userData?.designation === 'Admin') && (<button
             onClick={() => navigate(`/edit-equipment/${equipment.equipmentId}`)}
             className="flex items-center justify-center gap-2 px-5 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto cursor-pointer"
           >
             <FaEdit />
             Edit Details
-          </button>
+          </button>)}
         </div>
       </div>
 
@@ -203,7 +206,9 @@ const ViewEquipmentDetails = () => {
               </div>
 
               <div className="pt-2">
-                <div className="w-full bg-fuchsia-900 text-white text-center py-2 rounded-lg text-sm font-medium shadow-sm">
+                <div 
+                onClick={()=>{navigate('/calibration-schedule-list')}}
+                className="w-full bg-fuchsia-900 cursor-pointer text-white text-center py-2 rounded-lg text-sm font-medium shadow-sm">
                   {basicInfo?.equipmentStatus === "Working"
                     ? "Scheduled Device"
                     : "Check Schedule"}
