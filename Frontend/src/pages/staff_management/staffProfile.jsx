@@ -4,7 +4,8 @@ import {
   FaUserTie, FaEdit, FaArrowLeft, FaSearch, 
   FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaSave, FaTimes, FaSpinner 
 } from "react-icons/fa";
-import { StaffContext } from "../../context/StaffContext"; // Import Context
+import { StaffContext } from "../../context/StaffContext"; 
+import { AppContext } from "../../context/AppContext"; // Need UserData for Role Check
 
 function StaffProfile() {
   const { id } = useParams(); 
@@ -12,13 +13,14 @@ function StaffProfile() {
   
   // --- CONTEXT ---
   const { getStaffById, updateStaff, staffs, fetchStaffs } = useContext(StaffContext);
+  const { userData } = useContext(AppContext); // Get current logged in user role
 
   // --- STATES ---
   const [staff, setStaff] = useState(null);
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   
-  // Search States (For when no ID is present)
+  // Search States
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
 
@@ -29,21 +31,20 @@ function StaffProfile() {
     personal: false     
   });
 
+  // --- CHECK ADMIN ROLE ---
+  const isAdmin = userData?.designation === 'Admin';
+
   // --- 1. INITIAL DATA LOADING ---
   useEffect(() => {
-    // If accessing the Search View (no ID), make sure we have the list
     if (!id && staffs.length === 0) {
       fetchStaffs();
     }
 
-    // If accessing a specific profile (ID exists)
     if (id) {
       const loadData = async () => {
         setLoading(true);
-        // Try finding in existing context first to be fast
         let foundStaff = staffs.find((item) => item.staffId === id);
         
-        // If not found (e.g., direct link refresh), fetch from API
         if (!foundStaff) {
             foundStaff = await getStaffById(id);
         }
@@ -61,7 +62,7 @@ function StaffProfile() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, getStaffById]);
 
-  // --- 2. SEARCH LOGIC (Using Backend Data) ---
+  // --- 2. SEARCH LOGIC ---
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setSearchResults([]);
@@ -95,7 +96,6 @@ function StaffProfile() {
     const { name, value } = e.target;
     let updatedData = { ...formData, [name]: value };
 
-    // Auto-calculate experience if joining date changes
     if (name === "joiningDate") {
       updatedData.experience = calculateYears(value);
     }
@@ -103,9 +103,10 @@ function StaffProfile() {
     setFormData(updatedData);
   };
 
-  // --- 4. TOGGLE STATUS ---
+  // --- 4. TOGGLE STATUS (ADMIN ONLY) ---
   const toggleStatus = () => {
-    if (editSection.basic) {
+    // Only allow toggle if in edit mode AND user is Admin
+    if (editSection.basic && isAdmin) {
       setFormData((prev) => ({
         ...prev,
         status: prev.status === "Active" ? "Inactive" : "Active"
@@ -113,23 +114,19 @@ function StaffProfile() {
     }
   };
 
-  // --- 5. SAVE CHANGES (Connect to Backend) ---
+  // --- 5. SAVE CHANGES ---
   const handleSave = async (section) => {
-    
-    // Create FormData object
     const submissionData = new FormData();
     Object.keys(formData).forEach(key => {
-        // Exclude internal MongoDB fields
         if(key !== '_id' && key !== 'createdAt' && key !== 'updatedAt' && key !== '__v') {
             submissionData.append(key, formData[key]);
         }
     });
 
-    // Call API
     const success = await updateStaff(staff.staffId, submissionData);
     
     if (success) {
-        setStaff(formData); // Update local view
+        setStaff(formData);
         setEditSection((prev) => ({ ...prev, [section]: false }));
     }
   };
@@ -151,7 +148,7 @@ function StaffProfile() {
   };
 
   // ==========================================
-  // VIEW 1: SEARCH SCREEN (No ID provided)
+  // VIEW 1: SEARCH SCREEN (No ID provided) - ACCESSIBLE TO ALL
   // ==========================================
   if (!id) {
     return (
@@ -173,7 +170,6 @@ function StaffProfile() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             
-            {/* Search Dropdown */}
             {searchResults.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-10 text-left max-h-60 overflow-y-auto">
                 {searchResults.map((item) => (
@@ -236,19 +232,22 @@ function StaffProfile() {
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         
-        {/* --- LEFT CARD: BASIC INFO (EDITABLE) --- */}
+        {/* --- LEFT CARD: BASIC INFO --- */}
         <div className="w-full lg:w-1/3 bg-white rounded-xl shadow-sm border border-gray-200 p-8 flex flex-col items-center text-center h-full min-h-[500px] relative">
           
-          <div className="absolute top-4 right-4 flex gap-2">
-            {editSection.basic ? (
-                <>
-                    <button onClick={() => handleSave('basic')} className="text-green-600 hover:bg-green-100 p-2 rounded-full transition"><FaSave /></button>
-                    <button onClick={() => toggleEdit('basic')} className="text-red-500 hover:bg-red-100 p-2 rounded-full transition"><FaTimes /></button>
-                </>
-            ) : (
-                <FaEdit onClick={() => toggleEdit('basic')} className="text-gray-400 hover:text-purple-600 cursor-pointer transition" />
-            )}
-          </div>
+          {/* --- EDIT BUTTONS: ONLY VISIBLE TO ADMIN --- */}
+          {isAdmin && (
+            <div className="absolute top-4 right-4 flex gap-2">
+                {editSection.basic ? (
+                    <>
+                        <button onClick={() => handleSave('basic')} className="text-green-600 hover:bg-green-100 p-2 rounded-full transition"><FaSave /></button>
+                        <button onClick={() => toggleEdit('basic')} className="text-red-500 hover:bg-red-100 p-2 rounded-full transition"><FaTimes /></button>
+                    </>
+                ) : (
+                    <FaEdit onClick={() => toggleEdit('basic')} className="text-gray-400 hover:text-purple-600 cursor-pointer transition" />
+                )}
+            </div>
+          )}
 
           <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-purple-50 mb-4 shadow-sm">
             <img src={staff.profilePhoto || "https://img.freepik.com/free-photo/doctor-with-his-arms-crossed-white-background_1368-5790.jpg"} alt="Profile" className="w-full h-full object-cover"/>
@@ -302,16 +301,20 @@ function StaffProfile() {
             <div className="border-b border-gray-100">
                 <div className="bg-gray-100 px-6 py-4 flex justify-between items-center border-b border-gray-200">
                     <h4 className="font-bold text-gray-800">Professional Details</h4>
-                    <div className="flex gap-2">
-                        {editSection.professional ? (
-                            <>
-                                <button onClick={() => handleSave('professional')} className="text-green-600 hover:bg-green-100 p-2 rounded-full transition"><FaSave /></button>
-                                <button onClick={() => toggleEdit('professional')} className="text-red-500 hover:bg-red-100 p-2 rounded-full transition"><FaTimes /></button>
-                            </>
-                        ) : (
-                            <FaEdit onClick={() => toggleEdit('professional')} className="text-gray-500 hover:text-purple-600 cursor-pointer transition" />
-                        )}
-                    </div>
+                    
+                    {/* --- ADMIN ONLY: EDIT PROFESSIONAL DETAILS --- */}
+                    {isAdmin && (
+                        <div className="flex gap-2">
+                            {editSection.professional ? (
+                                <>
+                                    <button onClick={() => handleSave('professional')} className="text-green-600 hover:bg-green-100 p-2 rounded-full transition"><FaSave /></button>
+                                    <button onClick={() => toggleEdit('professional')} className="text-red-500 hover:bg-red-100 p-2 rounded-full transition"><FaTimes /></button>
+                                </>
+                            ) : (
+                                <FaEdit onClick={() => toggleEdit('professional')} className="text-gray-500 hover:text-purple-600 cursor-pointer transition" />
+                            )}
+                        </div>
+                    )}
                 </div>
                 
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-4">
@@ -379,16 +382,20 @@ function StaffProfile() {
             <div>
                 <div className="bg-gray-100 px-6 py-4 flex justify-between items-center border-b border-gray-200 border-t">
                     <h4 className="font-bold text-gray-800">Personal Information</h4>
-                    <div className="flex gap-2">
-                        {editSection.personal ? (
-                            <>
-                                <button onClick={() => handleSave('personal')} className="text-green-600 hover:bg-green-100 p-2 rounded-full transition"><FaSave /></button>
-                                <button onClick={() => toggleEdit('personal')} className="text-red-500 hover:bg-red-100 p-2 rounded-full transition"><FaTimes /></button>
-                            </>
-                        ) : (
-                            <FaEdit onClick={() => toggleEdit('personal')} className="text-gray-500 hover:text-purple-600 cursor-pointer transition" />
-                        )}
-                    </div>
+                    
+                    {/* --- ADMIN ONLY: EDIT PERSONAL DETAILS --- */}
+                    {isAdmin && (
+                        <div className="flex gap-2">
+                            {editSection.personal ? (
+                                <>
+                                    <button onClick={() => handleSave('personal')} className="text-green-600 hover:bg-green-100 p-2 rounded-full transition"><FaSave /></button>
+                                    <button onClick={() => toggleEdit('personal')} className="text-red-500 hover:bg-red-100 p-2 rounded-full transition"><FaTimes /></button>
+                                </>
+                            ) : (
+                                <FaEdit onClick={() => toggleEdit('personal')} className="text-gray-500 hover:text-purple-600 cursor-pointer transition" />
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-4">

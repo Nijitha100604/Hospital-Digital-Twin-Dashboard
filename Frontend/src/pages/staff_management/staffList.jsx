@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { 
   FaUserTie, FaPlus, FaSearch, FaFilter, FaEye, FaTimes, 
-  FaAngleDoubleLeft, FaAngleDoubleRight // Added Arrow Icons
+  FaAngleDoubleLeft, FaAngleDoubleRight 
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { StaffContext } from "../../context/StaffContext";
@@ -12,7 +12,7 @@ function StaffList() {
   
   // --- CONTEXT ---
   const { fetchStaffs, staffs, loading } = useContext(StaffContext);
-  const { token } = useContext(AppContext);
+  const { token, userData } = useContext(AppContext); // Ensure userData is available
   
   // --- STATE ---
   const [searchTerm, setSearchTerm] = useState("");
@@ -88,7 +88,7 @@ function StaffList() {
   return (
     <>
       {/* HEADER SECTION */}
-      <div className="bg-white px-6 py-5 rounded-xl shadow-sm">
+      <div className="bg-white px-6 py-5 rounded-xl shadow-sm border border-gray-200">
         <div className="flex flex-wrap justify-between items-center gap-4">
           <div>
             <div className="flex items-center gap-3">
@@ -102,13 +102,16 @@ function StaffList() {
             </p>
           </div>
 
-          <button
-            onClick={() => navigate("/add-staff")}
-            className="flex items-center gap-2 bg-purple-700 text-white px-4 py-2.5 rounded-xl shadow hover:bg-purple-800 transition-colors"
-          >
-            <FaPlus size={14} />
-            Add New Staff
-          </button>
+          {/* --- RESTRICTION: ONLY ADMIN CAN ADD STAFF --- */}
+          {userData?.designation === 'Admin' && (
+            <button
+              onClick={() => navigate("/add-staff")}
+              className="flex items-center gap-2 bg-purple-700 text-white px-4 py-2.5 rounded-xl shadow hover:bg-purple-800 transition-colors"
+            >
+              <FaPlus size={14} />
+              Add New Staff
+            </button>
+          )}
         </div>
 
         {/* SEARCH + FILTER ROW */}
@@ -120,7 +123,7 @@ function StaffList() {
               placeholder="Search by Staff Name or Staff ID"
               value={searchTerm}
               onChange={handleSearchChange}
-              className="w-full bg-gray-200 pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all"
+              className="w-full bg-gray-100 pl-10 pr-4 py-3 rounded-xl text-sm border border-transparent focus:bg-white focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
             />
           </div>
 
@@ -132,7 +135,7 @@ function StaffList() {
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm border transition-colors ${
                     selectedFilters[filter] 
                       ? "bg-purple-100 text-purple-700 border-purple-200" 
-                      : "bg-gray-200 text-gray-700 border-transparent hover:bg-gray-300"
+                      : "bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200"
                   }`}
                 >
                   <FaFilter size={12} />
@@ -179,47 +182,50 @@ function StaffList() {
       </div>
 
       {/* TABLE SECTION */}
-      <div className="mt-6 bg-white rounded-xl shadow-sm p-4">
+      <div className="mt-6 bg-white rounded-xl shadow-sm p-4 border border-gray-200">
         <div className="w-full overflow-x-auto min-h-[400px]">
           <table className="w-full min-w-max text-sm">
-            <thead className="bg-gray-200 text-gray-800">
+            <thead className="bg-gray-50 text-gray-700 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left font-medium">Staff ID</th>
-                <th className="px-6 py-4 text-left font-medium">Staff Name</th>
-                <th className="px-6 py-4 text-left font-medium">Designation</th>
-                <th className="px-6 py-4 text-left font-medium">Department</th>
-                <th className="px-6 py-4 text-left font-medium">Phone Number</th>
-                <th className="px-6 py-4 text-center font-medium">Status</th>
-                <th className="px-6 py-4 text-center font-medium">View</th>
+                <th className="px-6 py-4 text-left font-semibold">Staff ID</th>
+                <th className="px-6 py-4 text-left font-semibold">Staff Name</th>
+                <th className="px-6 py-4 text-left font-semibold">Designation</th>
+                <th className="px-6 py-4 text-left font-semibold">Department</th>
+                <th className="px-6 py-4 text-left font-semibold">Phone Number</th>
+                <th className="px-6 py-4 text-center font-semibold">Status</th>
+                <th className="px-6 py-4 text-center font-semibold">View</th>
               </tr>
             </thead>
 
             <tbody className="text-gray-700">
               {loading ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-10 text-center text-gray-500">
+                  <td colSpan="7" className="px-6 py-20 text-center text-gray-500 flex flex-col items-center justify-center w-full">
                     Loading staff data...
                   </td>
                 </tr>
-              ) : filteredData.length > 0 ? (
-                // Use paginatedData here instead of filteredData
+              ) : paginatedData.length > 0 ? (
                 paginatedData.map((item) => (
                   <tr
                     key={item._id || item.staffId} 
-                    className="border-b hover:bg-gray-50 transition-colors"
+                    className="border-b border-gray-50 hover:bg-purple-50/30 transition-colors"
                   >
-                    <td className="px-6 py-4">{item.staffId}</td>
+                    <td className="px-6 py-4 font-mono text-gray-500">{item.staffId}</td>
                     <td className="px-6 py-4 font-medium text-gray-900">{item.fullName}</td>
                     <td className="px-6 py-4">{item.designation}</td>
-                    <td className="px-6 py-4">{item.department}</td>
+                    <td className="px-6 py-4">
+                        <span className="px-2 py-1 bg-gray-100 rounded text-xs font-medium text-gray-600">
+                            {item.department}
+                        </span>
+                    </td>
                     <td className="px-6 py-4">{item.contactNumber}</td>
 
                     <td className="px-6 py-4 text-center">
                       <span
-                        className={`px-4 py-1.5 rounded-full text-xs font-semibold ${
+                        className={`px-3 py-1 rounded-full text-xs font-bold ${
                           item.status === "Active"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
+                            ? "bg-green-100 text-green-700 border border-green-200"
+                            : "bg-red-100 text-red-700 border border-red-200"
                         }`}
                       >
                         {item.status}
@@ -228,22 +234,28 @@ function StaffList() {
 
                     <td className="px-6 py-4 text-center">
                       <div className="flex justify-center">
-                        <FaEye
-                          className="text-gray-400 hover:text-purple-600 cursor-pointer text-lg transition-colors"
+                        {/* VIEW is accessible to everyone */}
+                        <button
+                          className="text-purple-600 hover:bg-purple-100 p-2 rounded-full transition-colors"
                           title="View Profile"
                           onClick={() => {
                             navigate(`/staff-profile/${item.staffId}`);
                             window.scrollTo(0, 0);
                           }}
-                        />
+                        >
+                          <FaEye size={18} />
+                        </button>
                       </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="px-6 py-10 text-center text-gray-500">
-                    No staff members found matching your filters.
+                  <td colSpan="7" className="px-6 py-20 text-center text-gray-500">
+                    <div className="flex flex-col items-center gap-2">
+                        <FaSearch size={24} className="text-gray-300"/>
+                        <p>No staff members found matching your filters.</p>
+                    </div>
                   </td>
                 </tr>
               )}
@@ -253,29 +265,29 @@ function StaffList() {
 
         {/* PAGINATION FOOTER */}
         <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
-          <div className="text-gray-600 text-sm">
+          <div className="text-gray-500 text-xs">
             Showing {paginatedData.length} of {filteredData.length} records
           </div>
 
           <div className="flex gap-2 items-center">
             <button 
               disabled={currentPage === 1}
-              className="px-2 py-2 text-sm text-purple-800 border rounded-full disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-purple-50 transition-colors" 
+              className="px-2 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-gray-50 transition-colors" 
               onClick={() => setCurrentPage((p) => p - 1)}
             >
-              <FaAngleDoubleLeft size={18}/>
+              <FaAngleDoubleLeft size={16}/>
             </button>
 
-            <span className="text-sm px-2 py-1 font-medium text-gray-700">
+            <span className="text-xs px-3 py-1 font-semibold text-gray-700 bg-gray-100 rounded-md">
                 Page {currentPage} of {totalPages === 0 ? 1 : totalPages}
             </span>
 
             <button 
               disabled={currentPage === totalPages || totalPages === 0}
-              className="px-2 py-2 text-sm text-purple-800 border rounded-full disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-purple-50 transition-colors" 
+              className="px-2 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-gray-50 transition-colors" 
               onClick={() => setCurrentPage((p) => p + 1)}
             >
-              <FaAngleDoubleRight size={18}/>
+              <FaAngleDoubleRight size={16}/>
             </button>
           </div>
         </div>

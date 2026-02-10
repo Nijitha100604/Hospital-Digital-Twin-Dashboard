@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useContext } from "react";
 import { 
   FaCalendarAlt, FaSearch, FaExclamationTriangle, FaUserCircle, 
-  FaEnvelope, FaPhone, FaArrowLeft, FaCheckCircle, FaEdit, FaPlusCircle, FaSpinner 
+  FaEnvelope, FaPhone, FaArrowLeft, FaCheckCircle, FaEdit, FaPlusCircle 
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { StaffContext } from "../../context/StaffContext"; // Connect Staff Context
+import { StaffContext } from "../../context/StaffContext"; 
+import { AppContext } from "../../context/AppContext"; // Import AppContext
+import AccessDenied from "../../components/AccessDenied"; // Import AccessDenied
 
 function AssignShift() {
   const navigate = useNavigate();
 
   // --- CONTEXT ---
-  const { staffs, fetchStaffs } = useContext(StaffContext);
-  const { shifts, addShift, fetchShifts } = useContext(StaffContext);
+  const { staffs, fetchStaffs, shifts, addShift, fetchShifts } = useContext(StaffContext);
+  const { userData } = useContext(AppContext); // Get User Role
 
   // --- STATES ---
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,9 +34,14 @@ function AssignShift() {
   const [conflict, setConflict] = useState(null); 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // --- SECURITY CHECK ---
+  // If the user data is loaded and they are NOT an Admin, block access.
+  if (userData && userData.designation !== 'Admin') {
+    return <AccessDenied />;
+  }
+
   // --- INITIAL LOAD ---
   useEffect(() => {
-    // Ensure we have fresh data when page loads
     if (staffs.length === 0) fetchStaffs();
     if (shifts.length === 0) fetchShifts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -42,12 +49,12 @@ function AssignShift() {
 
   // --- DEFAULT TIME CONFIGURATION ---
   const shiftDefaults = {
-    Morning: { start: "09:00", end: "17:00" }, // 09:00 AM - 05:00 PM
-    Evening: { start: "17:00", end: "01:00" }, // 05:00 PM - 01:00 AM
-    Night:   { start: "01:00", end: "09:00" }  // 01:00 AM - 09:00 AM
+    Morning: { start: "09:00", end: "17:00" }, 
+    Evening: { start: "17:00", end: "01:00" }, 
+    Night:   { start: "01:00", end: "09:00" }  
   };
 
-  // --- 1. SEARCH LOGIC (Using Context Data) ---
+  // --- 1. SEARCH LOGIC ---
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setSearchResults([]);
@@ -63,7 +70,6 @@ function AssignShift() {
 
   const handleSelectStaff = (staff) => {
     setSelectedStaff(staff);
-    // Auto-fill department from staff profile
     setFormData(prev => ({ ...prev, department: staff.department })); 
     setSearchTerm("");
     setSearchResults([]);
@@ -72,20 +78,18 @@ function AssignShift() {
     }
   };
 
-  // --- 2. CONFLICT CHECK LOGIC (Using Context Data) ---
+  // --- 2. CONFLICT CHECK LOGIC ---
   const checkConflict = (staffId, date) => {
     if (!staffId || !date) {
       setConflict(null);
       return;
     }
 
-    // Check against real shifts from DB
     const foundShift = shifts.find(
       (shift) => shift.staffId === staffId && shift.date === date && shift.status !== 'Cancelled'
     );
 
     if (foundShift) {
-      // Assuming you might implement Leave types later in DB
       if (foundShift.shiftType === "Leave") {
         setConflict({
             type: 'LEAVE',
@@ -109,7 +113,6 @@ function AssignShift() {
     const { name, value } = e.target;
     let updatedData = { ...formData, [name]: value };
 
-    // Auto-fill times based on Shift Type
     if (name === "shiftType" && shiftDefaults[value]) {
         updatedData.startTime = shiftDefaults[value].start;
         updatedData.endTime = shiftDefaults[value].end;
@@ -117,24 +120,20 @@ function AssignShift() {
 
     setFormData(updatedData);
 
-    // Trigger conflict check if date changes
     if (name === "date" && selectedStaff) {
       checkConflict(selectedStaff.staffId, value);
     }
   };
 
-  // --- 4. SUBMIT LOGIC (Connect to Backend) ---
+  // --- 4. SUBMIT LOGIC ---
   const handleAssign = async (resolutionType = 'NORMAL') => {
     if (!selectedStaff || !formData.date || !formData.shiftType) {
-      alert("Please fill in all required fields (Staff, Date, Shift Type).");
+      alert("Please fill in all required fields.");
       return;
     }
 
-    // Confirmation
     let confirmMsg = `Assign ${formData.shiftType} shift to ${selectedStaff.fullName}?`;
-    if (resolutionType === 'OVERWRITE') {
-        confirmMsg = `⚠️ CONFIRM REPLACEMENT\n\nThis will remove the existing shift and assign this new one.\n\nProceed?`;
-    } else if (resolutionType === 'EXTRA') {
+    if (resolutionType === 'EXTRA') {
         confirmMsg = `⚠️ CONFIRM EXTRA DUTY\n\n${selectedStaff.fullName} will have TWO shifts on this date.\n\nProceed?`;
     }
 
@@ -142,10 +141,9 @@ function AssignShift() {
 
     setIsSubmitting(true);
 
-    // Prepare Payload
     const shiftPayload = {
         staffId: selectedStaff.staffId,
-        staffName: selectedStaff.fullName, // Optional, backend might fetch it, but good to send
+        staffName: selectedStaff.fullName, 
         date: formData.date,
         shiftType: formData.shiftType,
         startTime: formData.startTime,
@@ -154,16 +152,12 @@ function AssignShift() {
         notes: formData.notes,
         isExtraDuty: resolutionType === 'EXTRA',
         notified: notify
-        // Note: If OVERWRITE logic is needed, you'd typically delete the old shift first here
     };
 
-    // Call Context Function
     const success = await addShift(shiftPayload);
-
     setIsSubmitting(false);
 
     if (success) {
-      // Navigate back on success
       navigate('/shift-planner');
     }
   };
@@ -227,9 +221,7 @@ function AssignShift() {
           {selectedStaff && (
             <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-4 bg-purple-50 p-4 rounded-lg border border-purple-100 animate-in slide-in-from-top-2">
               <div className="bg-purple-200 p-3 rounded-full text-purple-700 w-fit">
-                {selectedStaff.profilePhoto ? (
-                    <img src={selectedStaff.profilePhoto} alt="Profile" className="w-10 h-10 rounded-full object-cover"/>
-                ) : <FaUserCircle size={24} />}
+                <FaUserCircle size={24} />
               </div>
               <div>
                 <p className="font-bold text-gray-800 text-lg">{selectedStaff.fullName}</p>
@@ -261,10 +253,6 @@ function AssignShift() {
                 </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                {/* Note: Overwrite logic would need backend support to delete old shift first */}
-                <button onClick={() => alert("Overwrite feature requires additional backend logic (delete old + add new). Use Extra Duty for now.")} className="flex-1 whitespace-nowrap px-4 py-2 bg-white border border-gray-300 hover:border-red-400 hover:text-red-600 text-gray-700 rounded-lg shadow-sm text-sm font-bold transition-all flex items-center justify-center gap-2">
-                    <FaEdit /> Overwrite
-                </button>
                 <button onClick={() => handleAssign('EXTRA')} className="flex-1 whitespace-nowrap px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md text-sm font-bold transition-all flex items-center justify-center gap-2">
                     <FaPlusCircle /> Add as Extra Duty
                 </button>
@@ -290,19 +278,8 @@ function AssignShift() {
                 <option value="Cardiology">Cardiology</option>
                 <option value="Neurology">Neurology</option>
                 <option value="Emergency">Emergency</option>
-                <option value="Radiology">Radiology</option>
-                <option value="Pediatrics">Pediatrics</option>
-                <option value="Gynecology">Gynecology</option>
-                <option value="Dermatology">Dermatology</option>
-                <option value="General Medicine">General Medicine</option>
-                <option value="Orthopedics">Orthopedics</option>
-                <option value="Pharmacy">Pharmacy</option>
-                <option value="Housekeeping">Housekeeping</option>
-                <option value="Pathology">Pathology</option>
-                <option value="Biochemistry">Biochemistry</option>
-                <option value="Microbiology">Microbiology</option>
                 <option value="Administration">Administration</option>
-                <option value="Front Desk">Front Desk</option>
+                {/* Add other depts */}
               </select>
             </div>
           </div>

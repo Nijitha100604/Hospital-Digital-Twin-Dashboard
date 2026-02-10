@@ -1,9 +1,11 @@
 import React, { useState, useContext, useEffect } from "react";
 import { 
   Calendar, Search, User, CheckCircle, 
-  ChevronDown, Plus, X, Send, Loader2, Clock
+  ChevronDown, Plus, X, Send, Loader2, Clock, Lock
 } from "lucide-react";
 import { StaffContext } from "../../context/StaffContext"; 
+import { AppContext } from "../../context/AppContext"; 
+import AccessDenied from "../../components/AccessDenied"; // Import AccessDenied
 
 // Helper for today's date YYYY-MM-DD
 const getToday = () => {
@@ -28,6 +30,11 @@ export default function Attendance() {
     loading 
   } = useContext(StaffContext);
 
+  const { userData } = useContext(AppContext); 
+
+  // --- SECURITY CHECK: IS ADMIN? ---
+  const isAdmin = userData?.designation === 'Admin';
+
   // --- FORM STATE ---
   const [applyForm, setApplyForm] = useState({
     staffId: "", name: "", leaveType: "Sick Leave", fromDate: "", toDate: "", reason: "", isEmergency: false
@@ -37,15 +44,14 @@ export default function Attendance() {
   useEffect(() => {
     fetchLeaves();
     fetchAttendance(selectedDate);
-  }, [selectedDate]); // Refetch attendance when date picker changes
+  }, [selectedDate]); 
 
   // --- ATTENDANCE MERGE LOGIC ---
-  // We take the full staff list and attach their attendance status for the selected day
   const attendanceList = staffs.map(staff => {
     const record = attendance.find(a => a.staffId === staff.staffId);
     return {
         ...staff,
-        status: record ? record.status : "Absent", // Default to Absent if no record found
+        status: record ? record.status : "Absent", 
         checkIn: record ? record.checkIn : "-",
         checkOut: record ? record.checkOut : "-"
     };
@@ -60,7 +66,6 @@ export default function Attendance() {
 
   // --- HANDLERS ---
   const handleMarkStatus = (staffId, status) => {
-    // Simple toggle for now, sets standard times
     markAttendance({
         staffId,
         date: selectedDate,
@@ -117,6 +122,8 @@ export default function Attendance() {
           <Calendar className="text-purple-700" size={28} />
           <h1 className="text-2xl font-bold text-gray-800">Attendance & Leave</h1>
         </div>
+        
+        {/* --- APPLY LEAVE: ACCESSIBLE TO ALL --- */}
         <button onClick={() => setShowApplyModal(true)} className="bg-purple-700 hover:bg-purple-800 text-white px-6 py-2.5 rounded-lg font-bold shadow-md transition-all flex items-center gap-2">
           <Plus size={18} /> Apply Leave
         </button>
@@ -134,7 +141,7 @@ export default function Attendance() {
 
       {loading && <div className="flex justify-center p-10"><Loader2 className="animate-spin text-purple-600"/></div>}
 
-      {/* ================= TAB 1: ATTENDANCE ================= */}
+      {/* ================= TAB 1: ATTENDANCE (VIEW ALL / EDIT ADMIN) ================= */}
       {activeTab === "Attendance" && (
         <div className="space-y-6">
             {/* Controls */}
@@ -188,11 +195,17 @@ export default function Attendance() {
                                 <td className="p-4 text-center">
                                     <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(row.status)}`}>{row.status}</span>
                                 </td>
+                                
+                                {/* --- MARK ATTENDANCE: ADMIN ONLY --- */}
                                 <td className="p-4 flex justify-center gap-2">
-                                    {row.status === 'Absent' ? (
-                                        <button onClick={() => handleMarkStatus(row.staffId, 'Present')} className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition">Mark Present</button>
+                                    {isAdmin ? (
+                                        row.status === 'Absent' ? (
+                                            <button onClick={() => handleMarkStatus(row.staffId, 'Present')} className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition">Mark Present</button>
+                                        ) : (
+                                            <button onClick={() => handleMarkStatus(row.staffId, 'Absent')} className="text-xs bg-red-50 text-red-600 px-3 py-1 rounded hover:bg-red-100 transition">Mark Absent</button>
+                                        )
                                     ) : (
-                                        <button onClick={() => handleMarkStatus(row.staffId, 'Absent')} className="text-xs bg-red-50 text-red-600 px-3 py-1 rounded hover:bg-red-100 transition">Mark Absent</button>
+                                        <span className="text-xs text-gray-400 italic bg-gray-100 px-2 py-1 rounded">Read Only</span>
                                     )}
                                 </td>
                             </tr>
@@ -204,73 +217,89 @@ export default function Attendance() {
         </div>
       )}
 
-      {/* ================= TAB 2: LEAVE ================= */}
+      {/* ================= TAB 2: LEAVE (ADMIN ONLY MANAGEMENT) ================= */}
       {activeTab === "Leave" && (
         <div className="space-y-8">
-            {/* Pending Requests */}
-            <div>
-                <h3 className="text-lg font-bold text-gray-800 mb-3">Pending Requests</h3>
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <table className="w-full text-left">
-                        <thead className="bg-gray-50 border-b">
-                            <tr>
-                                <th className="p-4 text-xs font-bold text-gray-500 uppercase">Staff</th>
-                                <th className="p-4 text-xs font-bold text-gray-500 uppercase">Type</th>
-                                <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Dates</th>
-                                <th className="p-4 text-xs font-bold text-gray-500 uppercase">Reason</th>
-                                <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {pendingLeaves.length > 0 ? pendingLeaves.map(req => (
-                                <tr key={req._id}>
-                                    <td className="p-4 text-sm font-bold text-gray-800">{req.name}</td>
-                                    <td className="p-4 text-sm text-gray-600">{req.leaveType} {req.isEmergency && <span className="text-red-500 font-bold">(Urgent)</span>}</td>
-                                    <td className="p-4 text-sm text-gray-600 text-center">{new Date(req.fromDate).toLocaleDateString()} - {new Date(req.toDate).toLocaleDateString()}</td>
-                                    <td className="p-4 text-sm text-gray-600 max-w-xs truncate">{req.reason}</td>
-                                    <td className="p-4 flex justify-center gap-2">
-                                        <button onClick={() => updateLeaveStatus(req._id, 'Approved')} className="px-3 py-1 bg-green-600 text-white text-xs rounded font-bold">Approve</button>
-                                        <button onClick={() => updateLeaveStatus(req._id, 'Rejected')} className="px-3 py-1 bg-red-600 text-white text-xs rounded font-bold">Reject</button>
-                                    </td>
-                                </tr>
-                            )) : <tr><td colSpan="5" className="p-6 text-center text-gray-500">No pending requests</td></tr>}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            
+            {/* --- ADMIN CHECK: Show Dashboard OR Access Denied --- */}
+            {isAdmin ? (
+                <>
+                    {/* Pending Requests */}
+                    <div>
+                        <h3 className="text-lg font-bold text-gray-800 mb-3">Pending Requests</h3>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <table className="w-full text-left">
+                                <thead className="bg-gray-50 border-b">
+                                    <tr>
+                                        <th className="p-4 text-xs font-bold text-gray-500 uppercase">Staff</th>
+                                        <th className="p-4 text-xs font-bold text-gray-500 uppercase">Type</th>
+                                        <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Dates</th>
+                                        <th className="p-4 text-xs font-bold text-gray-500 uppercase">Reason</th>
+                                        <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {pendingLeaves.length > 0 ? pendingLeaves.map(req => (
+                                        <tr key={req._id}>
+                                            <td className="p-4 text-sm font-bold text-gray-800">{req.name}</td>
+                                            <td className="p-4 text-sm text-gray-600">{req.leaveType} {req.isEmergency && <span className="text-red-500 font-bold">(Urgent)</span>}</td>
+                                            <td className="p-4 text-sm text-gray-600 text-center">{new Date(req.fromDate).toLocaleDateString()} - {new Date(req.toDate).toLocaleDateString()}</td>
+                                            <td className="p-4 text-sm text-gray-600 max-w-xs truncate">{req.reason}</td>
+                                            <td className="p-4 flex justify-center gap-2">
+                                                <button onClick={() => updateLeaveStatus(req._id, 'Approved')} className="px-3 py-1 bg-green-600 text-white text-xs rounded font-bold">Approve</button>
+                                                <button onClick={() => updateLeaveStatus(req._id, 'Rejected')} className="px-3 py-1 bg-red-600 text-white text-xs rounded font-bold">Reject</button>
+                                            </td>
+                                        </tr>
+                                    )) : <tr><td colSpan="5" className="p-6 text-center text-gray-500">No pending requests</td></tr>}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-            {/* History Table */}
-            <div>
-                <h3 className="text-lg font-bold text-gray-800 mb-3">History</h3>
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <table className="w-full text-left">
-                        <thead className="bg-gray-50 border-b">
-                            <tr>
-                                <th className="p-4 text-xs font-bold text-gray-500 uppercase">Staff</th>
-                                <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Type</th>
-                                <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Dates</th>
-                                <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {leaveHistory.map((hist) => (
-                                <tr key={hist._id} className="hover:bg-gray-50">
-                                    <td className="p-4 text-sm text-gray-700 font-medium">{hist.name}</td>
-                                    <td className="p-4 text-sm text-gray-600 text-center">{hist.leaveType}</td>
-                                    <td className="p-4 text-sm text-gray-600 text-center">{new Date(hist.fromDate).toLocaleDateString()} - {new Date(hist.toDate).toLocaleDateString()}</td>
-                                    <td className="p-4 text-center">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getLeaveBadge(hist.status)}`}>{hist.status}</span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    {/* History Table */}
+                    <div>
+                        <h3 className="text-lg font-bold text-gray-800 mb-3">History</h3>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <table className="w-full text-left">
+                                <thead className="bg-gray-50 border-b">
+                                    <tr>
+                                        <th className="p-4 text-xs font-bold text-gray-500 uppercase">Staff</th>
+                                        <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Type</th>
+                                        <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Dates</th>
+                                        <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {leaveHistory.map((hist) => (
+                                        <tr key={hist._id} className="hover:bg-gray-50">
+                                            <td className="p-4 text-sm text-gray-700 font-medium">{hist.name}</td>
+                                            <td className="p-4 text-sm text-gray-600 text-center">{hist.leaveType}</td>
+                                            <td className="p-4 text-sm text-gray-600 text-center">{new Date(hist.fromDate).toLocaleDateString()} - {new Date(hist.toDate).toLocaleDateString()}</td>
+                                            <td className="p-4 text-center">
+                                                <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getLeaveBadge(hist.status)}`}>{hist.status}</span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </>
+            ) : (
+                // --- NON-ADMIN VIEW: ACCESS DENIED COMPONENT ---
+                <div className="mt-8 flex justify-center">
+                    <div className="w-full max-w-lg">
+                        <AccessDenied />
+                        <p className="text-center text-sm text-gray-500 mt-4">
+                            You can still apply for leave using the button in the top right corner.
+                        </p>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
       )}
 
-      {/* APPLY MODAL */}
+      {/* APPLY MODAL (Accessible to All) */}
       {showApplyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
             <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden">

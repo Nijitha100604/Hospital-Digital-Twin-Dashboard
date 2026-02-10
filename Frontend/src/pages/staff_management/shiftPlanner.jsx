@@ -39,10 +39,10 @@ function ShiftPlanner() {
   const navigate = useNavigate();
   // Using Combined StaffContext
   const { staffs, fetchStaffs, shifts, fetchShifts, leaves, fetchLeaves } = useContext(StaffContext);
-  const { token, backendUrl } = useContext(AppContext);
+  const { token, backendUrl, userData } = useContext(AppContext); // Added userData
 
   /* -------------------- STATES -------------------- */
-  const [viewMode, setViewMode] = useState("Weekly"); 
+  // Removed viewMode state since we only want Weekly
   const [currentDate, setCurrentDate] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState("");
   const [daysToDisplay, setDaysToDisplay] = useState([]);
@@ -55,12 +55,15 @@ function ShiftPlanner() {
     endVal: "05:00", endAmpm: "PM"
   });
 
+  // --- CHECK ADMIN ROLE ---
+  const isAdmin = userData?.designation === 'Admin';
+
   const shiftTypes = {
     Morning: { label: "Morning", defaultTime: "08:00 - 16:00", style: "bg-blue-50 text-blue-600 border-blue-100" },
     Evening: { label: "Evening", defaultTime: "16:00 - 00:00", style: "bg-orange-50 text-orange-600 border-orange-100" },
     Night: { label: "Night", defaultTime: "00:00 - 08:00", style: "bg-purple-50 text-purple-600 border-purple-100" },
     Available: { label: "Available", defaultTime: "", style: "bg-green-50 text-green-700 border-green-100" },
-    Leave: { label: "On Leave", defaultTime: "", style: "bg-red-50 text-red-600 border-red-200 font-bold" }, // Visual Style for Leave
+    Leave: { label: "On Leave", defaultTime: "", style: "bg-red-50 text-red-600 border-red-200 font-bold" }, 
   };
 
   const shiftKeys = Object.keys(shiftTypes);
@@ -70,7 +73,7 @@ function ShiftPlanner() {
     if (token) {
         if(staffs.length === 0) fetchStaffs();
         fetchShifts(); 
-        fetchLeaves(); // Load leaves to show on grid
+        fetchLeaves(); 
     }
   }, [token]);
 
@@ -146,8 +149,6 @@ function ShiftPlanner() {
     const approvedLeave = leaves.find(l => {
         if(l.staffId !== staffId || l.status !== 'Approved') return false;
         
-        // Simple string comparison for dates (assuming dates are saved as ISO strings in DB)
-        // Adjust logic if date formats differ. 
         const from = new Date(l.fromDate).toISOString().split('T')[0];
         const to = new Date(l.toDate).toISOString().split('T')[0];
         return dateStr >= from && dateStr <= to;
@@ -155,10 +156,10 @@ function ShiftPlanner() {
 
     if (approvedLeave) {
         return {
-            id: null, // Leave is managed separately, no shift ID usually
+            id: null, 
             key: "Leave",
             label: "On Leave",
-            time: approvedLeave.leaveType, // Show "Sick Leave", "Vacation" etc.
+            time: approvedLeave.leaveType, 
             style: shiftTypes["Leave"].style,
             isLeave: true
         };
@@ -181,6 +182,9 @@ function ShiftPlanner() {
   };
 
   const handleCellClick = (staff, dateObj) => {
+    // --- ADMIN ACCESS CHECK ---
+    if (!isAdmin) return;
+
     const details = getShiftDetails(staff.staffId, dateObj);
     
     // Optional: Prevent editing if it's an approved leave
@@ -213,30 +217,21 @@ function ShiftPlanner() {
     return { day: days[date.getDay()], date: date.getDate() };
   };
 
+  // --- Date Calculation (Weekly Only) ---
   useEffect(() => {
     const dates = [];
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-
-    if (viewMode === "Weekly") {
-      const day = currentDate.getDay();
-      const diff = currentDate.getDate() - day + (day === 0 ? -6 : 1); 
-      const monday = new Date(currentDate);
-      monday.setDate(diff);
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(monday);
-        d.setDate(monday.getDate() + i);
-        dates.push(d);
-      }
-    } else {
-      const date = new Date(year, month, 1);
-      while (date.getMonth() === month) {
-        dates.push(new Date(date));
-        date.setDate(date.getDate() + 1);
-      }
+    const day = currentDate.getDay();
+    const diff = currentDate.getDate() - day + (day === 0 ? -6 : 1); 
+    const monday = new Date(currentDate);
+    monday.setDate(diff);
+    
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      dates.push(d);
     }
     setDaysToDisplay(dates);
-  }, [currentDate, viewMode]);
+  }, [currentDate]);
 
   const filteredStaff = staffs.filter((s) => s.fullName.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -252,21 +247,21 @@ function ShiftPlanner() {
         <div className="px-4 pb-4 md:px-6">
           <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-200 flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
-                  <div className="flex bg-gray-100 rounded-lg p-1 shrink-0">
-                      <button onClick={() => setViewMode("Weekly")} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${viewMode === "Weekly" ? "bg-white shadow text-purple-700" : "text-gray-500 hover:text-gray-700"}`}>Weekly</button>
-                      <button onClick={() => setViewMode("Monthly")} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${viewMode === "Monthly" ? "bg-white shadow text-purple-700" : "text-gray-500 hover:text-gray-700"}`}>Monthly</button>
-                  </div>
                   <div className="flex items-center gap-1 md:gap-2 bg-gray-50 rounded-lg px-1 py-0.5 border border-gray-100 shrink-0">
-                      <button onClick={() => { const d = new Date(currentDate); viewMode === "Weekly" ? d.setDate(d.getDate() - 7) : d.setMonth(d.getMonth() - 1); setCurrentDate(d); }} className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-600"><ChevronLeft size={16}/></button>
+                      <button onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate() - 7); setCurrentDate(d); }} className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-600"><ChevronLeft size={16}/></button>
                       <span className="text-sm font-bold text-gray-800 min-w-[120px] text-center select-none truncate px-2">
-                          {daysToDisplay.length > 0 ? (viewMode === "Monthly" ? daysToDisplay[0].toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : `${daysToDisplay[0].toLocaleDateString(undefined, {month:'short', day:'numeric'})} - ${daysToDisplay[daysToDisplay.length-1].toLocaleDateString(undefined, {month:'short', day:'numeric'})}`) : 'Loading...'}
+                          {daysToDisplay.length > 0 ? `${daysToDisplay[0].toLocaleDateString(undefined, {month:'short', day:'numeric'})} - ${daysToDisplay[daysToDisplay.length-1].toLocaleDateString(undefined, {month:'short', day:'numeric'})}` : 'Loading...'}
                       </span>
-                      <button onClick={() => { const d = new Date(currentDate); viewMode === "Weekly" ? d.setDate(d.getDate() + 7) : d.setMonth(d.getMonth() + 1); setCurrentDate(d); }} className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-600"><ChevronRight size={16}/></button>
+                      <button onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate() + 7); setCurrentDate(d); }} className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-600"><ChevronRight size={16}/></button>
                   </div>
               </div>
-              <div className="flex-none ml-auto">
-                  <button onClick={() => navigate('/assign-shift')} className="bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-xs font-bold shadow-md transition-all active:scale-95 whitespace-nowrap"><Plus size={14} strokeWidth={3}/> <span className="hidden sm:inline">Assign Shift</span></button>
-              </div>
+              
+              {/* --- ASSIGN SHIFT: ADMIN ONLY --- */}
+              {isAdmin && (
+                  <div className="flex-none ml-auto">
+                      <button onClick={() => navigate('/assign-shift')} className="bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-xs font-bold shadow-md transition-all active:scale-95 whitespace-nowrap"><Plus size={14} strokeWidth={3}/> <span className="hidden sm:inline">Assign Shift</span></button>
+                  </div>
+              )}
           </div>
         </div>
       </div>
@@ -315,7 +310,7 @@ function ShiftPlanner() {
         </div>
       </div>
 
-      {/* EDIT MODAL */}
+      {/* EDIT MODAL - Only renders if admin clicks and sets selectedCell */}
       {selectedCell && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100">
