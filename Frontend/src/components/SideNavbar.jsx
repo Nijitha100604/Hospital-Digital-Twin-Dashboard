@@ -91,10 +91,10 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
       title: "LABORATORY",
       icon: <FaMicroscope size={20} className="text-gray-500" />,
       links: [
-        { name: "Lab Reports", path: "/lab-reports-list", roles: ["Admin","Technician", "Doctor", "Nurse"] },
-        { name: "Results Entry", path: "/lab-results-entry", roles: ["Admin","Technician"] },
+        { name: "Lab Reports", path: "/lab-reports-list", roles: ["Admin","Technician", "Doctor", "Nurse", "Receptionist"] },
+        { name: "Results Entry", path: "/lab-results-entry", roles: ["Technician"] },
         { name: "Patient-Wise Reports", path: "/patient-wise-reports", roles: ["Admin","Technician", "Doctor", "Nurse"] },
-        { name: "Upload Report", path: "/upload-report", roles: ["Admin","Technician"] }
+        { name: "Upload Report", path: "/upload-report", roles: ["Technician"] }
       ]
     },
 
@@ -107,7 +107,7 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
         { name: "Staff Profile", path: "/staff-profile", roles: ["Admin","Doctor","Nurse","Receptionist","Technician","Support","Pharmacist"] },
         { name: "Attendance and Leave", path: "/leave-management", roles: ["Admin","Doctor","Nurse","Receptionist","Technician","Support","Pharmacist"] },
         { name: "Add Staff", path: "/add-staff", roles: ["Admin"] },
-        { name: "Shift Planner", path: "/shift-planner", roles: ["Admin"] }
+        { name: "Shift Planner", path: "/shift-planner", roles: ["Admin","Doctor","Nurse","Receptionist","Technician","Support","Pharmacist"] }
       ]
     }
   ];
