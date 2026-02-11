@@ -458,7 +458,9 @@ function ViewAppointment() {
                 <p className={`px-3 py-2 text-sm text-white font-medium rounded-lg ${getReportStatus(item.labReportId) === "Completed" ? "bg-green-600": "bg-yellow-600"}`}>{getReportStatus(item.labReportId)}</p>
                 {
                   getReportStatus(item.labReportId) === "Completed" &&
-                  <div>
+                  <div
+                    onClick={()=>{navigate(`/patient-wise-reports/${item.labReportId}`); window.scroll(0,0)}}
+                  >
                     <FaEye size={20}/>
                   </div>
                 }

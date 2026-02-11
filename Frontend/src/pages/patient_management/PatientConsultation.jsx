@@ -28,6 +28,9 @@ function PatientConsultation() {
     const [selectedMedicine, setSelectedMedicine] = useState(null);
     const [showDropdown, setShowDropdown] = useState(false);
     const [bedType, setBedType] = useState("");
+    const [showLabDropdown, setShowLabDropdown] = useState(false);
+    // eslint-disable-next-line no-unused-vars
+    const [selectedLabTest, setSelectedLabTest] = useState(null);
 
     const { fetchPatients, consultations, fetchConsultations, saveRemarksAndDiagnosis, savePrescriptions, saveLabReports, updateAppointmentAction, requestAddmission } = useContext(PatientContext);
     const { fetchMedicines, medicines } = useContext(MedicineContext);
@@ -37,6 +40,24 @@ function PatientConsultation() {
     const [ appointment, setAppointment ] = useState({});
 
     const role = userData?.designation;
+
+    const labTestOptions = [
+      "CBC (Hemogram)",
+      "Lipid Profile",
+      "Liver Function Test (LFT)",
+      "Kidney Function Test (KFT)",
+      "Thyroid Profile",
+      "Glucometry (Diabetes)",
+      "Electrolytes",
+      "Iron Profile",
+      "Vitamin Profile",
+      "Coagulation Profile",
+      "Urine Routine",
+      "MRI Scan",
+      "X-Ray",
+      "Ultrasound",
+      "CT Scan"
+    ];
 
     const patientDetails = async(id) =>{
 
@@ -304,10 +325,12 @@ function PatientConsultation() {
     useEffect(()=>{
 
       if(token){
-        fetchPatients();
-        fetchConsultations();
-        fetchLabReports();
-        fetchMedicines();
+        Promise.all([
+        fetchPatients(),
+        fetchConsultations(),
+        fetchLabReports(),
+        fetchMedicines()
+      ]);
       }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -773,15 +796,53 @@ function PatientConsultation() {
         <p className="mt-3 text-gray-600 text-sm font-medium">Request Lab Reports</p>
         <div className="mt-4 flex gap-3 items-end">
 
-        <div>
-          <label className="text-sm font-medium text-gray-800">Lab Test Name <span className="text-red-600">*</span></label>
-          <input
-            value={labTestName}
-            onChange={e => setLabTestName(e.target.value)}
-            placeholder="Enter lab test"
-            className="w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
-        />
+        <div className="relative">
+  <label className="text-sm text-gray-800 font-medium">
+    Lab Test Name <span className="text-red-600">*</span>
+  </label>
+
+  <input
+    value={labTestName}
+    onChange={(e) => {
+      setLabTestName(e.target.value);
+      setSelectedLabTest(null);
+      setShowLabDropdown(true);
+    }}
+    placeholder="Enter Lab Test"
+    className="w-full bg-gray-300 mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-700"
+  />
+
+  {showLabDropdown && labTestName && (
+    <div className="absolute z-10 w-full mt-2 bg-white border border-gray-400 rounded-md max-h-44 overflow-y-auto shadow-lg">
+      
+      {labTestOptions
+        .filter(test =>
+          test.toLowerCase().includes(labTestName.toLowerCase())
+        )
+        .map((test, index) => (
+          <div
+            key={index}
+            onClick={() => {
+              setLabTestName(test);
+              setSelectedLabTest(test);
+              setShowLabDropdown(false);
+            }}
+            className="px-3 py-2 cursor-pointer hover:bg-gray-100 text-sm"
+          >
+            {test}
+          </div>
+        ))}
+
+      {labTestOptions.filter(test =>
+        test.toLowerCase().includes(labTestName.toLowerCase())
+      ).length === 0 && (
+        <div className="px-3 py-2 text-sm text-red-600">
+          Test not available
         </div>
+      )}
+    </div>
+  )}
+</div>
 
         <button
           onClick={handleAddLabTest}

@@ -81,8 +81,7 @@ function BookAppointment() {
   const handleSubmit = async(e) =>{
     e.preventDefault();
 
-    try{
-      const infoData = {
+    const infoData = {
         patientId,
         docId: doctorId,
         appointmentType,
@@ -105,11 +104,6 @@ function BookAppointment() {
         },1000);
       }
 
-    } catch(error){
-      console.log(error);
-      toast.error("Internal Server Error");
-
-    }
   }
 
   const fetchPatientDetails = (id) =>{

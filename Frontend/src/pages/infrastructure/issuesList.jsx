@@ -12,7 +12,8 @@ import {
   FaTimes,
   FaMapMarkerAlt,
   FaAngleDoubleLeft,
-  FaAngleDoubleRight
+  FaAngleDoubleRight,
+  FaCalendarTimes
 } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 import { useContext } from 'react';

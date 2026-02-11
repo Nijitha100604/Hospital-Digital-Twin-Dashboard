@@ -97,18 +97,6 @@ function PatientProfile() {
     return reports.find(r => r.labReportId === labReportId);
   };
 
-  const getReportResultStatus = (id) =>{
-    const report = getReportById(id);
-
-    if (!report?.testResults?.length) return "Pending";
-
-    const abnormal = report.testResults.some(
-      r => r.status !== "Normal"
-    );
-
-    return abnormal ? "Abnormal" : "Normal";
-  }
-
   const getReportStatus = (id) =>{
     const report = getReportById(id);
     return report?.status || "Requested";
@@ -122,6 +110,11 @@ function PatientProfile() {
   const getReportDate = (id) =>{
     const report = getReportById(id);
     return report?.completedAt || null
+  }
+
+  const getReportRequestedDate = (id) =>{
+    const report = getReportById(id);
+    return report?.createdAt || null
   }
 
   const appointmentMap = React.useMemo(() => {
@@ -483,19 +476,19 @@ function PatientProfile() {
                 <p className="text-gray-600 text-sm font-medium">{item.labReportId}</p>
               </div>
 
-              <div className="flex gap-2 items-center">
-                <div className={`p-1.5 w-1 h-1 bg-gray-500 rounded-full ${getReportResultStatus(item.labReportId) === "Normal" ? "text-green-700" : "text-red-700" }}`}></div>
-                <p className={`text-sm font-semibold ${getReportResultStatus(item.labReportId) === "Normal" ? "text-green-700" : "text-red-700" }}`}>{getReportResultStatus(item.labReportId)}</p>
-              </div>
-
               <div className="flex flex-col gap-2">
                 <p className="text-sm text-gray-600">Conducted By</p>
                 <p className="text-sm font-medium text-gray-900">{getReportConductedName(item.labReportId)}</p>
               </div>
 
               <div className="flex flex-col gap-2">
-              <p className="text-sm text-gray-600">Conducted At</p>
-              <p className="text-sm text-gray-700">{formatDate(getReportDate(item.labReportId))}</p>
+              <p className="text-sm text-gray-600">Requested At</p>
+              <p className="text-sm font-medium text-gray-900">{formatDate(getReportRequestedDate(item.labReportId))}</p>
+              </div>
+
+              <div className="flex flex-col gap-2">
+              <p className="text-sm text-gray-600">Completed At</p>
+              <p className="text-sm font-medium text-gray-900">{formatDate(getReportDate(item.labReportId))}</p>
               </div>
 
               <div className="flex flex-wrap gap-3 items-center">

@@ -411,7 +411,7 @@ function DischargeSummary() {
                       </div>
                     </td>
                     <td className="p-2 text-gray-800 text-medium">{item.duration}</td>
-                    <td className="p-2 text-gray-800 text-medium">{item.instructions}</td>
+                    <td className="p-2 text-gray-800 text-medium">{item.instruction}</td>
                   </tr>
                 ))
               }

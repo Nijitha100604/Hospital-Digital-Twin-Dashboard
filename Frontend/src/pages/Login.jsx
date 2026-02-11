@@ -180,12 +180,15 @@ function Login() {
         </div>
         <button 
         type = "submit"
-        onClick={isForgotPassword ? changePasswordHandler : onSubmitHandler}
         className="bg-fuchsia-600 w-full mb-3 border border-fuchsia-700 cursor-pointer text-white font-semibold text-sm px-6 py-2 rounded-lg"
         >
-            Login
+            {isForgotPassword ? "Reset Password" : "Login"}
         </button>
-        <p className="text-sm text-center text-gray-300">Login with your hospital email</p>
+        <p className="text-sm text-center text-gray-300">
+            {isForgotPassword 
+            ? "Create a new secure password for your account"
+            : "Login using your hospital credentials"}
+        </p>
     </form>
 
     </div>

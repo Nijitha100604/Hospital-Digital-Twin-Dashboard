@@ -8,9 +8,10 @@ import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { useContext } from 'react';
 
-function TopNavbar({ setIsSidebarOpen }) {
+function TopNavbar({ isSidebarOpen, setIsSidebarOpen }) {
 
   const navigate = useNavigate();
+
   const { setToken, userData, fetchUserProfile, token } = useContext(AppContext);
 
   const handleLogout = () => {
@@ -20,7 +21,7 @@ function TopNavbar({ setIsSidebarOpen }) {
 
     if (confirmLogout) {
       localStorage.removeItem('token'); 
-      setToken('');              
+      setToken('');         
     }                 
   };
 
@@ -28,8 +29,7 @@ function TopNavbar({ setIsSidebarOpen }) {
     if(token){
       fetchUserProfile(token);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token])
+  }, [token, fetchUserProfile])
 
   return (
 
@@ -40,7 +40,7 @@ function TopNavbar({ setIsSidebarOpen }) {
         <FaBars 
           size={24} 
           className="cursor-pointer text-gray-600 md:hidden"
-          onClick={() => setIsSidebarOpen(true)}
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         />
         <img className="block w-25 sm:w-28 cursor-pointer" src={assets.logo} alt="hospital-logo"/>
       </div>
@@ -54,9 +54,7 @@ function TopNavbar({ setIsSidebarOpen }) {
           className="cursor-pointer text-gray-600"
           onClick={()=>navigate('/')}
         />
-
-        {/* Notification */}
-        <FaRegBell size={22} className="cursor-pointer text-gray-600"/>
+        
 
         {/* User details */}
         <div className="hidden md:flex items-center gap-3 px-4 py-1 rounded-xl border border-gray-900 bg-gray-200">
@@ -74,7 +72,9 @@ function TopNavbar({ setIsSidebarOpen }) {
           onClick={handleLogout}
         />
       </div>
+
     </div>
+
   )
 }
 

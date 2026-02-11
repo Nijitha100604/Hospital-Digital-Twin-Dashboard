@@ -18,6 +18,12 @@ const getBeds = async(req, res) =>{
           preserveNullAndEmptyArrays: true 
         } 
       },
+      {
+        $sort: {
+          departmentName: 1,
+          bedId: 1 
+        }
+      },
 
       {
         $group: {

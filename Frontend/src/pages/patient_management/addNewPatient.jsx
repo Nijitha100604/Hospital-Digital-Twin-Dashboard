@@ -66,10 +66,8 @@ function AddNewPatient() {
 
   const handleSubmit = async(e) =>{
     e.preventDefault();
-    
-    try{
 
-      const formData = new FormData();
+    const formData = new FormData();
       formData.append("name", name);
       formData.append("age", age);
       formData.append("gender", gender);
@@ -94,11 +92,6 @@ function AddNewPatient() {
             navigate("/patient-list");
         },1000);
       }
-
-    } catch(error){
-      console.log(error);
-      toast.error("Internal Server Error");
-    }
   }
 
   const handleCancel = () => {

@@ -1,491 +1,171 @@
-import React from "react";
-import { FaUsers } from "react-icons/fa";
-import { FaHospital } from "react-icons/fa";
-import { FaBoxes } from "react-icons/fa";
-import { FaMicroscope } from "react-icons/fa";
-import { FaCogs } from "react-icons/fa";
-import { FaUserNurse } from "react-icons/fa";
-import { FaTimes } from "react-icons/fa";
-import { FaUserShield } from "react-icons/fa";
+import { useContext } from "react";
+import {
+  FaUsers,
+  FaHospital,
+  FaBoxes,
+  FaMicroscope,
+  FaCogs,
+  FaUserNurse,
+  FaUserShield
+} from "react-icons/fa";
 import { NavLink } from "react-router-dom";
-import { FaHome } from "react-icons/fa";
+import { AppContext } from "../context/AppContext";
 
 function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
+
+  const { userData } = useContext(AppContext);
+  const role = userData?.designation;
+
+  const handleNavClick = () => {
+    window.scrollTo(0, 0);
+
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
+  };
+
+  const menuItems = [
+
+    // ADMIN
+    {
+      title: "ADMIN",
+      icon: <FaUserShield size={20} className="text-gray-500" />,
+      links: [
+        { name: "Dashboard", path: "/admin-dashboard", roles: ["Admin"] }
+      ]
+    },
+
+    // PATIENT SERVICE
+    {
+      title: "PATIENT SERVICE",
+      icon: <FaUsers size={22} className="text-gray-500" />,
+      links: [
+        { name: "Patient List", path: "/patient-list", roles: ["Admin","Doctor","Nurse","Receptionist"] },
+        { name: "Add New Patient", path: "/add-new-patient", roles: ["Admin","Receptionist"] },
+        { name: "Appointments", path: "/all-appointments", roles: ["Admin","Doctor","Nurse","Receptionist"] },
+        { name: "Vitals Entry", path: "/vitals-entry", roles: ["Admin","Nurse"] },
+        { name: "Consultations", path: "/consultations", roles: ["Admin","Doctor"] }
+      ]
+    },
+
+    // INFRASTRUCTURE
+    {
+      title: "INFRASTRUCTURE",
+      icon: <FaHospital size={20} className="text-gray-500" />,
+      links: [
+        { name: "Department List", path: "/departments-list", roles: ["Admin","Doctor","Nurse","Receptionist","Technician","Support","Pharmacist"] },
+        { name: "Bed Availability", path: "/bed-availability", roles: ["Admin","Nurse","Receptionist"] },
+        { name: "Facility Map", path: "/facility-map", roles: ["Admin","Doctor","Nurse","Receptionist","Technician","Support","Pharmacist"] },
+        { name: "Report Issues", path: "/issues-list", roles: ["Admin","Doctor","Nurse","Receptionist","Technician","Support","Pharmacist"] }
+      ]
+    },
+
+    // INVENTORY
+    {
+      title: "INVENTORY",
+      icon: <FaBoxes size={20} className="text-gray-500" />,
+      links: [
+        { name: "Medicine Stock", path: "/medicine-stocks", roles: ["Admin","Pharmacist"] },
+        { name: "Add Medicine", path: "/add-new-medicine", roles: ["Admin","Pharmacist"] },
+        { name: "Stock Alerts", path: "/stock-alerts", roles: ["Admin","Pharmacist"] },
+        { name: "Prescription", path: "/prescription-list", roles: ["Admin","Pharmacist"] },
+        { name: "Suppliers", path: "/suppliers-list", roles: ["Admin","Pharmacist"] },
+        { name: "Purchase Order", path: "/purchase-order", roles: ["Admin","Pharmacist"] }
+      ]
+    },
+
+    // EQUIPMENT
+    {
+      title: "EQUIPMENT",
+      icon: <FaCogs size={20} className="text-gray-500" />,
+      links: [
+        { name: "Equipment List", path: "/equipment-list", roles: ["Admin","Technician"] },
+        { name: "Add New Equipment", path: "/add-equipment", roles: ["Admin","Technician"] },
+        { name: "Calibration Schedule", path: "/calibration-schedule-list", roles: ["Admin","Technician"] },
+        { name: "Maintenance Log", path: "/maintenance-log", roles: ["Admin","Technician"] }
+      ]
+    },
+
+    // LAB
+    {
+      title: "LABORATORY",
+      icon: <FaMicroscope size={20} className="text-gray-500" />,
+      links: [
+        { name: "Lab Reports", path: "/lab-reports-list", roles: ["Admin","Technician", "Doctor", "Nurse"] },
+        { name: "Results Entry", path: "/lab-results-entry", roles: ["Admin","Technician"] },
+        { name: "Patient-Wise Reports", path: "/patient-wise-reports", roles: ["Admin","Technician", "Doctor", "Nurse"] },
+        { name: "Upload Report", path: "/upload-report", roles: ["Admin","Technician"] }
+      ]
+    },
+
+    // WORKFORCE
+    {
+      title: "WORKFORCE",
+      icon: <FaUserNurse size={20} className="text-gray-500" />,
+      links: [
+        { name: "Staff List", path: "/staff-list", roles: ["Admin","Doctor","Nurse","Receptionist","Technician","Support","Pharmacist"] },
+        { name: "Staff Profile", path: "/staff-profile", roles: ["Admin","Doctor","Nurse","Receptionist","Technician","Support","Pharmacist"] },
+        { name: "Attendance and Leave", path: "/leave-management", roles: ["Admin","Doctor","Nurse","Receptionist","Technician","Support","Pharmacist"] },
+        { name: "Add Staff", path: "/add-staff", roles: ["Admin"] },
+        { name: "Shift Planner", path: "/shift-planner", roles: ["Admin"] }
+      ]
+    }
+  ];
+
   return (
     <div
       className={`
-        md:sticky
-        fixed md:top-16 left-0
-        mt-16
-        w-52
-        h-[calc(100vh-4rem)]
-       bg-white border border-gray-300
-        py-4 z-40
-        overflow-y-auto hide-scrollbar
+        md:sticky fixed md:top-16 left-0 mt-16
+        w-52 h-[calc(100vh-4rem)]
+        bg-white border border-gray-300
+        py-4 z-40 overflow-y-auto hide-scrollbar
         transition-transform duration-300
-        ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        }
+        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
       `}
     >
-      <div className="flex justify-end px-4 mb-2 md:hidden">
-        <FaTimes
-          size={15}
-          className="cursor-pointer text-gray-500"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      </div>
+      {menuItems.map((section, index) => {
 
-      {/* Admin */}
-      <div className="mb-4">
-        <div className="flex gap-2 px-4">
-          <FaUserShield size={20} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">ADMIN</p>
-        </div>
+        const allowedLinks = section.links.filter(link =>
+          link.roles.includes(role)
+        );
 
-        <ul className="items-center">
-          <NavLink
-            to="/admin-dashboard"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Dashboard
-          </NavLink>
-        </ul>
-      </div>
+        if (!allowedLinks.length) return null;
 
-      {/* Patient Management */}
-      <div className="mb-4">
-        <div className="flex gap-2 px-4">
-          <FaUsers size={22} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">
-            PATIENT SERVICE
-          </p>
-        </div>
+        return (
+          <div key={index} className="mb-4">
 
-        <ul className="items-center">
-          <NavLink
-            to="/patient-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Patient List
-          </NavLink>
+            <div className="flex gap-2 px-4">
+              {section.icon}
+              <p className="font-semibold text-md text-gray-500 mb-2">
+                {section.title}
+              </p>
+            </div>
 
-          <NavLink
-            to="/add-new-patient"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Add New Patient
-          </NavLink>
+            <ul>
+              {allowedLinks.map((link, i) => (
+                <NavLink
+                  key={i}
+                  to={link.path}
+                  onClick={
+                    handleNavClick
+                  }
+                  className={({ isActive }) =>
+                    `block px-4 py-1 text-sm cursor-pointer ${
+                      isActive
+                        ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
+                        : "text-gray-800 hover:font-semibold"
+                    }`
+                  }
+                >
+                  {link.name}
+                </NavLink>
+              ))}
+            </ul>
 
-          <NavLink
-            to="/all-appointments"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Appointment Booking
-          </NavLink>
+          </div>
+        );
+      })}
 
-          <NavLink
-            to="/vitals-entry"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Vitals Entry
-          </NavLink>
-
-          <NavLink
-            to="/consultations"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Consultations
-          </NavLink>
-        </ul>
-      </div>
-
-      {/* Hospital Infrastructure */}
-      <div className="mb-4">
-        <div className="flex gap-2 px-4">
-          <FaHospital size={20} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">
-            INFRASTRUCTURE
-          </p>
-        </div>
-
-        <ul className="items-center">
-          <NavLink
-            to="/departments-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Department List
-          </NavLink>
-
-          <NavLink
-            to="/bed-availability"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Bed Availability
-          </NavLink>
-
-          <NavLink
-            to="/facility-map"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Facility Map
-          </NavLink>
-
-          <NavLink
-            to="/issues-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Report issues
-          </NavLink>
-        </ul>
-      </div>
-
-      {/* Inventory */}
-      <div className="mb-4">
-        <div className="flex gap-2 px-4">
-          <FaBoxes size={20} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">INVENTORY</p>
-        </div>
-
-        <ul className="items-center">
-          <NavLink
-            to="/medicine-stocks"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Medicine Stock
-          </NavLink>
-
-          <NavLink
-            to="/add-new-medicine"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Add Medicine
-          </NavLink>
-
-          <NavLink
-            to="/stock-alerts"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Stock Alerts
-          </NavLink>
-
-          <NavLink
-            to="/prescription-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Prescription
-          </NavLink>
-
-          <NavLink
-            to="/suppliers-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Suppliers
-          </NavLink>
-
-          <NavLink
-            to="/purchase-order"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Purchase Order
-          </NavLink>
-        </ul>
-      </div>
-
-      {/* Equipment */}
-      <div className="mb-4">
-        <div className="flex gap-2 px-4">
-          <FaCogs size={20} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">EQUIPMENT</p>
-        </div>
-
-        <ul className="items-center">
-          <NavLink
-            to="/equipment-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Equipment List
-          </NavLink>
-
-          <NavLink
-            to="/add-equipment"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Add New Equipment
-          </NavLink>
-
-          <NavLink
-            to="/calibration-schedule-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Calibration Schedule
-          </NavLink>
-
-          <NavLink
-            to="/maintenance-log"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Maintenance Log
-          </NavLink>
-        </ul>
-      </div>
-
-      {/* Laboratory */}
-      <div className="mb-4">
-        <div className="flex gap-2 px-4">
-          <FaMicroscope size={20} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">LABORATORY</p>
-        </div>
-
-        <ul className="items-center">
-          <NavLink
-            to="/lab-reports-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Lab Reports
-          </NavLink>
-
-          <NavLink
-            to="/lab-results-entry"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Results Entry
-          </NavLink>
-
-          <NavLink
-            to="/patient-wise-reports"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Patient-Wise Reports
-          </NavLink>
-
-          <NavLink
-            to="/upload-report"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Upload Report
-          </NavLink>
-        </ul>
-      </div>
-
-      {/* Staff Management */}
-      <div className="mb-4">
-        <div className="flex gap-2 px-4">
-          <FaUserNurse size={20} className="text-gray-500" />
-          <p className="font-semibold text-md text-gray-500 mb-2">WORKFORCE</p>
-        </div>
-
-        <ul className="items-center">
-          <NavLink
-            to="/staff-list"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Staff List
-          </NavLink>
-
-          <NavLink
-            to="/add-staff"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Add Staff
-          </NavLink>
-
-          <NavLink
-            to="/staff-profile"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Staff Profile
-          </NavLink>
-
-          <NavLink
-            to="/shift-planner"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Shift Planner
-          </NavLink>
-
-          <NavLink
-            to="/leave-management"
-            onClick={() => window.scrollTo(0, 0)}
-            className={({ isActive }) => `block px-4 py-1 text-sm cursor-pointer
-          ${
-            isActive
-              ? "font-bold text-fuchsia-900 border-r-4 border-fuchsia-900"
-              : "text-gray-800 hover:font-semibold"
-          }`}
-          >
-            Attendance and Leave
-          </NavLink>
-        </ul>
-      </div>
     </div>
   );
 }

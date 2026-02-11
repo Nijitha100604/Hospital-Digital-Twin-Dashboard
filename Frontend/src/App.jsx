@@ -74,7 +74,10 @@ function App() {
   return (
     <div>
       <ToastContainer />
-      <TopNavbar setIsSidebarOpen={setIsSidebarOpen} />
+      <TopNavbar
+        isSidebarOpen={isSidebarOpen} 
+        setIsSidebarOpen={setIsSidebarOpen} 
+      />
       <div className="flex items-start">
         <SideNavbar
           isSidebarOpen={isSidebarOpen}
@@ -86,6 +89,7 @@ function App() {
 
             {/* Admin Dashboard */}
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/login" element={<Navigate to="/" replace />} />
 
             {/*Home Page*/}
             <Route path="/" element={<HomePage />} />
