@@ -2,25 +2,49 @@ import React, { useRef, useState, useContext } from "react";
 import { FaUserPlus, FaUpload, FaRedo, FaList } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { StaffContext } from "../../context/StaffContext";
-import { AppContext } from "../../context/AppContext"; // Import AppContext
-import AccessDenied from "../../components/AccessDenied"; // Import AccessDenied Component
+import { AppContext } from "../../context/AppContext"; 
+import AccessDenied from "../../components/AccessDenied"; 
 import { toast } from "react-toastify";
+
+// --- CONFIGURATION: ROLE TO DEPARTMENT MAPPING ---
+const roleDepartments = {
+  "Doctor": [
+    "Cardiology", "Neurology", "Pediatrics", "Gynecology", 
+    "Dermatology", "General Medicine", "Orthopedics", "Emergency", "Oncology"
+  ],
+  "Nurse": [
+    "Nursing", "ICU", "Emergency", "Operation Theatre", "Pediatrics", "General Ward"
+  ],
+  "Technician": [
+    "Pathology", "Microbiology", "Biochemistry", "Radiology", "Dialysis Unit", "Blood Bank"
+  ],
+  "Pharmacist": [
+    "Pharmacy"
+  ],
+  "Receptionist": [
+    "Front Desk", "Registration", "Help Desk"
+  ],
+  "Admin": [
+    "Administration", "Human Resources", "Finance", "Billing", "IT Support"
+  ],
+  "Support": [
+    "Housekeeping", "Security", "Maintenance", "Transport", "Canteen"
+  ]
+};
 
 function AddStaff() {
   const navigate = useNavigate();
   const { addStaff } = useContext(StaffContext);
-  const { userData } = useContext(AppContext); // Get User Role
+  const { userData } = useContext(AppContext); 
 
   // --- SECURITY CHECK: ADMIN ONLY ---
   if (userData && userData.designation !== 'Admin') {
     return <AccessDenied />;
   }
   
-  // Refs for file uploads
   const idProofRef = useRef(null);
   const profilePhotoRef = useRef(null);
 
-  // Form State
   const [files, setFiles] = useState({ profilePhoto: null, idProofDoc: null });
   const [data, setData] = useState({
     fullName: "",
@@ -41,9 +65,21 @@ function AddStaff() {
     status: "Active"
   });
 
+  // --- HANDLERS ---
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Special handler for Designation to reset Department
+  const handleDesignationChange = (e) => {
+    const newDesignation = e.target.value;
+    setData(prev => ({ 
+        ...prev, 
+        designation: newDesignation,
+        department: "" // Reset department when role changes
+    }));
   };
 
   const handleFileChange = (e, type) => {
@@ -66,6 +102,9 @@ function AddStaff() {
     }
   };
 
+  // Get current departments based on selected designation
+  const currentDepartments = roleDepartments[data.designation] || [];
+
   return (
     <>
       <div className="flex flex-wrap justify-between items-center mb-6">
@@ -83,7 +122,7 @@ function AddStaff() {
 
       <form onSubmit={handleSubmit} className="bg-white p-2 rounded-lg">
         
-        {/* --- SECTION 1: STAFF DETAILS --- */}
+        {/* --- SECTION 1: PERSONAL DETAILS --- */}
         <div className="border border-gray-300 rounded-xl p-6 mb-6">
           <h3 className="text-gray-800 font-bold text-lg mb-4">Personal Details</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
@@ -98,14 +137,10 @@ function AddStaff() {
             </select>
 
             <input name="email" type="email" value={data.email} onChange={handleChange} required placeholder="Email *" className="input-field" />
-            
             <input name="password" type="password" value={data.password} onChange={handleChange} required placeholder="Password *" className="input-field" />
-
             <input name="contactNumber" type="number" value={data.contactNumber} onChange={handleChange} required placeholder="Contact Number *" className="input-field" />
-            
             <input name="dateOfBirth" type="text" onFocus={(e)=>e.target.type='date'} onBlur={(e)=>e.target.type='text'} value={data.dateOfBirth} onChange={handleChange} required placeholder="Date of Birth *" className="input-field" />
 
-            {/* Profile Photo Upload */}
             <div className="flex items-center gap-3">
                 <button type="button" onClick={() => profilePhotoRef.current.click()} className="bg-white border border-gray-400 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-50">
                   Choose Photo
@@ -123,28 +158,31 @@ function AddStaff() {
           <h3 className="text-gray-800 font-bold text-lg mb-4">Professional Details</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             
-            <select name="designation" value={data.designation} onChange={handleChange} required className="input-field text-gray-500">
+            {/* 1. Designation Selection */}
+            <select name="designation" value={data.designation} onChange={handleDesignationChange} required className="input-field text-gray-500">
                 <option value="">Select Designation *</option>
-                <option value="Doctor">Doctor</option>
-                <option value="Nurse">Nurse</option>
-                <option value="Admin">Admin</option>
-                <option value="Support">Support</option>
-                <option value="Technician">Technician</option>
-                <option value="Pharmacist">Pharmacist</option>
-                <option value="Receptionist">Receptionist</option>
+                {Object.keys(roleDepartments).map(role => (
+                    <option key={role} value={role}>{role}</option>
+                ))}
             </select>
 
-            <select name="department" value={data.department} onChange={handleChange} required className="input-field text-gray-500">
+            {/* 2. Dynamic Department Selection */}
+            <select 
+                name="department" 
+                value={data.department} 
+                onChange={handleChange} 
+                required 
+                disabled={!data.designation} // Disable until role is chosen
+                className={`input-field text-gray-500 ${!data.designation ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
                 <option value="">Select Department *</option>
-                <option value="Cardiology">Cardiology</option>
-                <option value="Neurology">Neurology</option>
-                <option value="Pediatrics">Pediatrics</option>
-                <option value="Administration">Administration</option>
-                <option value="Gynecology">Gynecology</option>
-                <option value="Dermatology">Dermatology</option>
-                <option value="General Medicine">General Medicine</option>
-                <option value="Orthopedics">Orthopedics</option>
-                {/* Add others as needed */}
+                {currentDepartments.length > 0 ? (
+                    currentDepartments.map(dept => (
+                        <option key={dept} value={dept}>{dept}</option>
+                    ))
+                ) : (
+                    <option value="" disabled>Select a Designation first</option>
+                )}
             </select>
 
             <input name="qualification" value={data.qualification} onChange={handleChange} required placeholder="Qualification *" className="input-field" />
@@ -185,7 +223,6 @@ function AddStaff() {
         </div>
       </form>
       
-      {/* Internal CSS for cleaner JSX */}
       <style>{`
         .input-field {
             width: 100%;

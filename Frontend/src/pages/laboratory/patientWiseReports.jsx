@@ -1,74 +1,59 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft,
-  FileText,
-  User,
-  Phone,
-  Activity,
-  Download,
-  Printer,
-  Eye,
-  Loader2,
-  AlertTriangle,
-  Search,
-  Clock,
-  X,
-  ChevronRight,
-  Calendar,
-  Maximize2,
-  Trash2,
-  Edit3
+  ArrowLeft, FileText, User, Phone, Activity, Download, Printer, Eye,
+  Loader2, AlertTriangle, Search, Clock, X, ChevronRight, Maximize2,
+  Trash2, Edit3, History, FileClock
 } from "lucide-react";
 import { LabContext } from "../../context/LabContext";
+import { AppContext } from "../../context/AppContext"; // Import AppContext for Role
+import AccessDenied from "../../components/AccessDenied"; // Import AccessDenied
 
 export default function PatientWiseReport() {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Access context functions
+  // Access Context
   const { fetchReportById, fetchLabReports, deleteLabReport, loading, reports } = useContext(LabContext);
+  const { userData } = useContext(AppContext); // Get User Data
 
+  // --- 1. ACCESS CONTROL CHECKS ---
+  const userRole = userData?.designation || "";
+  
+  // Who can VIEW this page?
+  const canView = ['Admin', 'Doctor', 'Nurse', 'Technician'].includes(userRole);
+  
+  // Who can AMEND/DELETE? (Strictly Technician)
+  const isTechnician = userRole === 'Technician';
+
+  // --- STATE ---
   const [reportData, setReportData] = useState(location.state?.reportData || null);
   const [searchInput, setSearchInput] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-
   const [showResultModal, setShowResultModal] = useState(false);
   const [matchingReports, setMatchingReports] = useState([]);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [showHistory, setShowHistory] = useState(false); // Toggle for History Section
 
-  // --- AUTO-FETCH ON LOAD ---
-  // Ensures the search bar works even if the user refreshed the page
+  // --- AUTO-FETCH & LOAD DATA ---
   useEffect(() => {
-    if (reports.length === 0) {
-        fetchLabReports();
-    }
+    if (reports.length === 0) fetchLabReports();
   }, []); 
 
-  // --- 1. LOAD DATA LOGIC ---
   useEffect(() => {
     const loadData = async () => {
       if (id) {
-        // Priority 1: Navigation State
-        if (
-          location.state?.reportData &&
-          (location.state.reportData._id === id || location.state.reportData.labReportId === id)
-        ) {
+        if (location.state?.reportData && (location.state.reportData._id === id || location.state.reportData.labReportId === id)) {
           setReportData(location.state.reportData);
           setSearchInput(location.state.reportData.patientId || "");
           return;
         }
-
-        // Priority 2: Local Context Search
-        const foundLocal = reports.find(
-          (r) => r._id === id || r.labReportId === id
-        );
+        const foundLocal = reports.find((r) => r._id === id || r.labReportId === id);
         if (foundLocal) {
           setReportData(foundLocal);
           setSearchInput(foundLocal.patientId || "");
         } else {
-          // Priority 3: API Fetch
           const data = await fetchReportById(id);
           if (data) {
             setReportData(data);
@@ -84,16 +69,10 @@ export default function PatientWiseReport() {
   }, [id, location.state, fetchReportById, reports]);
 
   // --- HANDLERS ---
-  
   const handleSearch = () => {
     if (!searchInput.trim()) return;
     const query = searchInput.trim().toLowerCase();
-
-    if(reports.length === 0) {
-        fetchLabReports();
-        setErrorMsg("Loading data... Please click Find again in a moment.");
-        return;
-    }
+    if(reports.length === 0) { fetchLabReports(); return; }
 
     const foundMatches = reports.filter((r) => {
         const pId = r.patientId ? r.patientId.toLowerCase() : "";
@@ -109,10 +88,7 @@ export default function PatientWiseReport() {
       setShowResultModal(false);
     } else if (foundMatches.length === 1) {
       const target = foundMatches[0];
-      const linkId = target.labReportId || target._id;
-      navigate(`/patient-wise-reports/${linkId}`, {
-        state: { reportData: target },
-      });
+      navigate(`/patient-wise-reports/${target.labReportId || target._id}`, { state: { reportData: target } });
       setErrorMsg("");
       setShowResultModal(false);
     } else {
@@ -123,44 +99,25 @@ export default function PatientWiseReport() {
   };
 
   const selectReport = (report) => {
-    const linkId = report.labReportId || report._id;
-    navigate(`/patient-wise-reports/${linkId}`, {
-        state: { reportData: report },
-    });
+    navigate(`/patient-wise-reports/${report.labReportId || report._id}`, { state: { reportData: report } });
     setShowResultModal(false);
   };
 
-  // --- UPDATED: DELETE WITH REASON ---
   const handleDelete = async () => {
     if(!reportData) return;
-
-    // 1. Prompt User for Reason
     const reason = window.prompt("⚠️ CAUTION: You are about to delete this report.\n\nPlease enter a reason for deletion:");
+    if (reason === null) return;
+    if (reason.trim() === "") { alert("Deletion Cancelled: A reason is mandatory."); return; }
 
-    // 2. Validation
-    if (reason === null) return; // User clicked Cancel
-    if (reason.trim() === "") {
-        alert("Deletion Cancelled: A reason is mandatory for the audit trail.");
-        return;
-    }
-
-    // 3. Call Context Delete function with ID and Reason
     const success = await deleteLabReport(reportData._id, reason);
-    if(success) {
-        setReportData(null); 
-        navigate('/lab-reports-list');
-    }
+    if(success) { setReportData(null); navigate('/lab-reports-list'); }
   };
 
-  // --- AMEND NAVIGATOR ---
   const handleAmend = () => {
     if (!reportData) return;
-
-    // Navigate based on how the report was originally created
     if (reportData.entryType === "Upload") {
         navigate('/upload-report', { state: { reportData } });
     } else {
-        // Default to Manual Entry page
         navigate(`/lab-results-entry/${reportData.labReportId || reportData._id}`, { state: { reportData } });
     }
   };
@@ -175,13 +132,15 @@ export default function PatientWiseReport() {
 
   const isPdf = reportData?.reportDocument?.toLowerCase().endsWith(".pdf");
 
+  // --- 2. SECURITY CHECK (VIEW) ---
+  if (!canView) return <AccessDenied />;
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-800">
       
-      {/* PRINT STYLES */}
       <style>{`@media print { body * { visibility: hidden; } #printable-report, #printable-report * { visibility: visible; } #printable-report { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 20px; background: white; border: none; } .no-print { display: none !important; } }`}</style>
 
-      {/* --- IMAGE MODAL (Lightbox) --- */}
+      {/* --- IMAGE MODAL --- */}
       {isImageModalOpen && reportData?.reportDocument && (
         <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200 no-print" onClick={() => setIsImageModalOpen(false)}>
             <button onClick={() => setIsImageModalOpen(false)} className="absolute top-4 right-4 text-white/70 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all z-[110]"><X size={28}/></button>
@@ -257,16 +216,70 @@ export default function PatientWiseReport() {
                   <button onClick={handlePrint} className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"><Download size={16} /> PDF</button>
                   <button onClick={handlePrint} className="flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"><Printer size={16} /> Print</button>
                   
-                  {/* --- AMEND & DELETE BUTTONS --- */}
-                  <button onClick={handleAmend} className="col-span-2 flex items-center justify-center gap-2 bg-orange-50 border border-orange-200 hover:bg-orange-100 text-orange-700 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer">
-                    <Edit3 size={16} /> Amend Report
-                  </button>
+                  {/* --- 3. SECURITY CHECK (ACTIONS): TECHNICIAN ONLY --- */}
+                  {isTechnician && (
+                    <>
+                        <button onClick={handleAmend} className="col-span-2 flex items-center justify-center gap-2 bg-orange-50 border border-orange-200 hover:bg-orange-100 text-orange-700 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer">
+                            <Edit3 size={16} /> Amend Report
+                        </button>
 
-                  <button onClick={handleDelete} className="col-span-2 flex items-center justify-center gap-2 bg-red-50 border border-red-200 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer">
-                    <Trash2 size={16} /> Delete Report
-                  </button>
+                        <button onClick={handleDelete} className="col-span-2 flex items-center justify-center gap-2 bg-red-50 border border-red-200 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer">
+                            <Trash2 size={16} /> Delete Report
+                        </button>
+                    </>
+                  )}
                 </div>
               </div>
+
+              {/* --- NEW: REVISION HISTORY (Collapsible) --- */}
+              {reportData.revisionHistory && reportData.revisionHistory.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                      <div 
+                        className="bg-gray-50 px-6 py-4 flex justify-between items-center cursor-pointer hover:bg-gray-100 transition-colors"
+                        onClick={() => setShowHistory(!showHistory)}
+                      >
+                          <h4 className="font-bold text-gray-700 text-sm flex items-center gap-2">
+                              <History size={16} className="text-purple-600"/> Revision History
+                          </h4>
+                          <ChevronRight size={16} className={`text-gray-400 transition-transform ${showHistory ? 'rotate-90' : ''}`}/>
+                      </div>
+                      
+                      {showHistory && (
+                          <div className="p-4 bg-gray-50/50 border-t border-gray-200 space-y-3">
+                              {reportData.revisionHistory.map((rev, idx) => (
+                                  <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200 text-xs shadow-sm">
+                                      <div className="flex justify-between mb-1">
+                                          <span className="font-bold text-gray-800">{rev.amendedBy}</span>
+                                          <span className="text-gray-400">{new Date(rev.amendedAt).toLocaleDateString()}</span>
+                                      </div>
+                                      <p className="text-gray-600 italic mb-2">"{rev.reason}"</p>
+                                      
+                                      {/* View Previous File Link */}
+                                      {rev.previousFile && (
+                                          <a href={rev.previousFile} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 hover:underline font-medium">
+                                              <FileClock size={12}/> View Old File
+                                          </a>
+                                      )}
+                                      
+                                      {/* View Previous Results (Manual) */}
+                                      {rev.previousResults && rev.previousResults.length > 0 && (
+                                          <div className="mt-2 pt-2 border-t border-dashed border-gray-200">
+                                              <p className="font-bold text-gray-500 mb-1">Previous Values:</p>
+                                              {rev.previousResults.slice(0, 3).map((r, i) => (
+                                                  <div key={i} className="flex justify-between text-gray-500">
+                                                      <span>{r.parameter}:</span>
+                                                      <span>{r.value}</span>
+                                                  </div>
+                                              ))}
+                                              {rev.previousResults.length > 3 && <span className="text-gray-400 italic">...and more</span>}
+                                          </div>
+                                      )}
+                                  </div>
+                              ))}
+                          </div>
+                      )}
+                  </div>
+              )}
             </div>
 
             {/* RIGHT: REPORT CONTENT */}
