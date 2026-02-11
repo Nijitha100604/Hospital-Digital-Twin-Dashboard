@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { 
-  FaUserTie, FaEdit, FaArrowLeft, FaSearch, 
+  FaUserTie, FaEdit, FaArrowLeft, FaSearch, FaCamera,
   FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaSave, FaTimes, FaSpinner 
 } from "react-icons/fa";
 import { StaffContext } from "../../context/StaffContext"; 
-import { AppContext } from "../../context/AppContext"; // Need UserData for Role Check
+import { AppContext } from "../../context/AppContext"; 
 
 function StaffProfile() {
   const { id } = useParams(); 
@@ -13,13 +13,20 @@ function StaffProfile() {
   
   // --- CONTEXT ---
   const { getStaffById, updateStaff, staffs, fetchStaffs } = useContext(StaffContext);
-  const { userData } = useContext(AppContext); // Get current logged in user role
+  const { userData } = useContext(AppContext);
+
+  // --- REFS ---
+  const fileInputRef = useRef(null);
 
   // --- STATES ---
   const [staff, setStaff] = useState(null);
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   
+  // Image Upload States
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
   // Search States
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -36,18 +43,14 @@ function StaffProfile() {
 
   // --- 1. INITIAL DATA LOADING ---
   useEffect(() => {
-    if (!id && staffs.length === 0) {
-      fetchStaffs();
-    }
+    if (!id && staffs.length === 0) fetchStaffs();
 
     if (id) {
       const loadData = async () => {
         setLoading(true);
         let foundStaff = staffs.find((item) => item.staffId === id);
         
-        if (!foundStaff) {
-            foundStaff = await getStaffById(id);
-        }
+        if (!foundStaff) foundStaff = await getStaffById(id);
 
         if (foundStaff) {
           setStaff(foundStaff);
@@ -76,36 +79,35 @@ function StaffProfile() {
     }
   }, [searchTerm, staffs]);
 
-  // --- HELPER: CALCULATE EXPERIENCE ---
+  // --- 3. HANDLERS ---
+  
   const calculateYears = (dateString) => {
     if (!dateString) return "0";
     const joinDate = new Date(dateString);
     const today = new Date();
-    
     let years = today.getFullYear() - joinDate.getFullYear();
     const m = today.getMonth() - joinDate.getMonth();
-    
-    if (m < 0 || (m === 0 && today.getDate() < joinDate.getDate())) {
-      years--;
-    }
+    if (m < 0 || (m === 0 && today.getDate() < joinDate.getDate())) years--;
     return years < 0 ? "0" : years.toString(); 
   };
 
-  // --- 3. HANDLE INPUT CHANGE ---
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     let updatedData = { ...formData, [name]: value };
-
-    if (name === "joiningDate") {
-      updatedData.experience = calculateYears(value);
-    }
-
+    if (name === "joiningDate") updatedData.experience = calculateYears(value);
     setFormData(updatedData);
   };
 
-  // --- 4. TOGGLE STATUS (ADMIN ONLY) ---
+  // --- IMAGE HANDLER ---
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   const toggleStatus = () => {
-    // Only allow toggle if in edit mode AND user is Admin
     if (editSection.basic && isAdmin) {
       setFormData((prev) => ({
         ...prev,
@@ -114,104 +116,96 @@ function StaffProfile() {
     }
   };
 
-  // --- 5. SAVE CHANGES ---
   const handleSave = async (section) => {
     const submissionData = new FormData();
+    
+    // Append Text Data
     Object.keys(formData).forEach(key => {
-        if(key !== '_id' && key !== 'createdAt' && key !== 'updatedAt' && key !== '__v') {
+        if(key !== '_id' && key !== 'createdAt' && key !== 'updatedAt' && key !== '__v' && key !== 'profilePhoto') {
             submissionData.append(key, formData[key]);
         }
     });
 
+    // Append Image if Changed
+    if (imageFile) {
+        submissionData.append('profilePhoto', imageFile);
+    }
+
     const success = await updateStaff(staff.staffId, submissionData);
     
     if (success) {
-        setStaff(formData);
+        // If image was uploaded, we assume backend returns updated URL or we use preview temporarily
+        // Ideally fetch fresh data, but here we update local state
+        setStaff(prev => ({ 
+            ...prev, 
+            ...formData, 
+            profilePhoto: imagePreview || prev.profilePhoto 
+        }));
+        
         setEditSection((prev) => ({ ...prev, [section]: false }));
+        setImageFile(null); // Reset file
     }
   };
 
   const toggleEdit = (section) => {
     setEditSection((prev) => ({ ...prev, [section]: !prev[section] }));
     if (editSection[section]) {
-      setFormData(staff); // Reset on cancel
+      setFormData(staff); // Reset form on cancel
+      setImagePreview(null); // Reset image preview
+      setImageFile(null);
     }
   };
 
-  // --- HELPER: RENDER VALUE ---
   const renderValue = (value) => {
-    return value ? (
-      <span className="text-gray-800 font-medium">{value}</span>
-    ) : (
-      <span className="text-red-400 italic text-sm">Not Provided</span>
-    );
+    return value ? <span className="text-gray-800 font-medium">{value}</span> : <span className="text-red-400 italic text-sm">Not Provided</span>;
   };
 
-  // ==========================================
-  // VIEW 1: SEARCH SCREEN (No ID provided) - ACCESSIBLE TO ALL
-  // ==========================================
+  // ... (Search View Code remains same as previous) ...
   if (!id) {
+    // ... (Keep existing Search View logic) ...
     return (
-      <div className="p-6 max-w-4xl mx-auto animate-in fade-in duration-300">
-        <div className="bg-white rounded-xl shadow-sm p-8 text-center min-h-[400px] flex flex-col justify-center items-center border border-gray-200">
-          <div className="bg-purple-100 p-4 rounded-full mb-4">
-            <FaUserTie className="text-purple-600 text-3xl" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Find Staff Member</h2>
-          <p className="text-gray-500 mb-6">Search from {staffs.length} registered staff members</p>
-          
-          <div className="relative w-full max-w-md mt-4">
-            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="Enter Name or ID (e.g., STF001)..."
-              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600 outline-none transition-all"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="p-6 max-w-4xl mx-auto animate-in fade-in duration-300">
+          <div className="bg-white rounded-xl shadow-sm p-8 text-center min-h-[400px] flex flex-col justify-center items-center border border-gray-200">
+            <div className="bg-purple-100 p-4 rounded-full mb-4">
+              <FaUserTie className="text-purple-600 text-3xl" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Find Staff Member</h2>
+            <p className="text-gray-500 mb-6">Search from {staffs.length} registered staff members</p>
             
-            {searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-10 text-left max-h-60 overflow-y-auto">
-                {searchResults.map((item) => (
-                  <div 
-                    key={item.staffId} 
-                    onClick={() => navigate(`/staff-profile/${item.staffId}`)} 
-                    className="p-3 hover:bg-purple-50 cursor-pointer border-b last:border-0 flex justify-between items-center transition-colors"
-                  >
-                    <div>
-                        <p className="font-semibold text-gray-800">{item.fullName}</p>
-                        <p className="text-xs text-gray-500">{item.staffId} • {item.designation}</p>
+            <div className="relative w-full max-w-md mt-4">
+              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Enter Name or ID (e.g., STF001)..."
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600 outline-none transition-all"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-10 text-left max-h-60 overflow-y-auto">
+                  {searchResults.map((item) => (
+                    <div 
+                      key={item.staffId} 
+                      onClick={() => navigate(`/staff-profile/${item.staffId}`)} 
+                      className="p-3 hover:bg-purple-50 cursor-pointer border-b last:border-0 flex justify-between items-center transition-colors"
+                    >
+                      <div>
+                          <p className="font-semibold text-gray-800">{item.fullName}</p>
+                          <p className="text-xs text-gray-500">{item.staffId} • {item.designation}</p>
+                      </div>
+                      <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded font-medium">View</span>
                     </div>
-                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded font-medium">View</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            {searchTerm && searchResults.length === 0 && (
-                <div className="absolute top-full w-full bg-white p-4 shadow-lg rounded-xl mt-2 text-gray-500 border border-gray-100">
-                    No staff found matching "{searchTerm}"
+                  ))}
                 </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    );
+      );
   }
 
-  // ==========================================
-  // VIEW 2: PROFILE SCREEN (ID provided)
-  // ==========================================
-
   if (loading) return <div className="flex justify-center p-20"><FaSpinner className="animate-spin text-3xl text-purple-600"/></div>;
-  
-  if (!staff) return (
-    <div className="p-10 text-center text-gray-500">
-        Staff not found. 
-        <br/>
-        <button onClick={() => navigate('/staff-list')} className="text-purple-600 underline mt-2">Go to List</button>
-    </div>
-  );
+  if (!staff) return <div className="p-10 text-center text-gray-500">Staff not found. <br/><button onClick={() => navigate('/staff-list')} className="text-purple-600 underline mt-2">Go to List</button></div>;
 
   return (
     <div className="p-2 animate-in fade-in duration-300">
@@ -232,10 +226,10 @@ function StaffProfile() {
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         
-        {/* --- LEFT CARD: BASIC INFO --- */}
+        {/* --- LEFT CARD: BASIC INFO (Photo & Status) --- */}
         <div className="w-full lg:w-1/3 bg-white rounded-xl shadow-sm border border-gray-200 p-8 flex flex-col items-center text-center h-full min-h-[500px] relative">
           
-          {/* --- EDIT BUTTONS: ONLY VISIBLE TO ADMIN --- */}
+          {/* EDIT BUTTONS (Admin Only) */}
           {isAdmin && (
             <div className="absolute top-4 right-4 flex gap-2">
                 {editSection.basic ? (
@@ -249,8 +243,28 @@ function StaffProfile() {
             </div>
           )}
 
-          <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-purple-50 mb-4 shadow-sm">
-            <img src={staff.profilePhoto || "https://img.freepik.com/free-photo/doctor-with-his-arms-crossed-white-background_1368-5790.jpg"} alt="Profile" className="w-full h-full object-cover"/>
+          {/* PROFILE PHOTO with EDIT OVERLAY */}
+          <div className="relative group mb-4">
+            <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-purple-50 shadow-sm relative">
+                <img 
+                    src={imagePreview || staff.profilePhoto || "https://img.freepik.com/free-photo/doctor-with-his-arms-crossed-white-background_1368-5790.jpg"} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                />
+                
+                {/* Overlay only in Edit Mode */}
+                {editSection.basic && (
+                    <div 
+                        onClick={() => fileInputRef.current.click()} 
+                        className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                        <FaCamera className="text-white text-2xl mb-1" />
+                        <span className="text-white text-xs font-bold">Change</span>
+                    </div>
+                )}
+            </div>
+            {/* Hidden Input */}
+            <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
           </div>
 
           {editSection.basic ? (
@@ -265,6 +279,7 @@ function StaffProfile() {
             ID: <span className="text-gray-600">{staff.staffId}</span>
           </div>
 
+          {/* STATUS TOGGLE */}
           <div className="flex gap-3 mb-8 select-none">
             <span 
               onClick={toggleStatus}
@@ -272,7 +287,7 @@ function StaffProfile() {
                 ${(editSection.basic ? formData.status : staff.status) === 'Active' ? 'bg-green-600' : 'bg-red-500'}
                 ${editSection.basic ? 'cursor-pointer ring-2 ring-offset-2 ring-purple-400 scale-105' : ''}
               `}
-              title={editSection.basic ? "Click to toggle" : ""}
+              title={editSection.basic ? "Click to toggle status" : ""}
             >
               {editSection.basic ? formData.status : staff.status}
             </span>
@@ -302,7 +317,6 @@ function StaffProfile() {
                 <div className="bg-gray-100 px-6 py-4 flex justify-between items-center border-b border-gray-200">
                     <h4 className="font-bold text-gray-800">Professional Details</h4>
                     
-                    {/* --- ADMIN ONLY: EDIT PROFESSIONAL DETAILS --- */}
                     {isAdmin && (
                         <div className="flex gap-2">
                             {editSection.professional ? (
@@ -382,8 +396,6 @@ function StaffProfile() {
             <div>
                 <div className="bg-gray-100 px-6 py-4 flex justify-between items-center border-b border-gray-200 border-t">
                     <h4 className="font-bold text-gray-800">Personal Information</h4>
-                    
-                    {/* --- ADMIN ONLY: EDIT PERSONAL DETAILS --- */}
                     {isAdmin && (
                         <div className="flex gap-2">
                             {editSection.personal ? (
@@ -399,7 +411,6 @@ function StaffProfile() {
                 </div>
 
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-4">
-                      
                       {/* Gender Field */}
                       <div>
                         <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Gender</p>
