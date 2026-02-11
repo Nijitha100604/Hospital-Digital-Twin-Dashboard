@@ -104,6 +104,7 @@ function AdminDashboard() {
 
     // equipments data
     const totalEquipments = equipments?.length || 0;
+    // eslint-disable-next-line no-unused-vars
     const maintenanceEquipments = equipments?.filter(
       (e) => e?.basicInfo?.equipmentStatus === "Under Maintenance"
     ).length || 0;
@@ -607,10 +608,10 @@ function AdminDashboard() {
           </div>
 
           {/* cards */}
-          <div className="flex flex-wrap gap-3 items-center mt-3">
+          <div className="grid grid-cols-4 gap-2 items-center mt-3">
             {
               lowStockCount > 0 && (
-                <div className="p-6 border w-52 border-red-300 rounded-xl flex flex-col items-center shadow-sm hover:bg-orange-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="p-6 border border-red-300 rounded-xl flex flex-col items-center shadow-sm hover:bg-orange-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer">
                   <div className="flex items-center justify-center rounded-2xl bg-orange-200 text-orange-600 p-4">
                     <FaCube size={22}/>
                   </div>
@@ -629,7 +630,7 @@ function AdminDashboard() {
 
             {
               expiringSoonCount > 0 && (
-                <div className="p-6 border w-54 border-red-300 rounded-xl flex flex-col items-center shadow-sm hover:bg-orange-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="p-6 border border-red-300 rounded-xl flex flex-col items-center shadow-sm hover:bg-orange-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer">
                   <div className="flex items-center justify-center rounded-2xl bg-orange-200 text-orange-600 p-4">
                     <FaPills size={22}/>
                   </div>
@@ -649,7 +650,7 @@ function AdminDashboard() {
             {
               // --- CHANGED: Now uses the detailed Maintenance Log stats ---
               totalMaintenanceAlerts > 0 && (
-                <div className="p-6 border w-54 border-red-300 rounded-xl flex flex-col items-center shadow-sm hover:bg-orange-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="p-6 border border-red-300 rounded-xl flex flex-col items-center shadow-sm hover:bg-orange-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer">
                   <div className="flex items-center justify-center rounded-2xl bg-orange-200 text-orange-600 p-4">
                     <FaTools size={22}/>
                   </div>
@@ -674,7 +675,7 @@ function AdminDashboard() {
 
             {
               (pendingIssues > 0 || inProgressIssues > 0) && (
-                <div className="p-6 border w-54 border-red-300 rounded-xl flex flex-col items-center shadow-sm hover:bg-orange-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="p-6 border border-red-300 rounded-xl flex flex-col items-center shadow-sm hover:bg-orange-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer">
                   <div className="flex items-center justify-center rounded-2xl bg-orange-200 text-orange-600 p-4">
                     <FaExclamationTriangle size={22}/>
                   </div>
