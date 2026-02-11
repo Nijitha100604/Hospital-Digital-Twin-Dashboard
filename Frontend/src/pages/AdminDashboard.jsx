@@ -608,7 +608,7 @@ function AdminDashboard() {
           </div>
 
           {/* cards */}
-          <div className="grid grid-cols-4 gap-2 items-center mt-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-center mt-3">
             {
               lowStockCount > 0 && (
                 <div className="p-6 border border-red-300 rounded-xl flex flex-col items-center shadow-sm hover:bg-orange-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer">
