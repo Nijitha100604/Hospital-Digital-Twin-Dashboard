@@ -3,7 +3,6 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContext } from "./AppContext";
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const MedicineContext = createContext();
 
 const MedicineContextProvider = ({ children }) => {
@@ -12,7 +11,7 @@ const MedicineContextProvider = ({ children }) => {
   const [medicines, setMedicines] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [purchaseOrders, setPurchaseOrders] = useState([]);
-  const [prescriptionQueue, setPrescriptionQueue] = useState([]); // New: Prescription Queue
+  const [prescriptionQueue, setPrescriptionQueue] = useState([]); 
   const [loading, setLoading] = useState(false);
 
   {/* Medicine Context */}
@@ -289,7 +288,7 @@ const MedicineContextProvider = ({ children }) => {
   const fetchPrescriptionQueue = useCallback(async () => {
     if (!token) return;
     try {
-      // Updated URL
+      
       const { data } = await axios.get(
         `${backendUrl}/api/prescription/queue`, 
         { headers: { token } }
@@ -307,7 +306,6 @@ const MedicineContextProvider = ({ children }) => {
 
   const checkoutPrescription = async (payload) => {
     try {
-      // Updated URL
       const { data } = await axios.post(
         `${backendUrl}/api/prescription/checkout`,
         payload,
@@ -315,9 +313,9 @@ const MedicineContextProvider = ({ children }) => {
       );
 
       if (data.success) {
-        toast.success("Prescription dispensed successfully!");
+        toast.success(data.message); 
         await fetchPrescriptionQueue();
-        await fetchMedicines(); // Refresh stock
+        await fetchMedicines(); 
         return true;
       } else {
         toast.error(data.message);
@@ -351,15 +349,12 @@ const MedicineContextProvider = ({ children }) => {
 
   const value = {
     loading,
-    
-    // Medicines
     medicines,
     fetchMedicines,
     getMedicineById,
     addMedicine,
     updateMedicine,
-
-    // Suppliers
+    
     suppliers,
     fetchSuppliers,
     getSupplierById,
@@ -367,14 +362,12 @@ const MedicineContextProvider = ({ children }) => {
     updateSupplier,
     deleteSupplier,
 
-    // Purchase Orders
     purchaseOrders,
     fetchPurchaseOrders,
     createPurchaseOrder,
     updatePurchaseOrder,
     deletePurchaseOrder,
 
-    // Prescriptions 
     prescriptionQueue,
     fetchPrescriptionQueue,
     checkoutPrescription

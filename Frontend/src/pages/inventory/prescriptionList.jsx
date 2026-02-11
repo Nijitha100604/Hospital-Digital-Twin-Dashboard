@@ -31,10 +31,14 @@ const PrescriptionList = () => {
   } = useContext(MedicineContext);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("Pending");
+  const [statusFilter, setStatusFilter] = useState("All"); 
   const [selectedPrescription, setSelectedPrescription] = useState(null);
   const [remarks, setRemarks] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   // Initial Fetch
   useEffect(() => {
@@ -56,6 +60,17 @@ const PrescriptionList = () => {
     });
   }, [prescriptionQueue, searchTerm, statusFilter]);
 
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredList.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentCards = filteredList.slice(indexOfFirstItem, indexOfLastItem);
+
   /* ------------------ HELPER LOGIC ------------------ */
 
   const calculateRequiredQty = (frequency, duration) => {
@@ -73,8 +88,6 @@ const PrescriptionList = () => {
       status: stockItem.quantity >= requiredQty ? "In Stock" : "Out of Stock",
     };
   };
-
-  /* ------------------ HANDLERS ------------------ */
 
   const handleOpenModal = (prescription) => {
     setRemarks("");
@@ -131,7 +144,6 @@ const PrescriptionList = () => {
     const success = await checkoutPrescription(payload);
 
     if (success) {
-      if (status === "Cancelled") toast.info("Prescription Cancelled");
       handleCloseModal();
     } else {
       setIsProcessing(false);
@@ -206,7 +218,7 @@ const PrescriptionList = () => {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 items-center w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-4 items-center w-full md:w-auto">
            {/* Search Bar */}
           <div className="relative flex-1 w-full sm:w-64">
             <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -218,107 +230,161 @@ const PrescriptionList = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          {/* Status Filter*/}
-
+          
+          {/* Status Filter */}
+          <div className="relative w-full sm:w-48">
+            <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full pl-9 h-10 pr-8 rounded-xl border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all cursor-pointer appearance-none"
+            >
+              <option value="All">All Categories</option>
+              <option value="Pending">Pending</option>
+              <option value="Dispensed">Dispensed</option>
+              <option value="Cancelled">Rejected</option>
+            </select>
+          </div>
         </div>
       </div>
 
       
-      {filteredList.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filteredList.map((item) => (
-            <div
-              key={item._id}
-              className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col group overflow-hidden"
-            >
-              {/* Card Header */}
-              <div className="p-5 border-b border-gray-100 bg-gray-50/50">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1 min-w-0 pr-2">
-                    <h3
-                      className="font-bold text-gray-800 text-lg line-clamp-1"
-                      title={item.patientName}
+      {currentCards.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {currentCards.map((item) => (
+              <div
+                key={item._id}
+                className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col group overflow-hidden"
+              >
+                {/* Card Header */}
+                <div className="p-5 border-b border-gray-100 bg-gray-50/50">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1 min-w-0 pr-2">
+                      <h3
+                        className="font-bold text-gray-800 text-lg line-clamp-1"
+                        title={item.patientName}
+                      >
+                        {item.patientName}
+                      </h3>
+                      <p className="text-[11px] text-gray-500 mt-0.5 font-medium">
+                        PID: {item.patientId || "N/A"}
+                      </p>
+                    </div>
+                    <span
+                      className={`text-[10px] px-2 py-1 rounded-full font-bold border shrink-0 ${
+                        item.status === "Pending"
+                          ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+                          : item.status === "Dispensed"
+                            ? "bg-green-100 text-green-700 border-green-200"
+                            : "bg-red-50 text-red-600 border-red-200"
+                      }`}
                     >
-                      {item.patientName}
-                    </h3>
-                    <p className="text-[11px] text-gray-500  mt-0.5 font-medium">
-                      PID: {item.patientId || "N/A"}
+                      {item.status === "Cancelled" ? "Rejected" : item.status}
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500 space-y-1 mt-2">
+                    <p className="flex items-center gap-2 truncate">
+                      <FaUserMd className="text-fuchsia-800" /> Dr.{" "}
+                      {item.doctorName}
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <FaCalendarAlt className="text-fuchsia-900" />{" "}
+                      {new Date(item.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <span
-                    className={`text-[10px] px-2 py-1 rounded-full font-bold border shrink-0 ${
+                </div>
+
+                {/* Medicine Preview */}
+                <div className="px-5 py-4 flex-1">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1">
+                    <FaCapsules /> Medicines
+                  </p>
+                  <div className="space-y-2">
+                    {item.medicines.slice(0, 2).map((med, idx) => (
+                      <div
+                        key={idx}
+                        className="flex justify-between items-center text-sm text-gray-700 border-b border-dashed border-gray-100 pb-1"
+                      >
+                        <span className="truncate max-w-[70%] font-medium">
+                          {med.medicineName}
+                        </span>
+                        <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 rounded">
+                          {med.duration}
+                        </span>
+                      </div>
+                    ))}
+                    {item.medicines.length > 2 && (
+                      <p className="text-[10px] text-fuchsia-800 font-bold mt-1 text-right cursor-default">
+                        +{item.medicines.length - 2} more items
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Card Footer */}
+                <div className="p-4 bg-gray-50 border-t border-gray-100">
+                  <button
+                    onClick={() => handleOpenModal(item)}
+                    disabled={item.status !== "Pending"}
+                    className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all shadow-sm ${
                       item.status === "Pending"
-                        ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+                        ? "text-white bg-fuchsia-900 border hover:bg-fuchsia-800 cursor-pointer"
                         : item.status === "Dispensed"
-                          ? "bg-green-100 text-green-700 border-green-200"
-                          : "bg-red-50 text-red-600 border-red-200"
+                        ? "bg-green-50 text-green-700 border border-green-200 cursor-not-allowed"
+                        : "bg-red-50 text-red-600 border border-red-200 cursor-not-allowed"
                     }`}
                   >
-                    {item.status}
-                  </span>
-                </div>
-                <div className="text-xs text-gray-500 space-y-1 mt-2">
-                  <p className="flex items-center gap-2 truncate">
-                    <FaUserMd className="text-fuchsia-800" /> Dr.{" "}
-                    {item.doctorName}
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <FaCalendarAlt className="text-fuchsia-900" />{" "}
-                    {new Date(item.createdAt).toLocaleDateString()}
-                  </p>
+                    {item.status === "Pending" && (
+                      <>Checkout <FaArrowRight size={10} /></>
+                    )}
+                    {item.status === "Dispensed" && (
+                      <>Completed <FaCheckCircle size={12} /></>
+                    )}
+                    {item.status === "Cancelled" && (
+                      <>Rejected <FaBan size={12} /></>
+                    )}
+                  </button>
                 </div>
               </div>
+            ))}
+          </div>
 
-              {/* Medicine Preview */}
-              <div className="px-5 py-4 flex-1">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1">
-                  <FaCapsules /> Medicines
-                </p>
-                <div className="space-y-2">
-                  {item.medicines.slice(0, 2).map((med, idx) => (
-                    <div
-                      key={idx}
-                      className="flex justify-between items-center text-sm text-gray-700 border-b border-dashed border-gray-100 pb-1"
-                    >
-                      <span className="truncate max-w-[70%] font-medium">
-                        {med.medicineName}
-                      </span>
-                      <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 rounded">
-                        {med.duration}
-                      </span>
-                    </div>
-                  ))}
-                  {item.medicines.length > 2 && (
-                    <p className="text-[10px] text-fuchsia-800 font-bold mt-1 text-right cursor-default">
-                      +{item.medicines.length - 2} more items
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Card Footer*/}
-              <div className="p-4 bg-gray-50 border-t border-gray-100">
+          {/* === PAGINATION CONTROLS ADDED HERE === */}
+          {totalPages > 1 && (
+            <div className="flex flex-col md:flex-row justify-between items-center mt-8 bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-4">
+              <p className="text-xs text-gray-500">
+                Showing <span className="font-medium text-gray-800">{currentCards.length > 0 ? indexOfFirstItem + 1 : 0}</span> to{" "}
+                <span className="font-medium text-gray-800">{Math.min(indexOfLastItem, filteredList.length)}</span> of{" "}
+                <span className="font-medium text-gray-800">{filteredList.length}</span> entries
+              </p>
+              <div className="flex gap-2">
                 <button
-                  onClick={() => handleOpenModal(item)}
-                  disabled={item.status !== "Pending"}
-                  className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all shadow-sm cursor-pointer ${
-                    item.status === "Pending"
-                      ? "text-white bg-fuchsia-900 border hover:bg-fuchsia-800"
-                      : "bg-gray-100 text-gray-400 border border-gray-700 cursor-not-allowed"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                    currentPage === 1
+                      ? "bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed"
+                      : "bg-white text-gray-700 cursor-pointer border-gray-300 hover:bg-gray-50"
                   }`}
                 >
-                  {item.status === "Pending" ? (
-                    <>
-                      Checkout <FaArrowRight size={10} />
-                    </>
-                  ) : (
-                    item.status
-                  )}
+                  Previous
+                </button>
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                    currentPage === totalPages
+                      ? "bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed"
+                      : "bg-white text-gray-700 cursor-pointer border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  Next
                 </button>
               </div>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       ) : (
         <div className="flex flex-col items-center justify-center py-24 text-center bg-white rounded-xl border border-dashed border-gray-300">
           <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-300">

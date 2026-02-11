@@ -58,11 +58,11 @@ function AdminDashboard() {
     const { patients, fetchPatients, appointments, fetchAppointments } = useContext(PatientContext);
     const { reports, fetchLabReports } = useContext(LabContext);
     
-    // --- FIX 1: Get attendance data from StaffContext ---
     const { staffs, fetchStaffs, attendance, fetchAttendance } = useContext(StaffContext);
-    
     const { medicines, fetchMedicines } = useContext(MedicineContext);
-    const { equipments, fetchEquipments } = useContext(EquipmentContext);
+    
+    const { equipments, fetchEquipments, maintenanceLogs, fetchMaintenanceLogs } = useContext(EquipmentContext);
+    
     const { departments, fetchDepartments, beds, fetchBeds, issues, fetchIssues } = useContext(DeptContext);
     
     // patients data
@@ -83,10 +83,8 @@ function AdminDashboard() {
       r => r?.status === "Completed"
     ).length || 0;
 
-    // --- FIX 2: Calculate Present Staffs Dynamically ---
+    // staffs
     const totalStaffs = staffs?.length || 0;
-    
-    // Filter attendance array for today's 'Present' entries
     const presentStaffs = attendance?.filter(
         a => a.status === "Present"
     ).length || 0;
@@ -103,7 +101,13 @@ function AdminDashboard() {
 
     // equipments data
     const totalEquipments = equipments?.length || 0;
-    const maintenanceEquipments = 0;
+    const maintenanceEquipments = equipments?.filter(
+      (e) => e?.basicInfo?.equipmentStatus === "Under Maintenance"
+    ).length || 0;
+
+    const inProgressMaintenance = maintenanceLogs?.filter(l => l.status === "In Progress").length || 0;
+    const pendingPartsMaintenance = maintenanceLogs?.filter(l => l.status === "Pending Parts").length || 0;
+    const totalMaintenanceAlerts = inProgressMaintenance + pendingPartsMaintenance;
 
     // departments data
     const totalDepartments = departments?.length || 0;
@@ -199,16 +203,16 @@ function AdminDashboard() {
 
     useEffect(()=>{
       if(token){
-        const today = getToday(); // Get current date string
+        const today = getToday(); 
         Promise.all([
           fetchPatients(),
           fetchAppointments(),
           fetchLabReports(),
           fetchStaffs(),
-          // --- FIX 3: Fetch Attendance for Today ---
           fetchAttendance(today),
           fetchMedicines(),
           fetchEquipments(),
+          fetchMaintenanceLogs(), 
           fetchDepartments(),
           fetchBeds(),
           fetchIssues()
@@ -472,9 +476,16 @@ function AdminDashboard() {
 
             <hr className="text-gray-300"/>
 
-            <div className="flex flex-col items-start gap-1">
-              <p className="text-md text-gray-800 font-bold">{maintenanceEquipments}</p>
-              <p className="text-xs text-gray-600 font-medium">In Maintenace</p>
+            <div className="flex justify-between items-center w-full">
+              <div className="flex flex-col items-start gap-1">
+                <p className="text-md text-yellow-600 font-bold">{inProgressMaintenance}</p>
+                <p className="text-xs text-gray-600 font-medium">In Progress</p>
+              </div>
+              <div className="w-px h-8 bg-gray-300"></div> {/* Vertical Divider */}
+              <div className="flex flex-col items-end gap-1">
+                <p className="text-md text-orange-500 font-bold">{pendingPartsMaintenance}</p>
+                <p className="text-xs text-gray-600 font-medium">Pending Parts</p>
+              </div>
             </div>
 
           </div>
@@ -578,7 +589,8 @@ function AdminDashboard() {
 
     {/* Critical Alerts and Warnings */}
     {
-      (expiringSoonCount > 0 || lowStockCount > 0 || maintenanceEquipments > 0 || pendingIssues > 0 || inProgressIssues > 0) && (
+      // --- ADDED: Include totalMaintenanceAlerts in condition ---
+      (expiringSoonCount > 0 || lowStockCount > 0 || totalMaintenanceAlerts > 0 || pendingIssues > 0 || inProgressIssues > 0) && (
         <div className="bg-white border border-gray-300 rounded-xl px-5 py-3 w-full mt-8">
           <div className="flex items-center gap-1">
             <div className={`p-2 rounded-lg text-xl text-rose-600`}>
@@ -628,13 +640,20 @@ function AdminDashboard() {
             }
 
             {
-              maintenanceEquipments > 0 && (
+              // --- CHANGED: Now uses the detailed Maintenance Log stats ---
+              totalMaintenanceAlerts > 0 && (
                 <div className="p-6 border w-54 border-red-300 rounded-xl flex flex-col items-center shadow-sm hover:bg-orange-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer">
                   <div className="flex items-center justify-center rounded-2xl bg-orange-200 text-orange-600 p-4">
                     <FaTools size={22}/>
                   </div>
                   <p className="text-center mt-3 text-md font-semibold text-gray-800">Equipment Maintenance</p>
-                  <p className="text-sm mt-3 text-center text-gray-700"><span className="font-semibold text-gray-900">{maintenanceEquipments}</span> Medical equipment is due for maintenance</p>
+                  
+                  <p className="text-sm mt-3 text-center text-gray-700">
+                    { pendingPartsMaintenance > 0 && <span className="font-semibold text-gray-900">{pendingPartsMaintenance} <span className="font-normal text-gray-700">pending parts</span> </span> } 
+                    { pendingPartsMaintenance > 0 && inProgressMaintenance > 0 && <span> / </span> }
+                    { inProgressMaintenance > 0 && <span className="font-semibold text-gray-900">{inProgressMaintenance} <span className="font-normal text-gray-700">in progress</span></span> }
+                  </p>
+
                   <button 
                     onClick = {()=> {
                       navigate('/maintenance-log');
