@@ -38,7 +38,7 @@ const getReportById = async (req, res) => {
     }
 };
 
-// --- 3. SUBMIT RESULTS (Manual Entry) ---
+// --- 3. SUBMIT RESULTS (Manual Entry & Amendment) ---
 const submitLabResults = async (req, res) => {
     try {
         const { reportId, testResults, comments, technicianId, technicianName, sampleDate, correctionReason } = req.body;
@@ -59,17 +59,19 @@ const submitLabResults = async (req, res) => {
                 return res.json({ success: false, message: "A reason is required to amend a completed report." });
             }
             
-            // --- FIX IS HERE: Check if array exists, if not, create it ---
+            // --- FIX START: Initialize array if it doesn't exist ---
+            // This prevents the "undefined (reading 'push')" error on older records
             if (!report.revisionHistory) {
                 report.revisionHistory = [];
             }
-            
+            // --- FIX END ---
+
             report.revisionHistory.push({
                 amendedBy: technicianName || "Technician",
                 amendedAt: new Date(),
                 reason: correctionReason,
-                previousResults: report.testResults, // Save old results
-                previousFile: null
+                previousResults: report.testResults, // Save old results before overwriting
+                previousFile: report.reportDocument || null
             });
         }
 
@@ -78,7 +80,7 @@ const submitLabResults = async (req, res) => {
         report.comments = comments || "";
         report.technicianId = technicianId;
         report.technicianName = technicianName;
-        report.sampleDate = sampleDate; 
+        if(sampleDate) report.sampleDate = sampleDate; 
         
         report.entryType = "Manual";
         report.status = "Completed";
