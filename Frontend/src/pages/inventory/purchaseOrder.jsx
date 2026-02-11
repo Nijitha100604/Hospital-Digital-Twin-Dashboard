@@ -14,6 +14,10 @@ import {
   FaTrashAlt,
   FaCheckSquare,
   FaSquare,
+  FaArrowLeft,
+  FaArrowRight,
+  FaBuilding,
+  FaHashtag
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { MedicineContext } from "../../context/MedicineContext";
@@ -29,10 +33,14 @@ const PurchaseOrder = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  const{userData} = useContext(AppContext)
+  const { userData } = useContext(AppContext);
 
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchPurchaseOrders();
@@ -49,6 +57,17 @@ const PurchaseOrder = () => {
       return matchesSearch && matchesStatus;
     });
   }, [purchaseOrders, search, statusFilter]);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
 
   const totalCount = purchaseOrders.length;
   const requestedCount = purchaseOrders.filter(
@@ -68,16 +87,16 @@ const PurchaseOrder = () => {
   };
 
   const handleSelectAll = () => {
-    if (selectedIds.length === filteredOrders.length) {
+    if (selectedIds.length === currentOrders.length) {
       setSelectedIds([]); 
     } else {
-      setSelectedIds(filteredOrders.map((o) => o.orderId));
+      setSelectedIds(currentOrders.map((o) => o.orderId));
     }
   };
 
   const handleDeleteSingle = async (orderId) => {
     const confirm = window.confirm(
-      "Are you sure you want to remove this order record?"
+      "Are you sure you want to permanently remove this purchase order?"
     );
     if (confirm) {
       await deletePurchaseOrder(orderId);
@@ -88,7 +107,7 @@ const PurchaseOrder = () => {
     if (selectedIds.length === 0) return;
 
     const confirm = window.confirm(
-      `Are you sure you want to remove ${selectedIds.length} selected orders?`
+      `Are you sure you want to permanently remove ${selectedIds.length} selected orders?`
     );
     
     if (confirm) {
@@ -117,27 +136,31 @@ const PurchaseOrder = () => {
         </div>
 
         <div className="flex gap-3 items-center w-full md:w-auto">
-          {userData && (userData?.designation === 'Pharmacist' || userData?.designation === 'Admin') &&(<button
-            onClick={() => {
-              setIsSelectionMode(!isSelectionMode);
-              setSelectedIds([]);
-            }}
-            className={`flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto ${
-              isSelectionMode 
-                ? "bg-gray-200 text-gray-800" 
-                : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-            }`}
-          >
-            <FaListUl /> {isSelectionMode ? "Cancel Selection" : "Manage Items"}
-          </button>)}
+          {userData && (userData?.designation === 'Pharmacist' || userData?.designation === 'Admin') &&(
+            <button
+              onClick={() => {
+                setIsSelectionMode(!isSelectionMode);
+                setSelectedIds([]);
+              }}
+              className={`flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto ${
+                isSelectionMode 
+                  ? "bg-gray-200 text-gray-800" 
+                  : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <FaListUl /> {isSelectionMode ? "Cancel Selection" : "Manage Items"}
+            </button>
+          )}
 
-          {userData && (userData?.designation === 'Pharmacist' || userData?.designation === 'Admin' ) && (<button
-            onClick={() => navigate("/create-purchase-order")}
-            className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
-          >
-            <FaPlus />
-            Create New Order
-          </button>)}
+          {userData && (userData?.designation === 'Pharmacist' || userData?.designation === 'Admin' ) && (
+            <button
+              onClick={() => navigate("/create-purchase-order")}
+              className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
+            >
+              <FaPlus />
+              Create New Order
+            </button>
+          )}
         </div>
       </div>
 
@@ -185,15 +208,15 @@ const PurchaseOrder = () => {
           <div className="flex items-center gap-3 w-full md:w-auto animate-fadeIn">
             <button
               onClick={handleSelectAll}
-              className="px-4 py-2.5 bg-white border border-gray-300 text-gray-600 hover:bg-gray-50 rounded-xl text-sm font-medium transition-colors"
+              className="px-4 py-2.5 bg-white border border-gray-300 text-gray-600 hover:bg-gray-50 rounded-xl text-sm font-medium transition-colors cursor-pointer"
             >
-              {selectedIds.length === filteredOrders.length ? "Deselect All" : "Select All"}
+              {selectedIds.length === currentOrders.length ? "Deselect All" : "Select Page"}
             </button>
             
             {selectedIds.length > 0 && (
               <button
                 onClick={handleDeleteBatch}
-                className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold shadow-sm transition-colors"
+                className="flex cursor-pointer items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold shadow-sm transition-colors"
               >
                 <FaTrashAlt /> Remove ({selectedIds.length})
               </button>
@@ -229,8 +252,8 @@ const PurchaseOrder = () => {
 
       {/* ORDER LIST */}
       <div className="space-y-4">
-        {filteredOrders.length > 0 ? (
-          filteredOrders.map((order) => (
+        {currentOrders.length > 0 ? (
+          currentOrders.map((order) => (
             <OrderCard
               key={order.orderId}
               order={order}
@@ -246,7 +269,7 @@ const PurchaseOrder = () => {
             />
           ))
         ) : (
-          <div className="bg-white border-2 border-dashed border-gray-200 rounded-xl p-12 text-center">
+          <div className="bg-white border border-gray-200 rounded-xl p-12 text-center shadow-sm">
             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <FaBox className="text-gray-300 text-3xl" />
             </div>
@@ -257,13 +280,48 @@ const PurchaseOrder = () => {
           </div>
         )}
       </div>
+
+      {/* PAGINATION FOOTER */}
+      {totalPages > 1 && (
+        <div className="mt-6 bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-xs text-gray-500 font-medium">
+            Showing <span className="text-gray-800">{currentOrders.length > 0 ? indexOfFirstItem + 1 : 0}</span> to{" "}
+            <span className="text-gray-800">{Math.min(indexOfLastItem, filteredOrders.length)}</span> of{" "}
+            <span className="text-gray-800">{filteredOrders.length}</span> orders
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                currentPage === 1
+                  ? "bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed"
+                  : "bg-white text-gray-700 cursor-pointer border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              <FaArrowLeft size={12} /> Previous
+            </button>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                currentPage === totalPages
+                  ? "bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed"
+                  : "bg-white text-gray-700 cursor-pointer border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              Next <FaArrowRight size={12} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default PurchaseOrder;
 
-/*COMPONENTS */
+/* ---------- COMPONENTS ---------- */
 
 const SummaryCard = ({ title, value, icon, bg, color, border }) => (
   <div
@@ -285,8 +343,8 @@ const OrderCard = ({
   isSelected,
   onToggle,
 }) => {
-
-  const {userData} = useContext(AppContext)
+  const { userData } = useContext(AppContext);
+  
   const statusStyles = {
     Requested: "bg-yellow-50 text-yellow-700 border-yellow-200",
     Ordered: "bg-blue-50 text-blue-700 border-blue-200",
@@ -294,100 +352,108 @@ const OrderCard = ({
     Cancelled: "bg-red-50 text-red-700 border-red-200",
   };
 
+  const isAuthorized = userData && (userData.designation === 'Pharmacist' || userData.designation === 'Admin');
+
   return (
     <div
-      className={`bg-white border rounded-xl p-6 transition-all shadow-sm hover:shadow-md ${
+      className={`bg-white border rounded-xl overflow-hidden transition-all shadow-sm hover:shadow-md ${
         isSelected
           ? "border-fuchsia-500 bg-fuchsia-50/10 ring-1 ring-fuchsia-500"
           : "border-gray-200"
       }`}
     >
-      <div className="flex flex-col md:flex-row gap-4 items-start">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center">
         
-        {/* Selection Checkbox */}
-        {isSelectionMode && (
-          <div className="pt-1 animate-fadeIn">
-            <button
-              onClick={onToggle}
-              className="text-2xl text-gray-300 hover:text-fuchsia-600 transition-colors"
-            >
-              {isSelected ? (
-                <FaCheckSquare className="text-fuchsia-600" />
-              ) : (
-                <FaSquare />
-              )}
-            </button>
+        {/* Left Side: Info & Checkbox */}
+        <div className="flex-1 p-5 md:p-6 flex gap-4 w-full">
+          
+          {/* Selection Checkbox */}
+          {isSelectionMode && (
+            <div className="pt-1 shrink-0 animate-fadeIn">
+              <button
+                onClick={onToggle}
+                className="text-2xl cursor-pointer text-gray-300 hover:text-fuchsia-600 transition-colors"
+              >
+                {isSelected ? (
+                  <FaCheckSquare className="text-fuchsia-600" />
+                ) : (
+                  <FaSquare />
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Main Info */}
+          <div className="flex-1 min-w-0">
+            {/* Top Row: Name & Status */}
+            <div className="flex justify-between items-start mb-3 gap-4">
+              <div>
+                <h3 className="font-bold text-lg text-gray-800 truncate">
+                  {order.medicineName}
+                </h3>
+                <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
+                  <span className="flex items-center gap-1 font-mono bg-gray-100 px-2 py-0.5 rounded-md border border-gray-200">
+                    <FaHashtag className="text-gray-400 text-xs" /> {order.orderId}
+                  </span>
+                  <span className="flex items-center gap-1 font-medium">
+                    <FaBuilding className="text-gray-400" /> {order.supplierName}
+                  </span>
+                </div>
+              </div>
+              <span
+                className={`shrink-0 text-[10px] uppercase font-bold px-3 py-1 rounded-full border ${statusStyles[order.status]}`}
+              >
+                {order.status}
+              </span>
+            </div>
+
+            {/* Bottom Row: Data Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
+              <Info label="Quantity / Strength" value={`${order.quantity} units / ${order.strength}`} />
+              <Info label="Total Cost" value={`₹${order.totalCost}`} />
+              <Info label="Order Date" value={order.orderDate || "—"} />
+              <Info label="Expected Delivery" value={order.expectedDelivery || "—"} />
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Actions (Hidden in Selection Mode) */}
+        {!isSelectionMode && isAuthorized && (
+          <div className="w-full md:w-auto bg-gray-50 md:bg-transparent border-t md:border-t-0 md:border-l border-gray-100 p-4 md:p-6 flex flex-row md:flex-col justify-end md:justify-center gap-3 shrink-0">
+            
+            {(order.status === "Requested" || order.status === "Ordered") && (
+              <button
+                onClick={onEdit}
+                className="flex-1 md:flex-none cursor-pointer flex justify-center items-center gap-2 text-sm font-bold border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2.5 rounded-lg transition-colors shadow-sm"
+              >
+                <FaEdit /> Update
+              </button>
+            )}
+
+            {(order.status === "Received" || order.status === "Cancelled") && (
+              <button
+                onClick={onDelete}
+                className="flex-1 md:flex-none cursor-pointer flex justify-center items-center gap-2 text-sm font-bold border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2.5 rounded-lg transition-colors shadow-sm"
+              >
+                <FaTrash /> Remove
+              </button>
+            )}
+            
           </div>
         )}
 
-        <div className="flex-1 w-full">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-4">
-            <div>
-              <div className="flex items-center gap-3">
-                <h3 className="font-bold text-lg text-gray-800">
-                  {order.medicineName}
-                  <span className="ml-2 text-sm font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
-                    {order.strength}
-                  </span>
-                </h3>
-                <span
-                  className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded-full border ${
-                    statusStyles[order.status]
-                  }`}
-                >
-                  {order.status}
-                </span>
-              </div>
-              <p className="text-xs text-gray-400  mt-1 flex items-center gap-2">
-                <span>#{order.orderId}</span>
-                <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                <span>{order.supplierName}</span>
-              </p>
-            </div>
-
-            {/* ACTIONS */}
-            {!isSelectionMode && (
-              <div className="flex gap-2">
-                {(order.status === "Requested" ||
-                  order.status === "Ordered") && (
-                  userData && (userData?.designation === 'Pharmacist' || userData?.designation === 'Admin') && (<button
-                    onClick={onEdit}
-                    className="flex cursor-pointer items-center gap-1.5 text-xs font-bold border border-gray-200 bg-gray-50 hover:bg-white hover:border-fuchsia-300 hover:text-fuchsia-700 text-gray-600 px-3 py-2 rounded-lg transition-all"
-                  >
-                    <FaEdit /> Update
-                  </button>)
-                )}
-
-                {(order.status === "Received" ||
-                  order.status === "Cancelled") && userData && (userData?.designation === 'Pharmacist' || userData?.designation === 'Admin') && (
-                  <button
-                    onClick={onDelete}
-                    className="flex cursor-pointer items-center gap-1.5 text-xs font-bold border border-red-100 bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded-lg transition-all"
-                  >
-                    <FaTrash /> Remove
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-gray-50 p-4 rounded-lg border border-gray-100">
-            <Info label="Quantity" value={`${order.quantity} units`} />
-            <Info label="Total Cost" value={`₹${order.totalCost}`} />
-            <Info label="Order Date" value={order.orderDate || "—"} />
-            <Info label="Expected Delivery" value={order.expectedDelivery || "—"} />
-          </div>
-        </div>
       </div>
     </div>
   );
 };
 
 const Info = ({ label, value }) => (
-  <div>
-    <p className="text-gray-400 font-bold uppercase text-[10px] mb-0.5">
+  <div className="flex flex-col">
+    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider mb-1">
       {label}
-    </p>
-    <p className="font-medium text-gray-700">{value}</p>
+    </span>
+    <span className="font-semibold text-gray-800 text-sm truncate" title={value}>
+      {value}
+    </span>
   </div>
 );

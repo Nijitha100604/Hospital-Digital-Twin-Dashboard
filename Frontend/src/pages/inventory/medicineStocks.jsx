@@ -1,13 +1,13 @@
 import React, { useState, useMemo, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { MedicineContext } from "../../context/MedicineContext"; 
-import { AppContext } from "../../context/AppContext"; 
+import { MedicineContext } from "../../context/MedicineContext";
+import { AppContext } from "../../context/AppContext";
 import { assets } from "../../assets/assets";
 import Loading from "../Loading";
 
 import {
   FaSearch,
-  FaRupeeSign,
+  FaCheckCircle,
   FaBox,
   FaExclamationTriangle,
   FaCalendarAlt,
@@ -24,7 +24,11 @@ const MedicineStocks = () => {
 
   const { userData } = useContext(AppContext);
 
-  const { medicines: medicineList, loading, fetchMedicines } = useContext(MedicineContext);
+  const {
+    medicines: medicineList,
+    loading,
+    fetchMedicines,
+  } = useContext(MedicineContext);
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -37,16 +41,15 @@ const MedicineStocks = () => {
 
   const isExpiringSoon = (dateStr) => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); 
+    today.setHours(0, 0, 0, 0);
 
     const expiry = new Date(dateStr);
-    expiry.setHours(0, 0, 0, 0); 
+    expiry.setHours(0, 0, 0, 0);
 
     const diffTime = expiry - today;
     const diffDays = diffTime / (1000 * 60 * 60 * 24);
-    return diffDays >= 0 && diffDays <= 90; 
+    return diffDays >= 0 && diffDays <= 90;
   };
-
 
   const getStockStatus = (m) => {
     if (m.quantity <= m.minimumThreshold) return "Low Stock";
@@ -75,15 +78,19 @@ const MedicineStocks = () => {
     setVisibleCount(8);
   }, [search, categoryFilter, statusFilter]);
 
-  //Summary & Alert Calculations
+  // --- Summary & Alert Calculations ---
   const totalItems = medicineList.length;
-  
+
   const lowStockCount = medicineList.filter(
-    (m) => m.quantity <= m.minimumThreshold
+    (m) => m.quantity <= m.minimumThreshold,
   ).length;
 
   const expiringSoonCount = medicineList.filter((m) =>
-    isExpiringSoon(m.expiryDate)
+    isExpiringSoon(m.expiryDate),
+  ).length;
+
+  const inStockCount = medicineList.filter(
+    (m) => m.quantity > m.minimumThreshold
   ).length;
 
   const totalAlerts = lowStockCount + expiringSoonCount;
@@ -96,7 +103,6 @@ const MedicineStocks = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-fuchsia-50 min-h-screen">
-
       {/* Header */}
       <div className="bg-white p-6 rounded-xl mb-6 flex flex-col md:flex-row justify-between items-center border border-gray-200 shadow-sm">
         <div className="mb-4 md:mb-0 w-full md:w-auto">
@@ -117,7 +123,9 @@ const MedicineStocks = () => {
             onClick={() => navigate("/stock-alerts")}
             className="relative cursor-pointer flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
           >
-            <FaBell className={`text-lg ${totalAlerts > 0 ? "text-red-500" : "text-gray-500"}`} />
+            <FaBell
+              className={`text-lg ${totalAlerts > 0 ? "text-red-500" : "text-gray-500"}`}
+            />
             Alerts
             {totalAlerts > 0 && (
               <span className="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full border-2 border-white min-w-5 text-center">
@@ -126,15 +134,17 @@ const MedicineStocks = () => {
             )}
           </button>
 
-          {userData && (userData.designation === 'Pharmacist' || userData.designation === 'Admin') && (
-            <button
+          {userData &&
+            (userData.designation === "Pharmacist" ||
+              userData.designation === "Admin") && (
+              <button
                 onClick={() => navigate("/add-new-medicine")}
                 className="flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 bg-fuchsia-800 hover:bg-fuchsia-900 text-white rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto"
-            >
+              >
                 <FaPlus />
                 Add New Medicine
-            </button>
-          )}
+              </button>
+            )}
         </div>
       </div>
 
@@ -165,9 +175,9 @@ const MedicineStocks = () => {
         />
 
         <SummaryCard
-          title="Total Value"
-          value={totalItems} 
-          icon={<FaRupeeSign className="text-green-600" />}
+          title="In Stock Items"
+          value={inStockCount}
+          icon={<FaCheckCircle className="text-green-600" />}
           bg="bg-green-100"
           border="border-green-200"
         />
@@ -247,30 +257,42 @@ const MedicineStocks = () => {
               ? "Your inventory is currently empty."
               : "We couldn't find any matches for your search filters."}
           </p>
-          
-          {/* 4. Role Based Access in Empty State */}
-          {medicineList.length === 0 && userData && (userData.designation === 'Pharmacist' || userData.designation === 'Admin') && (
-            <button
-              onClick={() => navigate("/add-new-medicine")}
-              className="mt-4 px-5 py-2 bg-fuchsia-800 text-white rounded-lg text-sm font-medium hover:bg-fuchsia-900 transition-colors"
-            >
-              Add First Medicine
-            </button>
-          )}
+
+          {/* Role Based Access in Empty State */}
+          {medicineList.length === 0 &&
+            userData &&
+            (userData.designation === "Pharmacist" ||
+              userData.designation === "Admin") && (
+              <button
+                onClick={() => navigate("/add-new-medicine")}
+                className="mt-4 px-5 py-2 bg-fuchsia-800 text-white rounded-lg text-sm font-medium hover:bg-fuchsia-900 transition-colors"
+              >
+                Add First Medicine
+              </button>
+            )}
         </div>
       )}
 
-      {/* Show More Button */}
-      {visibleCount < filteredMedicines.length && (
-        <div className="flex justify-center mt-8">
+      {/* --- Show More / Show Less Buttons --- */}
+      <div className="flex justify-center gap-4 mt-8">
+        {visibleCount < filteredMedicines.length && (
           <button
             onClick={() => setVisibleCount((prev) => prev + 8)}
             className="px-6 py-2.5 cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 hover:text-fuchsia-800 rounded-lg text-sm font-medium transition-all shadow-sm"
           >
             Show More Medicines
           </button>
-        </div>
-      )}
+        )}
+
+        {visibleCount > 8 && (
+          <button
+            onClick={() => setVisibleCount(8)}
+            className="px-6 py-2.5 cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-800 rounded-lg text-sm font-medium transition-all shadow-sm"
+          >
+            Show Less
+          </button>
+        )}
+      </div>
 
       <p className="text-xs text-gray-400 mt-6 text-center">
         Showing {Math.min(visibleCount, filteredMedicines.length)} of{" "}

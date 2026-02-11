@@ -10,7 +10,7 @@ import { AppContext } from "../../context/AppContext";
 
 export default function LabReportList() {
   const navigate = useNavigate(); 
-  const { token, backendUrl } = useContext(AppContext);
+  const { token, backendUrl, userData } = useContext(AppContext); // Added userData
 
   // --- STATE ---
   const [reports, setReports] = useState([]);
@@ -23,6 +23,11 @@ export default function LabReportList() {
   const [sortOrder, setSortOrder] = useState("Newest");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // --- ROLE CHECKS ---
+  const userRole = userData?.designation || "";
+  const isTechnician = userRole === 'Technician';
+  const canView = ['Technician', 'Nurse', 'Doctor', 'Admin'].includes(userRole);
 
   // --- 1. FETCH DATA ---
   const fetchLabReports = async () => {
@@ -54,10 +59,9 @@ export default function LabReportList() {
   }, [token]);
 
   // --- 2. DYNAMIC TEST TYPES ---
-  // This automatically finds all unique test names from your loaded reports
   const uniqueTestTypes = useMemo(() => {
     const types = new Set(reports.map(r => r.testName || r.testType || "General"));
-    return Array.from(types).sort(); // Sort alphabetically
+    return Array.from(types).sort(); 
   }, [reports]);
 
   /* -------------------- FILTER LOGIC -------------------- */
@@ -149,7 +153,7 @@ export default function LabReportList() {
           <input type="text" placeholder="Search Patient / Report ID" className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
         </div>
 
-        {/* Filter by Type (DYNAMIC) */}
+        {/* Filter by Type */}
         <div className="relative">
           <select 
             className="cursor-pointer w-full pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-sm appearance-none bg-white font-medium text-gray-700" 
@@ -228,16 +232,19 @@ export default function LabReportList() {
                         </span>
                     </td>
                     <td className="p-4 text-center flex justify-center gap-2">
-                        {/* VIEW BUTTON */}
-                        <button 
-                        onClick={() => handleViewDetails(report)}
-                        className="cursor-pointer text-purple-700 hover:text-white hover:bg-purple-700 border border-purple-200 hover:border-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1"
-                        >
-                        <Eye size={14}/> View
-                        </button>
+                        
+                        {/* --- VIEW BUTTON: ALL ALLOWED ROLES --- */}
+                        {canView && (
+                            <button 
+                            onClick={() => handleViewDetails(report)}
+                            className="cursor-pointer text-purple-700 hover:text-white hover:bg-purple-700 border border-purple-200 hover:border-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1"
+                            >
+                            <Eye size={14}/> View
+                            </button>
+                        )}
 
-                        {/* ENTER RESULT BUTTON (Only if not completed) */}
-                        {report.status !== 'Completed' && (
+                        {/* --- ENTER RESULT BUTTON: TECHNICIAN ONLY --- */}
+                        {report.status !== 'Completed' && isTechnician && (
                             <button 
                             onClick={() => navigate(`/lab-results-entry/${report.labReportId || report._id}`, { state: { reportData: report } })}
                             className="cursor-pointer text-blue-700 hover:text-white hover:bg-blue-700 border border-blue-200 hover:border-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1"

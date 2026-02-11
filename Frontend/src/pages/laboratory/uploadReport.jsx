@@ -4,11 +4,19 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { LabContext } from "../../context/LabContext";
 import { PatientContext } from "../../context/PatientContext";
 import { StaffContext } from "../../context/StaffContext";
+import { AppContext } from "../../context/AppContext"; // Import AppContext
+import AccessDenied from "../../components/AccessDenied"; // Import AccessDenied
 
 export default function UploadReport() {
   const navigate = useNavigate();
   const location = useLocation();
   const { uploadLabReport, loading } = useContext(LabContext);
+  const { userData } = useContext(AppContext); // Get User Data
+
+  // --- SECURITY CHECK: TECHNICIAN ONLY ---
+  if (userData && userData.designation !== 'Technician') {
+    return <AccessDenied />;
+  }
 
   // Get data passed from the list
   const reportData = location.state?.reportData;

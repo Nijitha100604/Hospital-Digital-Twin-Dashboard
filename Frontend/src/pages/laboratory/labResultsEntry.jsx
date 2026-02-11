@@ -6,7 +6,8 @@ import {
 import { useNavigate, useLocation, useParams } from "react-router-dom"; 
 import { LabContext } from "../../context/LabContext"; 
 import { StaffContext } from "../../context/StaffContext"; 
-import { PatientContext } from "../../context/PatientContext"; 
+import { AppContext } from "../../context/AppContext"; 
+import AccessDenied from "../../components/AccessDenied"; 
 
 // --- 1. CONFIGURATION: PARAMETER DEFINITIONS ---
 const testTemplates = {
@@ -98,9 +99,7 @@ const testTemplates = {
   ]
 };
 
-// --- 2. ALIAS MAPPING (The Solution for Short Forms) ---
-// Keys = Canonical Name (Must match keys in testTemplates above)
-// Values = Array of possible short forms or variations
+// --- 2. ALIAS MAPPING ---
 const testAliases = {
   "CBC (Hemogram)": ["CBC", "Hemogram", "Complete Blood Count", "C.B.C"],
   "Liver Function Test (LFT)": ["LFT", "Liver Profile", "Liver Panel"],
@@ -116,20 +115,13 @@ const testAliases = {
 // --- 3. HELPER: Get Canonical Name ---
 const getCanonicalTestName = (inputName) => {
   if (!inputName) return "";
-  
-  // 1. Check if exact match exists in templates
   if (testTemplates[inputName]) return inputName;
-
-  // 2. Check aliases (Case Insensitive)
   const lowerInput = inputName.trim().toLowerCase();
-  
   for (const [canonicalName, aliases] of Object.entries(testAliases)) {
     if (aliases.some(alias => alias.toLowerCase() === lowerInput)) {
-      return canonicalName; // Found matching alias! Return the main name.
+      return canonicalName; 
     }
   }
-
-  // 3. No match found, return original (likely an Upload-only test like MRI)
   return inputName;
 };
 
@@ -141,6 +133,12 @@ export default function LabResultEntry() {
   
   const { submitLabResults, fetchReportById, loading } = useContext(LabContext);
   const { staffs } = useContext(StaffContext);
+  const { userData } = useContext(AppContext);
+
+  // --- SECURITY CHECK ---
+  if (userData && userData.designation !== 'Technician') {
+    return <AccessDenied />;
+  }
 
   const preloadedData = location.state?.reportData;
   const [reportData, setReportData] = useState(preloadedData || null);
@@ -156,9 +154,9 @@ export default function LabResultEntry() {
     dept: preloadedData?.department || "Pathology"
   });
 
-  // FIX: Initialize with Normalized Name
+  // FIX: Added optional chaining and fallback for testType
   const [selectedTestType, setSelectedTestType] = useState(
-    getCanonicalTestName(preloadedData?.testName || "")
+    getCanonicalTestName(preloadedData?.testName || preloadedData?.testType || "")
   );
 
   const [results, setResults] = useState({});
@@ -178,8 +176,9 @@ export default function LabResultEntry() {
       } else if (preloadedData) {
           if(preloadedData.testResults?.length > 0) {
              const prefill = {};
-             // Use normalized name to find template
-             const normalizedName = getCanonicalTestName(preloadedData.testName);
+             // Try to find name from both fields
+             const testName = preloadedData.testName || preloadedData.testType || "";
+             const normalizedName = getCanonicalTestName(testName);
              const templateParams = testTemplates[normalizedName] || [];
              
              preloadedData.testResults.forEach((r) => {
@@ -197,16 +196,6 @@ export default function LabResultEntry() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, fetchReportById]);
 
-  // --- DYNAMIC DEPARTMENT LOOKUP ---
-  useEffect(() => {
-    if (staffs.length > 0 && patientDetails.doctorId) {
-        const doctor = staffs.find(s => s.staffId === patientDetails.doctorId);
-        if (doctor && doctor.department) {
-            setPatientDetails(prev => ({ ...prev, dept: doctor.department }));
-        }
-    }
-  }, [staffs, patientDetails.doctorId]);
-
   const initializeForm = (data) => {
     setReportData(data);
     setPatientDetails({
@@ -220,12 +209,13 @@ export default function LabResultEntry() {
       dept: data.department || "Pathology"
     });
     
-    // FIX: Set normalized name
-    setSelectedTestType(getCanonicalTestName(data.testName || ""));
+    // Fallback logic for test name
+    const tName = data.testName || data.testType || "";
+    setSelectedTestType(getCanonicalTestName(tName));
 
     if (data.testResults && data.testResults.length > 0) {
         const prefill = {};
-        const normalizedName = getCanonicalTestName(data.testName);
+        const normalizedName = getCanonicalTestName(tName);
         const templateParams = testTemplates[normalizedName] || [];
         
         data.testResults.forEach(r => {
@@ -266,6 +256,12 @@ export default function LabResultEntry() {
       if(!patientDetails.patientId) return alert("Patient ID is required");
       if(!verifiedBy) return alert("Please select a verifier");
 
+      // Validate Test Type
+      if (!selectedTestType || !testTemplates[selectedTestType]) {
+          alert("Please select a valid Test Type from the dropdown.");
+          return;
+      }
+
       if (reportData?.status === "Completed" && !correctionReason.trim()) {
           alert("⚠️ MANDATORY: You are amending a completed report. Please provide a 'Reason for Amendment'.");
           return;
@@ -295,7 +291,9 @@ export default function LabResultEntry() {
           comments,
           technicianId: verifiedBy,
           technicianName: verifierName,
-          correctionReason: correctionReason 
+          correctionReason: correctionReason,
+          // Save the test name in case it was missing before
+          testName: selectedTestType 
       };
 
       const success = await submitLabResults(finalReportId, payload);
@@ -340,7 +338,7 @@ export default function LabResultEntry() {
                 <FileUp size={16}/> Upload Report Instead
             </button>
             
-            {/* Template Selector (Shows Resolved Name) */}
+            {/* TEST TYPE DROPDOWN - Allows user to fix missing test type */}
             <div className="bg-white p-2 rounded-lg border border-gray-300 shadow-sm flex items-center gap-2 w-full md:w-auto">
                 <FlaskConical size={18} className="text-purple-600 shrink-0"/>
                 <span className="text-xs font-bold text-gray-500 uppercase whitespace-nowrap hidden sm:inline">Test Type:</span>
@@ -350,9 +348,8 @@ export default function LabResultEntry() {
                     onChange={(e) => { setSelectedTestType(e.target.value); setResults({}); }}
                     className="font-bold text-gray-800 outline-none bg-transparent cursor-pointer text-sm w-full py-1 pr-4 truncate"
                 >
+                    <option value="">Select Test Type</option>
                     {Object.keys(testTemplates).map(t => <option key={t} value={t}>{t}</option>)}
-                    {/* Add fallback option if the current test name isn't in templates */}
-                    {!testTemplates[selectedTestType] && <option value={selectedTestType}>{selectedTestType}</option>}
                 </select>
                 <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14}/>
                 </div>
@@ -360,13 +357,11 @@ export default function LabResultEntry() {
         </div>
       </div>
 
-      {/* --- READ-ONLY PATIENT DETAILS --- */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-3">
             <User size={20} className="text-purple-600"/>
             <h2 className="text-lg font-bold text-gray-800">Request Details</h2>
         </div>
-        
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase">Patient</label>
@@ -378,7 +373,7 @@ export default function LabResultEntry() {
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase">Test Type</label>
-            <p className="text-sm font-bold text-purple-700">{selectedTestType}</p>
+            <p className="text-sm font-bold text-purple-700">{selectedTestType || "Not Selected"}</p>
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase">Referring Dr</label>
@@ -397,7 +392,6 @@ export default function LabResultEntry() {
         </div>
       </div>
 
-      {/* --- RESULT ENTRY TABLE --- */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mb-4 md:mb-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 border-b border-gray-100 pb-2 gap-2">
             <h2 className="text-xs md:text-sm font-bold text-gray-900 uppercase tracking-wide">
@@ -450,14 +444,21 @@ export default function LabResultEntry() {
             </table>
             </div>
         ) : (
-            <div className="py-8 text-center text-gray-400">
-                <p>No manual entry parameters defined for <strong>{selectedTestType}</strong>.</p>
-                <p className="text-xs mt-1">Please use the "Upload Report" button above for this test type.</p>
+            <div className="py-12 text-center text-gray-400 flex flex-col items-center">
+                <FlaskConical size={48} className="text-gray-300 mb-3"/>
+                <p className="font-bold text-gray-600">No Test Template Selected</p>
+                <p className="text-xs mt-1 max-w-sm">
+                    {selectedTestType 
+                        ? `No manual parameters found for "${selectedTestType}".` 
+                        : "The previous record did not have a test type specified."}
+                </p>
+                <div className="mt-4 bg-purple-50 text-purple-700 px-4 py-2 rounded-lg text-sm border border-purple-200 animate-pulse">
+                    Please select a <strong>Test Type</strong> from the dropdown in the top-right corner to load the form.
+                </div>
             </div>
         )}
       </div>
 
-      {/* --- FOOTER (Amendment & Submit) --- */}
       {reportData?.status === "Completed" && (
         <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 animate-in fade-in">
             <div className="flex items-start gap-3">
@@ -480,6 +481,7 @@ export default function LabResultEntry() {
         </div>
       )}
 
+      {/* FOOTER COMMENTS & VERIFY */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
