@@ -3,7 +3,7 @@ import medicineModel from '../models/medicineModel.js';
 
 const getPrescriptionQueue = async (req, res) => {
     try {
-        const queue = await prescriptionModel.find({ status: 'Pending' }).sort({ createdAt: -1 });
+        const queue = await prescriptionModel.find({}).sort({ createdAt: -1 });
 
         const queueWithStock = await Promise.all(queue.map(async (rx) => {
             const enrichedMedicines = await Promise.all(rx.medicines.map(async (med) => {
@@ -36,35 +36,37 @@ const getPrescriptionQueue = async (req, res) => {
 
 const dispensePrescription = async (req, res) => {
     try {
-        const { prescriptionId, items, remarks } = req.body; 
+        const { prescriptionId, items, remarks, status } = req.body; 
 
-
-        if (!prescriptionId || !items) {
+        if (!prescriptionId) {
             return res.json({ success: false, message: "Missing Data" });
         }
 
+        const finalStatus = status || 'Dispensed';
 
-        const updateOperations = items.map(item => ({
-            updateOne: {
-                filter: { medicineId: item.medicineId },
-                update: { $inc: { quantity: -item.quantityToDeduct } }
+        if (finalStatus === 'Dispensed' && items && items.length > 0) {
+            const updateOperations = items.map(item => ({
+                updateOne: {
+                    filter: { medicineId: item.medicineId },
+                    update: { $inc: { quantity: -item.quantityToDeduct } }
+                }
+            }));
+
+            if (updateOperations.length > 0) {
+                await medicineModel.bulkWrite(updateOperations);
             }
-        }));
-
-        if (updateOperations.length > 0) {
-            await medicineModel.bulkWrite(updateOperations);
         }
 
         await prescriptionModel.findOneAndUpdate(
             { prescriptionId }, 
             { 
-                status: 'Dispensed', 
+                status: finalStatus, 
                 dispensedBy: 'Pharmacist', 
                 remarks: remarks || ""
             }
         );
 
-        res.json({ success: true, message: "Medicines dispensed and stock updated!" });
+        res.json({ success: true, message: `Prescription ${finalStatus} successfully!` });
 
     } catch (error) {
         console.log(error);
