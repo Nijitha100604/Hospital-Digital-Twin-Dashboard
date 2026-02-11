@@ -374,14 +374,14 @@ const AddNewMedicine = () => {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
+            className="flex w-full sm:w-auto justify-center whitespace-nowrap items-center gap-2 cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
           >
             <FaTimes /> Cancel
           </button>
 
           <button
             type="submit"
-            className="flex items-center gap-2 cursor-pointer bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
+            className="flex w-full sm:w-auto justify-center whitespace-nowrap items-center gap-2 cursor-pointer bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
           >
             <FaSave /> Save Medicine
           </button>

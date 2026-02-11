@@ -117,7 +117,7 @@ const ViewEquipmentDetails = () => {
           </p>
         </div>
 
-        <div className="flex gap-3 items-center w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row align-items-stretch sm:items-center gap-3 items-center w-full md:w-auto">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors shadow-sm w-full md:w-auto cursor-pointer"

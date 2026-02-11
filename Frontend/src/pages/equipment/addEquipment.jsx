@@ -425,7 +425,7 @@ const AddEquipment = () => {
             type="button"
             onClick={() => navigate(-1)}
             disabled={isSubmitting}
-            className="flex items-center cursor-pointer gap-2 bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors"
+            className="flex w-full sm:w-auto justify-center whitespace-nowrap items-center cursor-pointer gap-2 bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors"
           >
             <FaTimes /> Cancel
           </button>
@@ -433,7 +433,7 @@ const AddEquipment = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`flex items-center cursor-pointer gap-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-4 py-2 rounded-md transition-colors ${
+            className={`flex w-full sm:w-auto justify-center whitespace-nowrap items-center cursor-pointer gap-2 bg-fuchsia-900 hover:bg-fuchsia-800 text-white px-4 py-2 rounded-md transition-colors ${
               isSubmitting ? "opacity-70 cursor-not-allowed" : ""
             }`}
           >

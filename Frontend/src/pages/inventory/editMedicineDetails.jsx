@@ -434,14 +434,14 @@ const EditMedicineDetails = () => {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex cursor-pointer items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
+            className="flex w-full sm:w-auto justify-center whitespace-nowrap cursor-pointer items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
           >
             <FaTimes /> Cancel
           </button>
 
           <button
             type="submit"
-            className="flex cursor-pointer items-center gap-2 bg-fuchsia-800 hover:bg-fuchsia-900 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
+            className="flex w-full sm:w-auto justify-center whitespace-nowrap cursor-pointer items-center gap-2 bg-fuchsia-800 hover:bg-fuchsia-900 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
           >
             <FaSave /> Update Medicine
           </button>

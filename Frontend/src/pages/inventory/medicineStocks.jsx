@@ -117,7 +117,7 @@ const MedicineStocks = () => {
           </p>
         </div>
 
-        <div className="flex gap-3 items-center w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row align-items-stretch sm:items-center gap-3 items-center w-full md:w-auto">
           {/* Alerts button */}
           <button
             onClick={() => navigate("/stock-alerts")}
