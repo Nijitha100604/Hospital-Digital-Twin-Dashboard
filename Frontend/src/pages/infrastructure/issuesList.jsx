@@ -398,10 +398,10 @@ function IssuesList() {
               <FaCalendarTimes className="text-gray-600 text-3xl" />
             </div>
             <p className="text-gray-800 text-lg font-semibold">
-              No consultations found
+              No issues found
             </p>
             <p className="text-gray-500 text-sm max-w-sm">
-              There are currently no consultations available.  
+              There are currently no issues available.  
             </p>
         
           </div>
