@@ -135,8 +135,15 @@ export default function LabResultEntry() {
   const { staffs } = useContext(StaffContext);
   const { userData } = useContext(AppContext);
 
-  // --- SECURITY CHECK ---
-  if (userData && userData.designation !== 'Technician') {
+  // --- SECURITY & LOADING CHECKS ---
+  
+  // 1. Wait for User Data to Load
+  if (!userData) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-purple-600"/></div>;
+  }
+
+  // 2. Check Role (After userData is guaranteed to exist)
+  if (userData.designation !== 'Technician') {
     return <AccessDenied />;
   }
 
@@ -154,7 +161,6 @@ export default function LabResultEntry() {
     dept: preloadedData?.department || "Pathology"
   });
 
-  // FIX: Added optional chaining and fallback for testType
   const [selectedTestType, setSelectedTestType] = useState(
     getCanonicalTestName(preloadedData?.testName || preloadedData?.testType || "")
   );
@@ -162,10 +168,6 @@ export default function LabResultEntry() {
   const [results, setResults] = useState({});
   const [comments, setComments] = useState("");
   const [correctionReason, setCorrectionReason] = useState("");
-
-  const [verifierName, setVerifierName] = useState(""); 
-  const [verifiedBy, setVerifiedBy] = useState("");     
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // --- LOAD DATA ---
   useEffect(() => {
@@ -176,7 +178,6 @@ export default function LabResultEntry() {
       } else if (preloadedData) {
           if(preloadedData.testResults?.length > 0) {
              const prefill = {};
-             // Try to find name from both fields
              const testName = preloadedData.testName || preloadedData.testType || "";
              const normalizedName = getCanonicalTestName(testName);
              const templateParams = testTemplates[normalizedName] || [];
@@ -187,14 +188,22 @@ export default function LabResultEntry() {
              });
              setResults(prefill);
              setComments(preloadedData.comments || "");
-             setVerifierName(preloadedData.technicianName || "");
-             setVerifiedBy(preloadedData.technicianId || "");
           }
       }
     };
     loadData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, fetchReportById]);
+
+  // --- DYNAMIC DEPARTMENT LOOKUP ---
+  useEffect(() => {
+    if (staffs.length > 0 && patientDetails.doctorId) {
+        const doctor = staffs.find(s => s.staffId === patientDetails.doctorId);
+        if (doctor && doctor.department) {
+            setPatientDetails(prev => ({ ...prev, dept: doctor.department }));
+        }
+    }
+  }, [staffs, patientDetails.doctorId]);
 
   const initializeForm = (data) => {
     setReportData(data);
@@ -209,7 +218,6 @@ export default function LabResultEntry() {
       dept: data.department || "Pathology"
     });
     
-    // Fallback logic for test name
     const tName = data.testName || data.testType || "";
     setSelectedTestType(getCanonicalTestName(tName));
 
@@ -224,20 +232,8 @@ export default function LabResultEntry() {
         });
         setResults(prefill);
         setComments(data.comments || "");
-        setVerifierName(data.technicianName || "");
-        setVerifiedBy(data.technicianId || "");
     }
   };
-
-  // --- FILTER TECHNICIANS ---
-  const technicians = (staffs || []).filter(s => 
-    (s.department === "Laboratory") || 
-    (s.designation && s.designation.toLowerCase().includes("technician")) ||
-    (s.role && s.role.toLowerCase().includes("technician"))
-  );
-  const filteredStaff = technicians.filter(staff => 
-    staff.fullName.toLowerCase().includes(verifierName.toLowerCase())
-  );
 
   const handleResultChange = (paramId, value) => {
     setResults(prev => ({ ...prev, [paramId]: value }));
@@ -254,8 +250,7 @@ export default function LabResultEntry() {
 
   const handleSubmit = async () => {
       if(!patientDetails.patientId) return alert("Patient ID is required");
-      if(!verifiedBy) return alert("Please select a verifier");
-
+      
       // Validate Test Type
       if (!selectedTestType || !testTemplates[selectedTestType]) {
           alert("Please select a valid Test Type from the dropdown.");
@@ -286,29 +281,20 @@ export default function LabResultEntry() {
           return;
       }
 
+      // AUTO-DETECT VERIFIER FROM CONTEXT
       const payload = {
           testResults: formattedResults,
           comments,
-          technicianId: verifiedBy,
-          technicianName: verifierName,
+          // Using Context Data automatically
+          technicianId: userData.staffId || userData._id,
+          technicianName: userData.fullName,
           correctionReason: correctionReason,
-          // Save the test name in case it was missing before
           testName: selectedTestType 
       };
 
       const success = await submitLabResults(finalReportId, payload);
       if(success) navigate('/lab-reports-list');
   };
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const currentParams = testTemplates[selectedTestType] || [];
 
@@ -338,7 +324,7 @@ export default function LabResultEntry() {
                 <FileUp size={16}/> Upload Report Instead
             </button>
             
-            {/* TEST TYPE DROPDOWN - Allows user to fix missing test type */}
+            {/* TEST TYPE DROPDOWN */}
             <div className="bg-white p-2 rounded-lg border border-gray-300 shadow-sm flex items-center gap-2 w-full md:w-auto">
                 <FlaskConical size={18} className="text-purple-600 shrink-0"/>
                 <span className="text-xs font-bold text-gray-500 uppercase whitespace-nowrap hidden sm:inline">Test Type:</span>
@@ -495,50 +481,15 @@ export default function LabResultEntry() {
             </div>
 
             <div className="flex flex-col justify-between">
+               {/* --- AUTOMATIC VERIFIER DISPLAY --- */}
                <div className="mb-4 lg:mb-0">
-                  <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-2 block">Verified By <span className="text-red-500">*</span></label>
-                  
-                  <div className="relative" ref={dropdownRef}>
-                    <div className="relative">
-                        <input 
-                            type="text" 
-                            className="cursor-pointer w-full p-2 border border-gray-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-purple-500 font-medium text-gray-700 text-sm"
-                            placeholder="Type to search technician..."
-                            value={verifierName}
-                            onChange={(e) => {
-                                setVerifierName(e.target.value);
-                                setIsDropdownOpen(true);
-                                if(e.target.value === "") setVerifiedBy("");
-                            }}
-                            onFocus={() => setIsDropdownOpen(true)}
-                        />
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                            {isDropdownOpen ? <Search size={16} className="text-purple-500" /> : <ChevronDown size={16} className="text-gray-400" />}
-                        </div>
-                    </div>
-
-                    {isDropdownOpen && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                            {filteredStaff.length > 0 ? (
-                                filteredStaff.map(staff => (
-                                    <div 
-                                        key={staff.staffId}
-                                        className="p-2 hover:bg-purple-50 cursor-pointer text-sm text-gray-700 border-b border-gray-50 last:border-none flex justify-between"
-                                        onClick={() => {
-                                            setVerifiedBy(staff.staffId);
-                                            setVerifierName(staff.fullName);
-                                            setIsDropdownOpen(false);
-                                        }}
-                                    >
-                                        <span className="font-bold">{staff.fullName}</span>
-                                        <span className="text-xs text-gray-400">{staff.designation || staff.role}</span>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="p-3 text-center text-xs text-gray-400">No matching staff found</div>
-                            )}
-                        </div>
-                    )}
+                  <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-2 block">Verified By</label>
+                  <div className="w-full p-2.5 border border-gray-200 bg-gray-50 rounded-lg text-sm font-bold text-gray-700 flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-xs font-bold border border-purple-200">
+                          {userData?.fullName ? userData.fullName.charAt(0) : "T"}
+                      </div>
+                      <span>{userData?.fullName || "Technician"}</span>
+                      <span className="text-gray-400 font-normal text-xs ml-auto">(You)</span>
                   </div>
                </div>
 
