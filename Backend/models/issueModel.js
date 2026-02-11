@@ -9,8 +9,8 @@ const issueSchema = new mongoose.Schema({
     block : { type: String, required: true },
     description : { type: String, required: true },
     status : { type: String, default: "Pending" },
-    reportedBy : { type: String, default: "Hospital Administrator" },
-    reporterId : { type: String, default : "STF000036" },
+    reportedBy : { type: String },
+    reporterId : { type: String },
 
 }, {timestamps : true})
 

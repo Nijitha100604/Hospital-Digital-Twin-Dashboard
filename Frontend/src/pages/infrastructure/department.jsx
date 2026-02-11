@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   FaBed,
@@ -16,14 +16,15 @@ import { DeptContext } from '../../context/DeptContext';
 import { AppContext } from '../../context/AppContext';
 import { StaffContext } from './../../context/StaffContext';
 
-
 function Department() {
 
   const {id} = useParams();
 
   const { getDepartment, updateStatus } = useContext(DeptContext);
-  const { token } = useContext(AppContext);
+  const { token, userData } = useContext(AppContext);
   const { staffs, fetchStaffs } = useContext(StaffContext);
+
+  const role = userData?.designation;
 
   const navigate = useNavigate();
   const [dept, setDept] = useState(null);
@@ -85,8 +86,7 @@ function Department() {
       fetchStaffs();
     }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token])
+  }, [token, fetchStaffs])
 
   if(loading){
     return(
@@ -127,9 +127,12 @@ function Department() {
       </div>
 
       {/* Activate or Deactive department */}
+     
       <div className="flex gap-3 items-center">
-      {
-        dept?.status === "Active" ?
+
+       {
+        role === "Admin" && (
+          dept?.status === "Active" ?
         <button 
           onClick={handleDeptStatus}
           className="text-sm font-bold text-white bg-red-600 px-3 py-2 rounded-lg cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
@@ -142,7 +145,10 @@ function Department() {
         >
           Activate Department
         </button>
+        )
       }
+
+      
 
       <div 
         className="px-3 py-2 flex gap-2 rounded-lg bg-fuchsia-400 cursor-pointer

@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState, useRef } from 'react'
 import { 
   FaHospitalUser,
   FaPlus,
@@ -25,6 +25,7 @@ function PatientList() {
 
   const [openFilter, setOpenFilter] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const filterRef = useRef(null);
   const [filters, setFilters] = useState({
     gender: null,
     age: null,
@@ -65,7 +66,7 @@ function PatientList() {
     startIndex + records_per_page
   );
 
-  const totalPages = Math.ceil(filteredData.length / records_per_page);
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / records_per_page));
 
   const handleFilterSelect = (type, value) =>{
     setFilters((prev)=>(
@@ -81,6 +82,23 @@ function PatientList() {
   const navigate = useNavigate();
 
   const role = userData?.designation;
+
+  useEffect(() => {
+
+    const handleClickOutside = (event) => {
+      if (!openFilter) return;
+
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setOpenFilter(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+
+  }, [openFilter]);
 
   useEffect(()=>{
     window.scroll(0,0);
@@ -148,7 +166,7 @@ function PatientList() {
           </div>
 
           {/* Filters */}
-          <div className = "flex gap-3">
+          <div ref={filterRef} className = "flex gap-3">
 
             {/* Date */}
             <div className="relative flex flex-col">

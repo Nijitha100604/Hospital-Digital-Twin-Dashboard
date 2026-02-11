@@ -8,6 +8,7 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 import { DeptContext } from '../../context/DeptContext';
+import { AppContext } from '../../context/AppContext';
 
 function IssueReport() {
 
@@ -21,6 +22,7 @@ function IssueReport() {
   const [loading, setLoading] = useState(false);
 
   const { createIssue } = useContext(DeptContext);
+  const { userData } = useContext(AppContext);
 
   const handleSubmit = async(e) =>{
 
@@ -32,7 +34,9 @@ function IssueReport() {
       priorityLevel,
       location,
       block,
-      description
+      description,
+      reportedBy: userData?.fullName,
+      reporterId: userData?.staffId
     };
 
     const check = await createIssue(issueData);

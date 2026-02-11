@@ -13,7 +13,6 @@ function AddNewPatient() {
 
   const fileRef = useRef(null);
   const [fileName, setFileName] = useState("");
-  const [loading, setLoading] = useState(false);
   const { addNewPatient, addPatientLoading } = useContext(PatientContext);
   const { userData } = useContext(AppContext);
 
@@ -99,7 +98,6 @@ function AddNewPatient() {
     } catch(error){
       console.log(error);
       toast.error("Internal Server Error");
-      setLoading(false);
     }
   }
 
@@ -257,6 +255,7 @@ function AddNewPatient() {
           <label className="text-sm text-gray-800 font-medium">Contact Number <span className="text-red-600">*</span></label>
           <input 
             type="number"
+            onWheel={(e) => e.target.blur()}
             required
             value={contact}
             onChange={(e)=>setContact(e.target.value)}
@@ -315,6 +314,7 @@ function AddNewPatient() {
           <label className="text-sm text-gray-800 font-medium">Guardian Contact Number</label>
           <input 
             type="number"
+            onWheel={(e) => e.target.blur()}
             value={guardianContact}
             onChange={(e)=>setGuardianContact(e.target.value)}
             placeholder='Enter the Guardian Contact Number'
@@ -399,7 +399,7 @@ function AddNewPatient() {
         {/* cancel button */}
         <button 
           type="button"
-          disabled={loading}
+          disabled={addPatientLoading}
           onClick={handleCancel}
           className="px-3 py-2 bg-gray-500 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-gray-700
           transition-all duration-300 ease-in-out
@@ -415,7 +415,7 @@ function AddNewPatient() {
           (role === "Receptionist" || role === "Admin") && (
             <button 
               type = "submit"
-              disabled={loading}
+              disabled={addPatientLoading}
               className="px-3 py-2 bg-green-600 flex gap-2 items-center rounded-lg text-white font-medium cursor-pointer hover:bg-green-800
               transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
             >
@@ -423,7 +423,6 @@ function AddNewPatient() {
             </button>
           )
         }
-        
 
       </div>
 

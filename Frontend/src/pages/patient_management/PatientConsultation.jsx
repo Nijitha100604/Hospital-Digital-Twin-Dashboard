@@ -8,6 +8,7 @@ import axios from 'axios';
 import { LabContext } from '../../context/LabContext';
 import { MedicineContext } from './../../context/MedicineContext';
 import { formatDate } from './../../utils/formatDate';
+import AccessDenied from '../../components/AccessDenied';
 
 function PatientConsultation() {
 
@@ -28,12 +29,14 @@ function PatientConsultation() {
     const [showDropdown, setShowDropdown] = useState(false);
     const [bedType, setBedType] = useState("");
 
-    const { fetchPatients, consultations, fetchConsultations } = useContext(PatientContext);
+    const { fetchPatients, consultations, fetchConsultations, saveRemarksAndDiagnosis, savePrescriptions, saveLabReports, updateAppointmentAction, requestAddmission } = useContext(PatientContext);
     const { fetchMedicines, medicines } = useContext(MedicineContext);
-    const { token, backendUrl } = useContext(AppContext);
+    const { token, backendUrl, userData } = useContext(AppContext);
     const { fetchLabReports, reports } = useContext(LabContext);
     const [ patient, setPatient ] = useState({});
     const [ appointment, setAppointment ] = useState({});
+
+    const role = userData?.designation;
 
     const patientDetails = async(id) =>{
 
@@ -76,24 +79,16 @@ function PatientConsultation() {
         return;
       }
 
-      try{
-        const {data} = await axios.post(`${backendUrl}/api/consultation/add-diagnosis-remarks`, { 
-          appointmentId : consultation?.appointmentId,
-          diagnosis,
-          remarks: doctorRemarks 
-        }, {headers: {token}});
+      const diagnosisData = {
+        appointmentId : consultation?.appointmentId,
+        diagnosis,
+        remarks: doctorRemarks
+      }
 
-        if(data.success){
-          toast.success(data.message, {autoClose: 2000});
-          await fetchConsultations();
-          setDiagnosis("");
-          setDoctorRemarks("");
-        } else{
-          toast.error(data.message);
-        }
-      } catch(error){
-        console.log(error);
-        toast.error("Internal Server Error");
+      const result = await saveRemarksAndDiagnosis(diagnosisData);
+      if(result){
+        setDiagnosis("");
+        setDoctorRemarks("");
       }
 
     }
@@ -147,24 +142,14 @@ function PatientConsultation() {
         return;
       }
 
-      try{
+      const presData = {
+        appointmentId: consultation?.appointmentId,
+        prescriptions: prescriptionsList
+      }
 
-        const {data} = await axios.post(`${backendUrl}/api/consultation/add-prescriptions`, {
-          appointmentId: consultation?.appointmentId,
-          prescriptions: prescriptionsList
-        }, {headers: {token}});
-
-        if(data.success){
-          toast.success(data.message, {autoClose: 2000});
-          await fetchConsultations();
-          setPrescriptionsList([]);
-        } else{
-          toast.error(data.message);
-        }
-
-      } catch(error){
-        console.log(error);
-        toast.error("Internal Server Error");
+      const result = await savePrescriptions(presData);
+      if(result){
+        setPrescriptionsList([]);
       }
 
     };
@@ -192,29 +177,20 @@ function PatientConsultation() {
         toast.error("Add at least one lab test");
         return;
       }
-      try{
 
-        const {data} = await axios.post(`${backendUrl}/api/consultation/add-labReports`,{
-          appointmentId: consultation.appointmentId,
-          consultationId: consultation.consultationId,
-          patientId: consultation.patientId,
-          labTests: newLabReports.map(test => ({
-            testName: test.testName
-          }))
-        }, {headers: {token}})
+      const labData = {
+        appointmentId: consultation.appointmentId,
+        consultationId: consultation.consultationId,
+        patientId: consultation.patientId,
+        labTests: newLabReports.map(test => ({
+          testName: test.testName
+        }))
+      }
 
-        if(data.success){
-          toast.success(data.message, {autoClose: 2000});
-          setNewLabReports([]);
-          await fetchConsultations();
-          await fetchLabReports();
-        } else {
-          toast.error(data.message);
-        }
-
-      } catch(error){
-        console.log(error);
-        toast.error("Internal Server Error");
+      const result = await saveLabReports(labData);
+      if(result){
+        setNewLabReports([]);
+        await fetchLabReports();
       }
 
     };
@@ -239,38 +215,29 @@ function PatientConsultation() {
 
     const handleAppointmentAction = async(status) =>{
 
-      try{
+      if(status !== "In Progress" && status !== "Completed"){
+        toast.error("Invalid action");
+        return;
+      }
 
-        if(status !== "In Progress" && status !== "Completed"){
-          toast.error("Invalid action");
-          return;
-        }
-
-        if(status === "Completed" && 
-          (
-            !consultation?.doctor?.diagnosis?.trim() ||
-            !consultation?.doctor?.remarks?.trim() ||
-            !consultation?.prescriptions || consultation.prescriptions.length === 0
-          )){
+      if(status === "Completed" && 
+        (
+          !consultation?.doctor?.diagnosis?.trim() ||
+          !consultation?.doctor?.remarks?.trim() ||
+          !consultation?.prescriptions || consultation.prescriptions.length === 0
+        )){
           toast.error("Enter the diagnosis, remarks and prescriptions before completing the status");
           return;
         }
 
-        const {data} = await axios.put(`${backendUrl}/api/appointment/update-status`, {
-          appointmentId: consultation?.appointmentId,
-          status
-        }, {headers: {token}});
+      const statusData = {
+        appointmentId: consultation?.appointmentId,
+        status
+      }
 
-        if(data.success){
-          toast.success(data.message, {autoClose: 2000});
-          await fetchConsultations();
-        } else{
-          toast.error(data.message);
-        }
-
-      } catch(error){
-        console.log(error);
-        toast.error("Internal Server Error");
+      const result = await updateAppointmentAction(statusData);
+      if(result){
+        return;
       }
 
     }
@@ -281,30 +248,20 @@ function PatientConsultation() {
         return;
       }
 
-      try {
-        const {data} = await axios.post(`${backendUrl}/api/consultation/request-admission`,{
-          consultationId: consultation.consultationId,
-          appointmentId: consultation.appointmentId,
-          patientId: consultation.patientId,
-          patientName: patient?.personal?.name,
-          doctorId: consultation.doctorId,
-          bedType
-        },
-        {headers: {token}}
-        );
-
-        if(data.success){
-          toast.success("Admission requested successfully");
-          setBedType("");
-          await fetchConsultations();
-        } else{
-          toast.error(data.message);
-        }
-
-      } catch (error) {
-        console.log(error);
-        toast.error("Internal Server Error");
+      const requestData = {
+        consultationId: consultation.consultationId,
+        appointmentId: consultation.appointmentId,
+        patientId: consultation.patientId,
+        patientName: patient?.personal?.name,
+        doctorId: consultation.doctorId,
+        bedType
       }
+
+      const result = await requestAddmission(requestData);
+      if(result){
+        setBedType("");
+      }
+      
     }
 
     const checkBP = (value) =>{
@@ -363,7 +320,6 @@ function PatientConsultation() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [consultation, reports])
 
-
     const getStatusClass = (status) =>{
     switch(status?.toLowerCase()){
       case "completed":
@@ -375,6 +331,10 @@ function PatientConsultation() {
       default:
         return "bg-white"
       }
+    }
+
+    if( role === "Nurse" || role === "Support" || role === "Pharmacist" || role === "Technician" || role === "Receptionist" ){
+      return <AccessDenied />
     }
 
   return consultation ? (
@@ -400,7 +360,6 @@ function PatientConsultation() {
     </div>
 
     {/* General details and Vital Parameters */}
-
     <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-4 mt-4">
 
       {/* General details */}
@@ -1034,7 +993,6 @@ function PatientConsultation() {
       }
       
     </div>
-
 
     {/* Action Buttons */}
     <div className="w-full flex justify-end items-center mt-5 gap-3">

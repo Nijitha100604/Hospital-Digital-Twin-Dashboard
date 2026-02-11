@@ -2,11 +2,19 @@ import React, { useRef, useState, useContext } from "react";
 import { FaUserPlus, FaUpload, FaRedo, FaList } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { StaffContext } from "../../context/StaffContext";
+import { AppContext } from "../../context/AppContext"; // Import AppContext
+import AccessDenied from "../../components/AccessDenied"; // Import AccessDenied Component
 import { toast } from "react-toastify";
 
 function AddStaff() {
   const navigate = useNavigate();
   const { addStaff } = useContext(StaffContext);
+  const { userData } = useContext(AppContext); // Get User Role
+
+  // --- SECURITY CHECK: ADMIN ONLY ---
+  if (userData && userData.designation !== 'Admin') {
+    return <AccessDenied />;
+  }
   
   // Refs for file uploads
   const idProofRef = useRef(null);
@@ -18,7 +26,7 @@ function AddStaff() {
     fullName: "",
     gender: "",
     email: "",
-    password: "", // Required by backend
+    password: "", 
     contactNumber: "",
     dateOfBirth: "",
     address: "",
@@ -47,12 +55,8 @@ function AddStaff() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // specific validation logic here if needed
-
     const formData = new FormData();
-    // Append text data
     Object.keys(data).forEach(key => formData.append(key, data[key]));
-    // Append files
     if (files.profilePhoto) formData.append("profilePhoto", files.profilePhoto);
     if (files.idProofDoc) formData.append("idProofDoc", files.idProofDoc);
 
@@ -95,7 +99,6 @@ function AddStaff() {
 
             <input name="email" type="email" value={data.email} onChange={handleChange} required placeholder="Email *" className="input-field" />
             
-            {/* Added Password Field */}
             <input name="password" type="password" value={data.password} onChange={handleChange} required placeholder="Password *" className="input-field" />
 
             <input name="contactNumber" type="number" value={data.contactNumber} onChange={handleChange} required placeholder="Contact Number *" className="input-field" />

@@ -27,6 +27,7 @@ import { StaffContext } from '../context/StaffContext';
 import { MedicineContext } from '../context/MedicineContext';
 import { EquipmentContext } from '../context/EquipmentContext';
 import { DeptContext } from '../context/DeptContext';
+import AccessDenied from '../components/AccessDenied';
 
 // Helper to get today's date in YYYY-MM-DD format (Same as Attendance Page)
 const getToday = () => {
@@ -54,7 +55,7 @@ function AdminDashboard() {
       return diffDays >= 0 && diffDays <= 90; 
     };
 
-    const {token} = useContext(AppContext);
+    const { token, userData } = useContext(AppContext);
     const { patients, fetchPatients, appointments, fetchAppointments } = useContext(PatientContext);
     const { reports, fetchLabReports } = useContext(LabContext);
     
@@ -64,6 +65,8 @@ function AdminDashboard() {
     const { equipments, fetchEquipments, maintenanceLogs, fetchMaintenanceLogs } = useContext(EquipmentContext);
     
     const { departments, fetchDepartments, beds, fetchBeds, issues, fetchIssues } = useContext(DeptContext);
+
+    const role = userData?.designation
     
     // patients data
     const totalPatients = patients?.length || 0;
@@ -260,6 +263,10 @@ function AdminDashboard() {
       path: "/lab-reports-list"
     }
     ];
+
+    if(role !== "Admin"){
+      return <AccessDenied />
+    }
 
 
   return (

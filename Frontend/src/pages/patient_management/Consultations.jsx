@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { 
   FaCalendarAlt, 
   FaCheckCircle, 
@@ -19,36 +19,43 @@ import { useContext } from 'react';
 import { PatientContext } from '../../context/PatientContext';
 import { AppContext } from '../../context/AppContext';
 import { useEffect } from 'react';
+import AccessDenied from './../../components/AccessDenied';
 
 function Consultations() {
 
   const navigate = useNavigate();
 
   const {appointments, fetchAppointments, appLoading} = useContext(PatientContext);
-  const {token} = useContext(AppContext);
+  const {token, userData} = useContext(AppContext);
 
-  const totalAppointments = appointments?.length;
-  const completed = appointments?.filter(
+  const role = userData?.designation;
+  const staffId = userData?.staffId;
+
+  const roleBasedAppointments = role === "Doctor"
+  ? appointments?.filter(item => item?.doctorId === staffId) || []
+  : appointments || [];
+
+  const totalAppointments = roleBasedAppointments?.length;
+  const completed = roleBasedAppointments?.filter(
     item => item?.status === "Completed"
   ).length;
-  const inProgress = appointments?.filter(
+  const inProgress = roleBasedAppointments?.filter(
     item => item?.status === "In Progress"
   ).length;
-  const scheduled = appointments?.filter(
+  const scheduled = roleBasedAppointments?.filter(
     item => item?.status === "Scheduled"
   ).length;
 
   // Filters
   const [openFilter, setOpenFilter] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const filterRef = useRef(null);
   const [filters, setFilters] = useState({
     status: null,
     consultation: null,
     date: null
   })
 
-  // eslint-disable-next-line no-unused-vars
-  const isActive = (name) => openFilter === name;
 
   const handleFilterSelect = (type, value) =>{
     setFilters((prev)=>(
@@ -61,7 +68,7 @@ function Consultations() {
     setOpenFilter(null)
   }
 
-  const filteredData = appointments?.filter((item)=>{
+  const filteredData = roleBasedAppointments?.filter((item)=>{
           
     const searchMatch = searchTerm.trim() === "" || item?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || item.patientId?.toLowerCase().includes(searchTerm.toLowerCase());
     const statusMatch = !filters.status || item?.status === filters.status;
@@ -73,7 +80,6 @@ function Consultations() {
   });
 
   // Paginated data
-
   const records_per_page = 10;
   const [currentPage, setCurrentPage] = useState(1);
   const startIndex = (currentPage - 1)*records_per_page;
@@ -82,7 +88,7 @@ function Consultations() {
     startIndex,
     startIndex + records_per_page
   );
-  const totalPages = Math.ceil(filteredData.length / records_per_page);
+  const totalPages =Math.max(1, Math.ceil(filteredData.length / records_per_page));
 
   const getStatusClass = (status) =>{
     switch(status?.toLowerCase()){
@@ -97,14 +103,34 @@ function Consultations() {
     }
   }
 
+  useEffect(() => {
+  
+      const handleClickOutside = (event) => {
+        if (!openFilter) return;
+  
+        if (filterRef.current && !filterRef.current.contains(event.target)) {
+          setOpenFilter(null);
+        }
+      };
+      document.addEventListener("mousedown", handleClickOutside);
+  
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+  
+  }, [openFilter]);
+
   useEffect(()=>{
 
     if(token){
       fetchAppointments();
     }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token])
+  }, [token, fetchAppointments])
+
+  if( role === "Nurse" || role === "Support" || role === "Pharmacist" || role === "Technician" || role === "Receptionist" ){
+    return <AccessDenied />
+  }
 
   if(appLoading){
     return(
@@ -205,7 +231,7 @@ function Consultations() {
       </div>
           
       {/* Filters */}
-      <div className = "flex gap-3">
+      <div ref={filterRef} className = "flex gap-3">
           
       {/* Date */}
       <div className="relative">

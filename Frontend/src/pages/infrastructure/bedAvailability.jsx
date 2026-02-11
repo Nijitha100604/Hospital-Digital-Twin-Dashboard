@@ -12,12 +12,15 @@ import { AppContext } from '../../context/AppContext';
 import AvailableBedModal from './../../components/modals/AvailableBedModal';
 import OccupiedBedModal from '../../components/modals/OccupiedBedModal';
 import { StaffContext } from './../../context/StaffContext';
+import AccessDenied from '../../components/AccessDenied';
 
 const BedAvailability = () => {
 
-  const { token } = useContext(AppContext);
+  const { token, userData } = useContext(AppContext);
   const { fetchBeds, beds, bedLoading, fetchPendingBedRequests, pendingBedRequests } = useContext(DeptContext);
   const { staffs, fetchStaffs } = useContext(StaffContext);
+
+  const role = userData?.designation;
 
   // summary details
   const totalBeds = beds?.reduce(
@@ -89,6 +92,10 @@ const BedAvailability = () => {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
+
+  if( role === "Pharmacist" || role === "Support" || role === "Technician" || role === "Doctor"){
+    return <AccessDenied />
+  }
 
   if(bedLoading){
     return(

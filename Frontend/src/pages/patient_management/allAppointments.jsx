@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState, useRef } from 'react'
 import { 
   FaRegCalendarCheck, 
   FaPlus, 
@@ -17,27 +17,35 @@ import { MdSchedule } from "react-icons/md";
 import { useNavigate } from 'react-router-dom';
 import { PatientContext } from '../../context/PatientContext';
 import { AppContext } from '../../context/AppContext';
+import AccessDenied from '../../components/AccessDenied';
 
 function AllAppointments() {
 
   const navigate = useNavigate();
   const { fetchAppointments, appointments, appLoading} = useContext(PatientContext);
-  const {token} = useContext(AppContext);
+  const { token, userData } = useContext(AppContext);
+
+  const role = userData?.designation;
+  const staffId = userData?.staffId;
+
+  const roleBasedAppointments = role === "Doctor"
+  ? appointments?.filter(item => item?.doctorId === staffId) || []
+  : appointments || [];
 
   // Appointment counts
-  const totalAppointments = appointments?.length;
-  const scheduledAppointments = appointments?.filter(
+  const totalAppointments = roleBasedAppointments?.length || 0;
+  const scheduledAppointments = roleBasedAppointments?.filter(
     item => item.status === "Scheduled"
-  ).length;
-  const cancelledAppointments = appointments?.filter(
+  ).length || 0;
+  const cancelledAppointments = roleBasedAppointments?.filter(
     item => item.status === "Cancelled"
-  ).length;
-  const inProgressAppointments = appointments?.filter(
+  ).length || 0;
+  const inProgressAppointments = roleBasedAppointments?.filter(
     item => item.status === "In Progress"
-  ).length;
-   const completedAppointments = appointments?.filter(
+  ).length || 0;
+   const completedAppointments = roleBasedAppointments?.filter(
     item => item.status === "Completed"
-  ).length;
+  ).length || 0;
 
   // Styling for each status
    const getStatusClass = (status) =>{
@@ -55,19 +63,15 @@ function AllAppointments() {
     }
   }
 
-
   // Filters 
-
   const [openFilter, setOpenFilter] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const filterRef = useRef(null);
   const [filters, setFilters] = useState({
     status: null,
     consultation: null,
     date: null
   })
-
-  // eslint-disable-next-line no-unused-vars
-  const isActive = (name) => openFilter === name;
 
   const handleFilterSelect = (type, value) =>{
     setFilters((prev)=>(
@@ -80,12 +84,10 @@ function AllAppointments() {
     setOpenFilter(null)
   }
 
-  const filteredData = appointments?.filter((item)=>{
+  const filteredData = roleBasedAppointments?.filter((item)=>{
     
     const searchMatch = searchTerm.trim() === "" || item?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || item?.patientId?.toLowerCase().includes(searchTerm.toLowerCase());
-  
     const statusMatch = !filters.status || item?.status?.toLowerCase() === filters.status.toLowerCase();
-
     const consultationMatch = !filters.consultation || item?.consultationType === filters.consultation;
   
     const dateMatch =
@@ -96,7 +98,6 @@ function AllAppointments() {
 
 
   // Paginating the data
-
   const records_per_page = 10;
   const [currentPage, setCurrentPage] = useState(1);
   const startIndex = (currentPage - 1)*records_per_page;
@@ -105,15 +106,43 @@ function AllAppointments() {
     startIndex,
     startIndex + records_per_page
   );
-  const totalPages = Math.ceil(filteredData.length / records_per_page);
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / records_per_page));
+
+  useEffect(() => {
+
+    const handleClickOutside = (event) => {
+      if (!openFilter) return;
+
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setOpenFilter(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+
+  }, [openFilter]);
 
   useEffect(()=>{
       if(token){
         fetchAppointments();
       }
       window.scroll(0,0);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, fetchAppointments]);
+
+  if (!userData || appLoading) {
+   return (
+      <div className="flex justify-center items-center h-60">
+         <div className="w-10 h-10 border-4 border-gray-300 border-t-fuchsia-700 rounded-full animate-spin"></div>
+      </div>
+   );
+  }
+
+  if(role === "Support" || role === "Pharmacist" || role === "Technician"){
+    return <AccessDenied />
+  }
 
   if(appLoading){
     return(
@@ -149,13 +178,17 @@ function AllAppointments() {
       </div>
 
       {/* Book appointment Button */}
-      <button 
-        className="flex gap-2 items-center text-white bg-fuchsia-800 px-3 py-2.5 cursor-pointer rounded-xl leading-none transition-all duration-300 ease-in-out hover:bg-fuchsia-900 hover:scale-105 active:scale-95"
-        onClick={()=>navigate("/book-appointment")}
-      >
-        <FaPlus size={16} />Book Appointment
-      </button>
-
+      {
+        (role === "Receptionist" || role === "Admin") && (
+          <button 
+            className="flex gap-2 items-center text-white bg-fuchsia-800 px-3 py-2.5 cursor-pointer rounded-xl leading-none transition-all duration-300 ease-in-out hover:bg-fuchsia-900 hover:scale-105 active:scale-95"
+            onClick={()=>navigate("/book-appointment")}
+          >
+            <FaPlus size={16} />Book Appointment
+          </button>
+        )
+      }
+      
       </div>
 
       {/* Appointment summary */}
@@ -233,7 +266,7 @@ function AllAppointments() {
         </div>
       
         {/* Filters */}
-        <div className = "flex gap-3">
+        <div ref={filterRef} className = "flex gap-3">
       
           {/* Date */}
           <div className="relative flex flex-col">
@@ -444,7 +477,7 @@ function AllAppointments() {
        )
       }
 
-      {/* Bottom of the table */}
+      {/* table bottom */}
       <div className="flex justify-between items-center mt-4">
 
           <div className="text-gray-600 text-sm">

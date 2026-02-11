@@ -1,15 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useContext } from 'react';
 import { FaTimes, FaTrash } from "react-icons/fa";
 import { toast } from 'react-toastify';
-import { AppContext } from '../../context/AppContext';
-import axios from 'axios';
 import { PatientContext } from '../../context/PatientContext';
 
 const VitalModal = ({ open, type, patients, item, onClose }) =>{
 
-    const {backendUrl, token} = useContext(AppContext);
-    const {fetchPatients} = useContext(PatientContext);
+    const {savePatientVitals, updatePatientVitals} = useContext(PatientContext);
 
     const vital_units = {
         "Heart Rate": "bpm",
@@ -105,53 +102,31 @@ const VitalModal = ({ open, type, patients, item, onClose }) =>{
     };
 
     const saveVitals = async() =>{
-
-        try{
-            
-            const {data} = await axios.post(`${backendUrl}/api/patient/add-vitals`, {
-                patientId: item.patientId,
-                appointmentId: item.appointmentId,
-                vitals
-            }, {headers: {token}}) 
-            if(data.success){
-                toast.success("Vitals saved successfully", { autoClose: 2000 });
-                await fetchPatients();
-                setTimeout(() => { handleClose() }, 1000);
-            } else{
-                toast.error(data.message);
-            }
-
-        } catch(error){
-            console.log(error)
-            toast.error("Internal server Error");
+        const vitalsData = {
+            patientId: item.patientId,
+            appointmentId: item.appointmentId,
+            vitals
         }
-
+        const result = await savePatientVitals(vitalsData); 
+        if(result){
+            setTimeout(() => { handleClose() }, 1000);
+        } 
     }
 
     const updateVitals = async() =>{
 
-        try{
-           
-            const {data} = await axios.post(`${backendUrl}/api/patient/add-vitals`,{
-                patientId: item.patientId,
-                appointmentId: item.appointmentId,
-                vitals: [...vitals, ...newVitals]
-            }, {headers: {token}})
-            if(data.success){
-                toast.success("Vitals Updated" , { autoClose: 2000 });
-                await fetchPatients();
-                setTimeout(() => { handleClose() }, 1000);
-            } else{
-                toast.error(data.message);
-            }
+        const updatedData = {
+            patientId: item.patientId,
+            appointmentId: item.appointmentId,
+            vitals: [...vitals, ...newVitals]
+        }
 
-        }catch(error){
-            console.log(error);
-            toast.error("Internal Server Error");
+        const result = await updatePatientVitals(updatedData);
+        if(result){
+           setTimeout(() => { handleClose() }, 1000); 
         }
 
     }
-
 
    useEffect(()=>{
 
@@ -230,6 +205,7 @@ const VitalModal = ({ open, type, patients, item, onClose }) =>{
                                 type={vitalName === "Blood Pressure" ? "text" : "number"}
                                 step="any"
                                 required
+                                onWheel={(e) => e.target.blur()}
                                 value={value}
                                 onChange={(e) => setValue(e.target.value)}
                                 placeholder="Vital value"

@@ -17,6 +17,7 @@ import { PatientContext } from '../../context/PatientContext';
 import { AppContext } from '../../context/AppContext';
 import { LabContext } from './../../context/LabContext';
 import { formatDate } from '../../utils/formatDate';
+import AccessDenied from '../../components/AccessDenied';
 
 function ViewAppointment() {
 
@@ -29,7 +30,7 @@ function ViewAppointment() {
 
   const {appointments, fetchAppointments, patients, fetchPatients, consultations, fetchConsultations} = useContext(PatientContext);
   const {reports, fetchLabReports} = useContext(LabContext);
-  const {token} = useContext(AppContext);
+  const {token, userData} = useContext(AppContext);
 
   const getStatusClass = (status) =>{
     switch(status?.toLowerCase()){
@@ -77,17 +78,6 @@ function ViewAppointment() {
     }
   }
 
-  const getVitals = () =>{
-    if(patientData){
-      const foundVital = patientData?.vitals?.find(
-        (item) => item.appointmentId === id
-      )
-      if(foundVital){
-        setVitals(foundVital);
-      }
-    }
-  }
-
   const getReportById = (labReportId) => {
     return reports.find(r => r.labReportId === labReportId);
   };
@@ -107,28 +97,41 @@ function ViewAppointment() {
     return value >= 60 && value <= 100;
   }
 
+  const role = userData?.designation;
+
   useEffect(()=>{
     
     const fetchDetails = () =>{
-      if (!id || appointments.length === 0) return;
-      const foundAppointment = appointments.find(
+      if (!id) return;
+      const foundAppointment = appointments?.find(
         (item) => item.appointmentId === id
       );
       setAppData(foundAppointment || null);
-      const foundPatient = patients.find(
-        (item) => item.patientId === foundAppointment?.patientId
-      )
-      setPatientData(foundPatient || null)
-      const foundConsultation = consultations.find(
-        (item) => item.appointmentId === foundAppointment?.appointmentId
-      );
-      setConData(foundConsultation || null);
-      getVitals();
+      if(foundAppointment){
+        const foundPatient = patients.find(
+          (item) => item.patientId === foundAppointment?.patientId
+        )
+        setPatientData(foundPatient || null)
+
+        const foundConsultation = consultations.find(
+          (item) => item.appointmentId === foundAppointment?.appointmentId
+        );
+        setConData(foundConsultation || null);
+        if(foundPatient && patientData && foundPatient?.vitals){
+          const foundVital = foundPatient.vitals.find(
+            (item) => item.appointmentId === id
+          );
+          if(foundVital){
+            setVitals(foundVital);
+          } else{
+            setVitals({});
+          }
+        }
+      } 
     }
     fetchDetails();
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[id]);
+  },[id, appointments, patients, consultations, patientData]);
 
   useEffect(()=>{
     if(token){
@@ -137,8 +140,11 @@ function ViewAppointment() {
       fetchConsultations();
       fetchLabReports();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [fetchAppointments, fetchConsultations, fetchLabReports, fetchPatients, token]);
+
+  if(role === "Support" || role === "Pharmacist" || role === "Technician"){
+    return <AccessDenied />
+  }
 
   return appData ? (
     <>
@@ -290,7 +296,6 @@ function ViewAppointment() {
     </div>
 
     {/* Vital Parameters */}
-
     <div className="mt-4 w-full flex flex-wrap items-start gap-6 bg-white px-3 py-3 rounded-lg border border-gray-200">
       <div className="flex gap-2 mt-1 items-center">
         <img 
@@ -338,7 +343,6 @@ function ViewAppointment() {
     </div>
 
     {/* Doctor Identification */}
-
     <div className="w-full mt-4 flex flex-wrap items-center rounded-lg bg-white gap-6 px-3 py-3 border border-gray-200">
 
       <div className="flex gap-2 items-center">
@@ -431,8 +435,7 @@ function ViewAppointment() {
     </div>
 
     {/* Lab Reports */}
-    {
-      conData?.labReports?.length > 0 ?
+ 
       <div className="w-full mt-4 bg-white rounded-lg px-3 py-3 border border-gray-200">
         <div className="flex gap-2 items-center">
           <FaFlask
@@ -441,7 +444,10 @@ function ViewAppointment() {
           />
           <p className="font-medium text-gray-700 text-md">Lab Reports</p>
         </div>
-        <div className="w-full mt-4 grid sm:grid-cols-1 md:grid-cols-2 gap-5">
+
+        {
+          conData?.labReports?.length > 0 ? (
+            <div className="w-full mt-4 grid sm:grid-cols-1 md:grid-cols-2 gap-5">
           {
             conData?.labReports?.map((item, index)=>(
               <div 
@@ -461,9 +467,14 @@ function ViewAppointment() {
             ))
           }
         </div>
-      </div> :
-      <></>
-    }
+          ) : (
+            <div className="text-center text-sm text-gray-500 mt-3">
+              <p>No lab Reports available</p>
+            </div>
+          )
+        }
+        
+      </div> 
 
     {/* Admitted Status */}
     <div className="w-full mt-4 bg-white rounded-lg px-3 py-3 border border-gray-200">

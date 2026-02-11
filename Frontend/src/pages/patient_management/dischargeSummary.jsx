@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useContext } from 'react'
+import { useEffect, useState, useRef, useContext } from 'react'
 import { 
   FaDownload, 
   FaNotesMedical, 
@@ -6,7 +6,6 @@ import {
   FaRegUser, 
   FaFilePrescription, 
   FaStethoscope,
-  FaRegHeart,
   FaRegFileAlt,
   FaInfoCircle,
   FaRegCheckCircle
@@ -20,6 +19,7 @@ import { formatDate } from "../../utils/formatDate";
 import { LabContext } from '../../context/LabContext';
 import { useMemo } from 'react';
 import { StaffContext } from './../../context/StaffContext';
+import AccessDenied from '../../components/AccessDenied';
 
 function DischargeSummary() {
 
@@ -30,8 +30,10 @@ function DischargeSummary() {
 
   const {patients, fetchPatients, appointments, fetchAppointments, consultations, fetchConsultations} = useContext(PatientContext);
   const {reports} = useContext(LabContext);
-  const { token } = useContext(AppContext);
+  const { token, userData } = useContext(AppContext);
   const {staffs} = useContext(StaffContext);
+
+  const role = userData?.designation;
 
   const reportMap = useMemo(() => {
     const map = {};
@@ -115,10 +117,13 @@ function DischargeSummary() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
+  if( role === "Support" || role === "Pharmacist" || role === "Technician" ){
+    return <AccessDenied />
+  }
+
   if (!consultation || !patient) {
     return <p className="text-center">No Data Available</p>;
   }
-
 
   return (
     <>

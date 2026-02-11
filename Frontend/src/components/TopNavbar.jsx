@@ -60,7 +60,7 @@ function TopNavbar({ setIsSidebarOpen }) {
 
         {/* User details */}
         <div className="hidden md:flex items-center gap-3 px-4 py-1 rounded-xl border border-gray-900 bg-gray-200">
-          <img className="w-10 h-10 rounded-full border border-gray-700" src={userData?.profilePhoto || assets.topNav_profile} alt="topNavbar-profile"/>
+          <img className="w-10 h-10 rounded-full border border-gray-700 bg-fuchsia-800" src={userData?.profilePhoto || assets.topNav_profile} alt="topNavbar-profile"/>
           <div className="leading-tight">
             <p className="text-sm font-semibold">{userData?.fullName || "-"}</p>
             <p className="text-xs text-gray-600">{userData?.designation || "-"}</p>

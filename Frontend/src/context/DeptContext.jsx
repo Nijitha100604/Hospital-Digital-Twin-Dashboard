@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import { createContext } from "react";
 import { AppContext } from "./AppContext";
 import { toast } from "react-toastify";
@@ -45,7 +45,7 @@ const DeptContextProvider = (props) => {
     }
 
     // all departments
-    const fetchDepartments = async() =>{
+    const fetchDepartments = useCallback(async() =>{
 
         if(!token) return;
         setLoading(true);
@@ -65,7 +65,7 @@ const DeptContextProvider = (props) => {
         } finally{
             setLoading(false);
         }
-    }
+    }, [token, backendUrl])
 
     // department
     const getDepartment = async(id) =>{
@@ -140,7 +140,7 @@ const DeptContextProvider = (props) => {
     }
 
     // all issues
-    const fetchIssues = async() =>{
+    const fetchIssues = useCallback(async() =>{
 
         if(!token) return;
         setIssueLoading(true);
@@ -161,7 +161,7 @@ const DeptContextProvider = (props) => {
         }finally{
             setIssueLoading(false);
         }
-    }
+    }, [token, backendUrl])
 
     // update issue status
     const updateIssueStatus = async(updateData) =>{
@@ -219,7 +219,7 @@ const DeptContextProvider = (props) => {
     }
 
     // fetch pending bed requests
-    const fetchPendingBedRequests = async() =>{
+    const fetchPendingBedRequests = useCallback(async() =>{
         if(!token) return;
         try {
                
@@ -237,7 +237,7 @@ const DeptContextProvider = (props) => {
             console.log(error);
             toast.error("Internal Server Error");
         }
-    }
+    }, [token, backendUrl])
 
     // assign bed 
     const assignBed = async(bedData) =>{

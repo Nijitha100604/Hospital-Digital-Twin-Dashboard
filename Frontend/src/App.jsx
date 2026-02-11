@@ -4,7 +4,7 @@ import SideNavbar from "./components/SideNavbar";
 import Login from "./pages/Login";
 import { ToastContainer } from "react-toastify";
 import { Routes, Route, Navigate } from "react-router-dom";
-import PatientList from "./pages/patient_management/PatientList";
+import PatientList from "./pages/patient_management/patientList";
 import PatientProfile from "./pages/patient_management/PatientProfile";
 import AddNewPatient from "./pages/patient_management/AddNewPatient";
 import BookAppointment from "./pages/patient_management/BookAppointment";
