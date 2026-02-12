@@ -17,7 +17,9 @@ const AddMaintenance = ({ onClose, onSave, initialData, selectedEquipment }) => 
   const [maintenanceDate, setMaintenanceDate] = useState(new Date().toISOString().split('T')[0]);
   const [duration, setDuration] = useState("");
   const [cost, setCost] = useState("");
-  const [status, setStatus] = useState("Completed");
+  
+  const [status, setStatus] = useState("In Progress"); 
+  
   const [nextScheduledService, setNextScheduledService] = useState("");
   
   const [technicianInput, setTechnicianInput] = useState("");
@@ -29,10 +31,11 @@ const AddMaintenance = ({ onClose, onSave, initialData, selectedEquipment }) => 
   const [issueReported, setIssueReported] = useState("");
   const [actionsTaken, setActionsTaken] = useState("");
 
-  // Filter only Technicians
-  const technicians = staffs.filter(s => s.designation === "Technician");
+  // Safety check for staffs array
+  const technicians = (staffs || []).filter(s => s.designation === "Technician");
 
   useEffect(() => {
+    
     if (initialData) {
       setEquipmentInput(`${initialData.equipmentName} (${initialData.equipmentId})`);
       setEquipmentId(initialData.equipmentId);
@@ -40,7 +43,10 @@ const AddMaintenance = ({ onClose, onSave, initialData, selectedEquipment }) => 
       setMaintenanceDate(initialData.maintenanceDate);
       setDuration(initialData.duration);
       setCost(initialData.cost);
-      setStatus(initialData.status);
+      
+      // Keep the status of the log being edited
+      setStatus(initialData.status); 
+      
       setNextScheduledService(initialData.nextScheduled);
       setIssueReported(initialData.issueReported);
       setActionsTaken(initialData.actionsTaken);
@@ -60,8 +66,13 @@ const AddMaintenance = ({ onClose, onSave, initialData, selectedEquipment }) => 
       setEquipmentId(selectedEquipment.equipmentId);
       setEquipmentName(selectedEquipment.basicInfo.equipmentName);
       
+      // Auto-fill next service date if available
       if(selectedEquipment.serviceSchedule?.nextService) {
+         setNextScheduledService(selectedEquipment.serviceSchedule.nextService);
       }
+      
+      // Ensure status is In Progress for new entries
+      setStatus("In Progress");
     }
   }, [initialData, selectedEquipment, staffs]);
 
@@ -132,7 +143,7 @@ const AddMaintenance = ({ onClose, onSave, initialData, selectedEquipment }) => 
         technicianName: finalTechnicianName,
         duration,
         cost,
-        status,
+        status, 
         nextScheduled: nextScheduledService,
         issueReported,
         actionsTaken,
@@ -186,7 +197,7 @@ const AddMaintenance = ({ onClose, onSave, initialData, selectedEquipment }) => 
                     list="equip-list" 
                     value={equipmentInput} 
                     onChange={handleEquipmentChange}
-                    disabled={!!initialData || !!selectedEquipment} // Disable if editing or pre-selected
+                    disabled={!!initialData || !!selectedEquipment} 
                     placeholder="Search by ID or Name"
                     className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-fuchsia-500 outline-none text-sm bg-white"
                   />
@@ -263,9 +274,9 @@ const AddMaintenance = ({ onClose, onSave, initialData, selectedEquipment }) => 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 uppercase">Status</label>
                   <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm bg-white">
-                    <option>Completed</option>
                     <option>In Progress</option>
                     <option>Pending Parts</option>
+                    <option>Completed</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
