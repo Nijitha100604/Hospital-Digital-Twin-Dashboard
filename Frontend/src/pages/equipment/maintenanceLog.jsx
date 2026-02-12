@@ -1,12 +1,10 @@
 import React, { useState, useMemo, useRef, useContext, useEffect } from "react";
 import { EquipmentContext } from "../../context/EquipmentContext";
 import { StaffContext } from "../../context/StaffContext";
-import { assets } from "../../assets/assets";
 import AddMaintenance from "./addMaintenance";
 import Loading from "../Loading";
 import { toPng } from "html-to-image"; 
 import { jsPDF } from "jspdf";
-import { toast } from "react-toastify";
 
 import {
   FaSearch,
@@ -80,6 +78,7 @@ const MaintenanceLog = () => {
 
   // Reset pagination when filter changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [search, statusFilter]);
 

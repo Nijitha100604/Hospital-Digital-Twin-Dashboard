@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
 import { EquipmentContext } from "../../context/EquipmentContext";
 import { AppContext } from "../../context/AppContext"; 
 import CreateCalibrationSchedule from "./CreateCalibrationSchedule";
@@ -22,7 +21,6 @@ import {
 } from "react-icons/fa";
 
 const CalibrationScheduleList = () => {
-  const navigate = useNavigate();
   
   const { equipments, fetchEquipments, loading, maintenanceLogs, fetchMaintenanceLogs } = useContext(EquipmentContext);
   const { userData } = useContext(AppContext);
@@ -83,6 +81,7 @@ const CalibrationScheduleList = () => {
 
       return matchesSearch && matchesStatus;
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, statusFilter, equipments]);
 
   /* ---------- Pagination ---------- */

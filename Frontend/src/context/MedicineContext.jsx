@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContext } from "./AppContext";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const MedicineContext = createContext();
 
 const MedicineContextProvider = ({ children }) => {
@@ -343,6 +344,7 @@ const MedicineContextProvider = ({ children }) => {
 
   useEffect(() => {
     if (token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchAllData();
     }
   }, [token, fetchAllData]);

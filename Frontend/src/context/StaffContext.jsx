@@ -133,6 +133,7 @@ const StaffContextProvider = (props) => {
   // --- INIT ---
   useEffect(() => {
     if (token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(true);
       Promise.all([fetchStaffs(), fetchShifts(), fetchLeaves()]).finally(() => setLoading(false));
     }

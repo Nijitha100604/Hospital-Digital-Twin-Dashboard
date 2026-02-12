@@ -5,7 +5,6 @@ import {
   FaMapMarkerAlt,
   FaStickyNote,
   FaUniversity,
-  FaUpload,
   FaSave,
   FaTimes,
   FaArrowLeft,

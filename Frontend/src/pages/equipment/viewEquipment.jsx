@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { EquipmentContext } from "../../context/EquipmentContext";
 import Loading from "../Loading";
-import { assets } from "../../assets/assets";
 
 import {
   FaArrowLeft,
@@ -27,6 +26,7 @@ const ViewEquipmentDetails = () => {
   const navigate = useNavigate();
 
   const { getEquipmentById } = useContext(EquipmentContext);
+  const {userData} = useContext(AppContext);
   const [equipment, setEquipment] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -93,8 +93,6 @@ const ViewEquipmentDetails = () => {
         return null;
     }
   };
-
-  const {userData} = useContext(AppContext)
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-50 min-h-screen">
