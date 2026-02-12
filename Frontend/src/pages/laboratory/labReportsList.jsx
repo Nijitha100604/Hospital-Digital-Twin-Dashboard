@@ -10,7 +10,7 @@ import { AppContext } from "../../context/AppContext";
 
 export default function LabReportList() {
   const navigate = useNavigate(); 
-  const { token, backendUrl, userData } = useContext(AppContext); // Added userData
+  const { token, backendUrl, userData } = useContext(AppContext);
 
   // --- STATE ---
   const [reports, setReports] = useState([]);
@@ -124,39 +124,41 @@ export default function LabReportList() {
   return (
     <div className="min-h-screen bg-gray-50 p-3 md:p-6 font-sans">
       
-      {/* HEADER */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-        <div>
+      {/* HEADER SECTION */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4">
+        <div className="w-full lg:w-auto">
            <h1 className="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
              <FileText className="text-purple-600" /> Lab Report List
            </h1>
-           <p className="text-xs md:text-sm text-gray-500 mt-1">Real-time lab requests from doctor consultations.</p>
+           <p className="text-xs md:text-sm text-gray-500 mt-1">Real-time lab requests.</p>
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-4">
-           <div className="bg-green-50 border border-green-200 px-3 py-2 md:px-6 md:py-3 rounded-xl shadow-sm flex flex-col items-center justify-center min-w-30">
-              <span className="text-[10px] md:text-xs font-bold text-green-800 uppercase tracking-wide">Completed</span>
-              <span className="text-2xl md:text-3xl font-bold text-green-600 mt-1">{completedCount}</span>
+
+        {/* Stats Cards - Grid on Mobile (Side-by-Side) */}
+        <div className="grid grid-cols-2 gap-3 w-full lg:w-auto">
+           <div className="bg-green-50 border border-green-200 p-3 rounded-xl shadow-sm flex flex-col items-center justify-center">
+              <span className="text-[10px] font-bold text-green-800 uppercase tracking-wide">Completed</span>
+              <span className="text-xl font-bold text-green-600 mt-1">{completedCount}</span>
            </div>
-           <div className="bg-red-50 border border-red-200 px-3 py-2 md:px-6 md:py-3 rounded-xl shadow-sm flex flex-col items-center justify-center min-w-30">
-              <span className="text-[10px] md:text-xs font-bold text-red-800 uppercase tracking-wide">Pending</span>
-              <span className="text-2xl md:text-3xl font-bold text-red-600 mt-1">{pendingCount}</span>
+           <div className="bg-red-50 border border-red-200 p-3 rounded-xl shadow-sm flex flex-col items-center justify-center">
+              <span className="text-[10px] font-bold text-red-800 uppercase tracking-wide">Pending</span>
+              <span className="text-xl font-bold text-red-600 mt-1">{pendingCount}</span>
            </div>
         </div>
       </div>
 
-      {/* FILTERS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+      {/* FILTERS - 2x2 Grid on Mobile for Compactness */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
         
         {/* Search */}
-        <div className="relative">
+        <div className="relative col-span-2 lg:col-span-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-          <input type="text" placeholder="Search Patient / Report ID" className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
+          <input type="text" placeholder="Search..." className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
         </div>
 
         {/* Filter by Type */}
-        <div className="relative">
+        <div className="relative col-span-1">
           <select 
-            className="cursor-pointer w-full pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-sm appearance-none bg-white font-medium text-gray-700" 
+            className="cursor-pointer w-full pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-sm appearance-none bg-white font-medium text-gray-700 truncate" 
             value={filterType} 
             onChange={(e) => setFilterType(e.target.value)}
           >
@@ -169,24 +171,24 @@ export default function LabReportList() {
         </div>
 
         {/* Filter by Status */}
-        <div className="relative">
+        <div className="relative col-span-1">
            <select className="cursor-pointer w-full pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-sm appearance-none bg-white font-medium text-gray-700" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-            <option value="All">Status: All</option><option value="Completed">Completed</option><option value="Requested">Requested</option>
+            <option value="All">Status: All</option><option value="Completed">Completed</option><option value="Requested">Pending</option>
           </select>
           <Filter className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
         </div>
 
-        {/* Sort Order */}
-        <div className="relative">
+        {/* Sort Order - Full width on mobile row 3 if needed, or share row */}
+        <div className="relative col-span-2 lg:col-span-1">
            <select className="cursor-pointer w-full pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-sm appearance-none bg-white font-medium text-gray-700" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
-            <option value="Newest">Date: Newest</option><option value="Oldest">Date: Oldest</option>
+            <option value="Newest">Newest First</option><option value="Oldest">Oldest First</option>
           </select>
           <Filter className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
         </div>
       </div>
 
-      {/* TABLE */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col min-h-100">
+      {/* TABLE SECTION */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col min-h-[400px]">
         
         {loading ? (
             <div className="flex-1 flex items-center justify-center">
@@ -199,13 +201,13 @@ export default function LabReportList() {
             </div>
         ) : (
             <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead className="bg-gray-100 text-gray-600 border-b border-gray-200">
                 <tr>
                     <th className="p-4 text-xs font-bold uppercase tracking-wider">Report ID</th>
-                    <th className="p-4 text-xs font-bold uppercase tracking-wider">Patient Info</th>
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider">Patient</th>
                     <th className="p-4 text-xs font-bold uppercase tracking-wider">Test Type</th>
-                    <th className="p-4 text-xs font-bold uppercase tracking-wider">Date Requested</th>
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider">Date</th>
                     <th className="p-4 text-xs font-bold uppercase tracking-wider text-center">Status</th>
                     <th className="p-4 text-xs font-bold uppercase tracking-wider text-center">Action</th>
                 </tr>
@@ -213,17 +215,17 @@ export default function LabReportList() {
                 <tbody className="divide-y divide-gray-100">
                 {currentData.map((report) => (
                     <tr key={report._id} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-4 text-sm font-mono text-gray-500 font-bold">
+                    <td className="p-4 text-sm font-mono text-gray-500 font-bold whitespace-nowrap">
                         {report.labReportId || report._id.substring(0,8).toUpperCase()}
                     </td>
-                    <td className="p-4">
+                    <td className="p-4 whitespace-nowrap">
                         <div className="text-sm font-bold text-gray-800">{report.patientName}</div>
                         <div className="text-xs text-gray-400 font-mono">{report.patientId}</div>
                     </td>
-                    <td className="p-4 text-sm text-gray-600 font-medium">
+                    <td className="p-4 text-sm text-gray-600 font-medium whitespace-nowrap">
                         {report.testName || "Unknown Test"}
                     </td>
-                    <td className="p-4 text-sm text-gray-600">
+                    <td className="p-4 text-sm text-gray-600 whitespace-nowrap">
                         {new Date(report.createdAt).toLocaleDateString()}
                     </td>
                     <td className="p-4 text-center">
@@ -232,8 +234,6 @@ export default function LabReportList() {
                         </span>
                     </td>
                     <td className="p-4 text-center flex justify-center gap-2">
-                        
-                        {/* --- VIEW BUTTON: ALL ALLOWED ROLES --- */}
                         {canView && (
                             <button 
                             onClick={() => handleViewDetails(report)}
@@ -242,8 +242,6 @@ export default function LabReportList() {
                             <Eye size={14}/> View
                             </button>
                         )}
-
-                        {/* --- ENTER RESULT BUTTON: TECHNICIAN ONLY --- */}
                         {report.status !== 'Completed' && isTechnician && (
                             <button 
                             onClick={() => navigate(`/lab-results-entry/${report.labReportId || report._id}`, { state: { reportData: report } })}
@@ -263,7 +261,7 @@ export default function LabReportList() {
         {/* PAGINATION */}
         {!loading && currentData.length > 0 && (
             <div className="p-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50">
-                <p className="text-xs text-gray-500 font-medium">
+                <p className="text-xs text-gray-500 font-medium text-center sm:text-left">
                     Showing {filteredData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} to {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length}
                 </p>
                 <div className="flex items-center gap-1">

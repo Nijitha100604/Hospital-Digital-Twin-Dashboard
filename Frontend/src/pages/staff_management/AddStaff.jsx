@@ -106,7 +106,7 @@ function AddStaff() {
 
   return (
     <>
-      <div className="flex flex-wrap justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex gap-3 items-center">
             <FaUserPlus size={20} className="text-gray-600" />
@@ -114,15 +114,15 @@ function AddStaff() {
           </div>
           <p className="text-sm text-gray-500">Create a new staff profile.</p>
         </div>
-        <button onClick={() => navigate('/staff-list')} className="bg-purple-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-purple-900 shadow-md">
+        <button onClick={() => navigate('/staff-list')} className="w-full sm:w-auto bg-purple-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-purple-900 shadow-md">
           <FaList className="inline mr-2"/> View Staff List
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white p-2 rounded-lg">
+      <form onSubmit={handleSubmit} className="bg-white p-2 md:p-6 rounded-lg">
         
         {/* --- SECTION 1: PERSONAL DETAILS --- */}
-        <div className="border border-gray-300 rounded-xl p-6 mb-6">
+        <div className="border border-gray-300 rounded-xl p-4 md:p-6 mb-6">
           <h3 className="text-gray-800 font-bold text-lg mb-4">Personal Details</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             
@@ -140,11 +140,11 @@ function AddStaff() {
             <input name="contactNumber" type="number" value={data.contactNumber} onChange={handleChange} required placeholder="Contact Number *" className="input-field" />
             <input name="dateOfBirth" type="text" onFocus={(e)=>e.target.type='date'} onBlur={(e)=>e.target.type='text'} value={data.dateOfBirth} onChange={handleChange} required placeholder="Date of Birth *" className="input-field" />
 
-            <div className="flex items-center gap-3">
-                <button type="button" onClick={() => profilePhotoRef.current.click()} className="bg-white border border-gray-400 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-50">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <button type="button" onClick={() => profilePhotoRef.current.click()} className="w-full sm:w-auto bg-white border border-gray-400 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-50">
                   Choose Photo
                 </button>
-                <span className="text-xs text-gray-500 truncate max-w-37.5">{files.profilePhoto ? files.profilePhoto.name : "No file chosen"}</span>
+                <span className="text-xs text-gray-500 truncate max-w-full">{files.profilePhoto ? files.profilePhoto.name : "No file chosen"}</span>
                 <input type="file" ref={profilePhotoRef} onChange={(e) => handleFileChange(e, 'profilePhoto')} accept="image/*" className="hidden" />
             </div>
 
@@ -153,7 +153,7 @@ function AddStaff() {
         </div>
 
         {/* --- SECTION 2: PROFESSIONAL DETAILS --- */}
-        <div className="border border-gray-300 rounded-xl p-6 mb-6">
+        <div className="border border-gray-300 rounded-xl p-4 md:p-6 mb-6">
           <h3 className="text-gray-800 font-bold text-lg mb-4">Professional Details</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             
@@ -204,19 +204,19 @@ function AddStaff() {
         {/* --- SECTION 3: ID PROOF --- */}
         <div className="mb-6">
             <h3 className="text-gray-800 font-bold text-lg mb-2">Upload ID Proof</h3>
-            <div onClick={() => idProofRef.current.click()} className="border-2 border-dashed bg-gray-50 border-gray-300 rounded-xl p-6 cursor-pointer hover:border-purple-600 flex flex-col items-center">
+            <div onClick={() => idProofRef.current.click()} className="border-2 border-dashed bg-gray-50 border-gray-300 rounded-xl p-6 cursor-pointer hover:border-purple-600 flex flex-col items-center justify-center text-center">
                 <FaUpload className="text-2xl text-gray-400" />
-                <p className="text-sm text-gray-500 mt-2">{files.idProofDoc ? files.idProofDoc.name : "Click to upload ID Proof"}</p>
+                <p className="text-sm text-gray-500 mt-2 break-all">{files.idProofDoc ? files.idProofDoc.name : "Click to upload ID Proof"}</p>
                 <input type="file" ref={idProofRef} onChange={(e) => handleFileChange(e, 'idProofDoc')} className="hidden" />
             </div>
         </div>
 
         {/* --- ACTIONS --- */}
-        <div className="flex justify-center gap-4">
-            <button type="reset" onClick={() => { setData({}); setFiles({}); }} className="px-6 py-2.5 bg-gray-300 text-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-400">
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <button type="reset" onClick={() => { setData({}); setFiles({}); }} className="w-full sm:w-auto px-6 py-2.5 bg-gray-300 text-gray-700 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-400">
                 <FaRedo /> Reset
             </button>
-            <button type="submit" className="px-6 py-2.5 bg-green-600 text-white rounded-lg flex items-center gap-2 hover:bg-green-700">
+            <button type="submit" className="w-full sm:w-auto px-6 py-2.5 bg-green-600 text-white rounded-lg flex items-center justify-center gap-2 hover:bg-green-700">
                 Submit Staff
             </button>
         </div>
