@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useContext } from "react";
 import { EquipmentContext } from "../../context/EquipmentContext";
 import { AppContext } from "../../context/AppContext"; 
-import CreateCalibrationSchedule from "./CreateCalibrationSchedule";
+import CreateCalibrationSchedule from "./createCalibrationSchedule";
 import AddMaintenance from "./addMaintenance"; 
 import Loading from "../Loading";
 
