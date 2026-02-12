@@ -75,6 +75,7 @@ function ShiftPlanner() {
         fetchShifts(); 
         fetchLeaves(); 
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   // --- SAVE / UPDATE SHIFT ---
@@ -135,6 +136,7 @@ function ShiftPlanner() {
             toast.error(data.message);
         }
     } catch (error) {
+        console.log(error);
         toast.error("Error removing shift");
     } finally {
         setLoading(false);
@@ -249,7 +251,7 @@ function ShiftPlanner() {
               <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
                   <div className="flex items-center gap-1 md:gap-2 bg-gray-50 rounded-lg px-1 py-0.5 border border-gray-100 shrink-0">
                       <button onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate() - 7); setCurrentDate(d); }} className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-600"><ChevronLeft size={16}/></button>
-                      <span className="text-sm font-bold text-gray-800 min-w-[120px] text-center select-none truncate px-2">
+                      <span className="text-sm font-bold text-gray-800 min-w-30 text-center select-none truncate px-2">
                           {daysToDisplay.length > 0 ? `${daysToDisplay[0].toLocaleDateString(undefined, {month:'short', day:'numeric'})} - ${daysToDisplay[daysToDisplay.length-1].toLocaleDateString(undefined, {month:'short', day:'numeric'})}` : 'Loading...'}
                       </span>
                       <button onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate() + 7); setCurrentDate(d); }} className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-600"><ChevronRight size={16}/></button>
@@ -273,7 +275,7 @@ function ShiftPlanner() {
             <table className="border-separate border-spacing-0 min-w-full">
             <thead className="bg-gray-50 sticky top-0 z-20 shadow-sm">
                 <tr>
-                    <th className="sticky left-0 top-0 z-30 bg-white min-w-[160px] w-[200px] border-b border-r border-gray-200 p-3 shadow-[4px_0_8px_-2px_rgba(0,0,0,0.05)]">
+                    <th className="sticky left-0 top-0 z-30 bg-white min-w-40 w-50 border-b border-r border-gray-200 p-3 shadow-[4px_0_8px_-2px_rgba(0,0,0,0.05)]">
                         <div className="relative group">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-500 transition-colors" size={14}/>
                             <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search Staff..." className="pl-9 w-full py-2 border border-gray-200 rounded-lg bg-gray-50 text-xs font-medium focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all placeholder:text-gray-400"/>
@@ -282,7 +284,7 @@ function ShiftPlanner() {
                     {daysToDisplay.map((d, i) => {
                         const { day, date } = formatDateDisplay(d);
                         const isToday = new Date().toDateString() === d.toDateString();
-                        return <th key={i} className={`min-w-[100px] border-b border-gray-200 py-3 text-center ${isToday ? 'bg-purple-50/50' : 'bg-white'}`}><div className={`text-[10px] font-bold uppercase tracking-wider ${isToday ? 'text-purple-600' : 'text-gray-400'}`}>{day}</div><div className={`text-lg font-bold ${isToday ? 'text-purple-800' : 'text-slate-700'}`}>{date}</div></th>;
+                        return <th key={i} className={`min-w-25 border-b border-gray-200 py-3 text-center ${isToday ? 'bg-purple-50/50' : 'bg-white'}`}><div className={`text-[10px] font-bold uppercase tracking-wider ${isToday ? 'text-purple-600' : 'text-gray-400'}`}>{day}</div><div className={`text-lg font-bold ${isToday ? 'text-purple-800' : 'text-slate-700'}`}>{date}</div></th>;
                     })}
                 </tr>
             </thead>
@@ -290,13 +292,13 @@ function ShiftPlanner() {
                 {filteredStaff.map((staff) => (
                 <tr key={staff.staffId} className="group hover:bg-gray-50">
                     <td className="sticky left-0 z-10 bg-white group-hover:bg-gray-50 border-b border-r border-gray-200 p-4 transition-colors shadow-[4px_0_8px_-2px_rgba(0,0,0,0.05)]">
-                        <div className="font-bold text-sm text-slate-800 truncate max-w-[180px]">{staff.fullName}</div>
+                        <div className="font-bold text-sm text-slate-800 truncate max-w-45">{staff.fullName}</div>
                         <div className="text-xs text-slate-500 font-medium">{staff.designation}</div>
                     </td>
                     {daysToDisplay.map((d, i) => {
                     const details = getShiftDetails(staff.staffId, d);
                     return (
-                        <td key={i} className="p-1 border-b border-gray-100 h-[70px] min-w-[100px]">
+                        <td key={i} className="p-1 border-b border-gray-100 h-17.5 min-w-25">
                         <div className={`cursor-pointer h-full w-full rounded-lg flex flex-col items-center justify-center border transition-all hover:shadow-md hover:scale-[0.98] ${details.style}`} onClick={() => handleCellClick(staff, d)}>
                             {details.key === 'Available' ? <div className="flex items-center gap-1 opacity-70"><CheckCircle size={12}/> <span className="text-[10px] font-bold">Available</span></div> : <><div className="text-[10px] font-bold">{details.label}</div>{details.time && <div className="text-[9px] opacity-80 font-mono mt-0.5">{details.time}</div>}</>}
                         </div>
@@ -312,7 +314,7 @@ function ShiftPlanner() {
 
       {/* EDIT MODAL - Only renders if admin clicks and sets selectedCell */}
       {selectedCell && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100">
             <div className={`p-5 pb-8 relative ${editData.type === 'Available' ? 'bg-emerald-600' : editData.type === 'Leave' ? 'bg-slate-500' : 'bg-purple-700'}`}>
                 <button onClick={() => setSelectedCell(null)} className="cursor-pointer absolute top-4 right-4 text-white/70 hover:text-white transition-colors bg-white/20 hover:bg-white/30 rounded-full p-1.5"><X size={18}/></button>
@@ -351,7 +353,7 @@ function ShiftPlanner() {
                     {selectedCell.existingShiftId && (
                         <button onClick={handleRemoveShift} className="cursor-pointer flex-1 py-3 border border-red-100 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors flex items-center justify-center gap-2"><Trash2 size={14}/> Remove</button>
                     )}
-                    <button onClick={handleSaveShift} className="cursor-pointer flex-[2] py-3 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-100 transition-all flex items-center justify-center gap-2"><Save size={14}/> Save Changes</button>
+                    <button onClick={handleSaveShift} className="cursor-pointer flex-2 py-3 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-100 transition-all flex items-center justify-center gap-2"><Save size={14}/> Save Changes</button>
                 </div>
             </div>
           </div>

@@ -137,16 +137,6 @@ export default function LabResultEntry() {
   const { userData } = useContext(AppContext);
 
   // --- SECURITY & LOADING CHECKS ---
-  
-  // 1. Wait for User Data to Load
-  if (!userData) {
-    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-purple-600"/></div>;
-  }
-
-  // 2. Check Role (After userData is guaranteed to exist)
-  if (userData.designation !== 'Technician') {
-    return <AccessDenied />;
-  }
 
   const preloadedData = location.state?.reportData;
   const [reportData, setReportData] = useState(preloadedData || null);
@@ -301,6 +291,16 @@ export default function LabResultEntry() {
 
   if (loading && !reportData && !patientDetails.patientId) {
       return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-purple-600"/></div>;
+  }
+
+  // 1. Wait for User Data to Load
+  if (!userData) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-purple-600"/></div>;
+  }
+
+  // 2. Check Role (After userData is guaranteed to exist)
+  if (userData.designation !== 'Technician') {
+    return <AccessDenied />;
   }
 
   return (

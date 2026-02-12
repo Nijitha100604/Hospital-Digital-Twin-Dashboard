@@ -12,7 +12,7 @@ import AllAppointments from "./pages/patient_management/AllAppointments";
 import DischargeSummary from "./pages/patient_management/DischargeSummary";
 import ViewAppointment from "./pages/patient_management/ViewAppointment";
 import EquipmentList from "./pages/equipment/equipmentList";
-import AddEquipment from "./pages/equipment/AddEquipment";
+import AddEquipment from "./pages/equipment/addEquipment";
 import AddMaintenance from "./pages/equipment/addMaintenance";
 import CalibrationScheduleList from "./pages/equipment/calibrationScheduleList";
 import MaintenanceLog from "./pages/equipment/maintenanceLog";
@@ -46,7 +46,6 @@ import Attendance from "./pages/staff_management/attendance";
 import LeaveManagement from "./pages/staff_management/leaveManagement";
 import ShiftPlanner from "./pages/staff_management/shiftPlanner";
 import StaffList from "./pages/staff_management/staffList";
-import StaffPerformance from "./pages/staff_management/StaffPerformance";
 import StaffProfile from "./pages/staff_management/staffProfile";
 import VitalsEntry from "./pages/patient_management/VitalsEntry";
 import Consultations from "./pages/patient_management/Consultations";
@@ -157,9 +156,8 @@ function App() {
             <Route path="/leave-management" element={<LeaveManagement />} />
             <Route path="/shift-planner" element={<ShiftPlanner />} />
             <Route path="/staff-list" element={<StaffList />} />
-            <Route path="/staff-performance" element={<StaffPerformance />} />
             <Route path="/staff-profile" element={<StaffProfile />} />
-            <Route path="/staff-profile/:id" element={<StaffProfile />} />{" "}
+            <Route path="/staff-profile/:id" element={<StaffProfile />} />
             
           </Routes>
         </div>

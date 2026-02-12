@@ -37,6 +37,7 @@ export default function Attendance() {
   useEffect(() => {
     fetchLeaves();
     fetchAttendance(selectedDate);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]); // Refetch attendance when date picker changes
 
   // --- ATTENDANCE MERGE LOGIC ---
@@ -153,11 +154,11 @@ export default function Attendance() {
                 </div>
                 {/* Stats */}
                 <div className="flex gap-4">
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-green-100 min-w-[140px] text-center">
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-green-100 min-w-35 text-center">
                         <span className="text-gray-500 text-xs font-bold uppercase">Present</span>
                         <p className="text-3xl font-bold text-green-600 mt-1">{presentCount}</p>
                     </div>
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-red-100 min-w-[140px] text-center">
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-red-100 min-w-35 text-center">
                         <span className="text-gray-500 text-xs font-bold uppercase">Absent</span>
                         <p className="text-3xl font-bold text-red-600 mt-1">{absentCount}</p>
                     </div>
