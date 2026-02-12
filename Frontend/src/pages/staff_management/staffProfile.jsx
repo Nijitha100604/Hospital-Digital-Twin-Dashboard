@@ -165,7 +165,7 @@ function StaffProfile() {
     // ... (Keep existing Search View logic) ...
     return (
         <div className="p-6 max-w-4xl mx-auto animate-in fade-in duration-300">
-          <div className="bg-white rounded-xl shadow-sm p-8 text-center min-h-[400px] flex flex-col justify-center items-center border border-gray-200">
+          <div className="bg-white rounded-xl shadow-sm p-8 text-center min-h-100 flex flex-col justify-center items-center border border-gray-200">
             <div className="bg-purple-100 p-4 rounded-full mb-4">
               <FaUserTie className="text-purple-600 text-3xl" />
             </div>
@@ -227,7 +227,7 @@ function StaffProfile() {
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         
         {/* --- LEFT CARD: BASIC INFO (Photo & Status) --- */}
-        <div className="w-full lg:w-1/3 bg-white rounded-xl shadow-sm border border-gray-200 p-8 flex flex-col items-center text-center h-full min-h-[500px] relative">
+        <div className="w-full lg:w-1/3 bg-white rounded-xl shadow-sm border border-gray-200 p-8 flex flex-col items-center text-center h-full min-h-125 relative">
           
           {/* EDIT BUTTONS (Admin Only) */}
           {isAdmin && (
@@ -442,8 +442,8 @@ function StaffProfile() {
                         {editSection.personal ? (
                            <textarea name="address" rows="2" value={formData.address || ""} onChange={handleInputChange} placeholder="Enter full address..." className="w-full p-2 border border-purple-300 rounded bg-purple-50 outline-none"/>
                         ) : (
-                           <div className="flex items-start gap-2 text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100 min-h-[50px]">
-                              <FaMapMarkerAlt className="mt-1 flex-shrink-0 text-gray-400" /> 
+                           <div className="flex items-start gap-2 text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100 min-h-12.5">
+                              <FaMapMarkerAlt className="mt-1 shrink-0 text-gray-400" /> 
                               {renderValue(staff.address)}
                            </div>
                         )}

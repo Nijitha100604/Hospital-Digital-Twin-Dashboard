@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { StaffContext } from "../../context/StaffContext";
 import { AppContext } from "../../context/AppContext"; 
 import AccessDenied from "../../components/AccessDenied"; 
-import { toast } from "react-toastify";
 
 // --- CONFIGURATION: ROLE TO DEPARTMENT MAPPING ---
 const roleDepartments = {
@@ -36,11 +35,6 @@ function AddStaff() {
   const navigate = useNavigate();
   const { addStaff } = useContext(StaffContext);
   const { userData } = useContext(AppContext); 
-
-  // --- SECURITY CHECK: ADMIN ONLY ---
-  if (userData && userData.designation !== 'Admin') {
-    return <AccessDenied />;
-  }
   
   const idProofRef = useRef(null);
   const profilePhotoRef = useRef(null);
@@ -105,6 +99,11 @@ function AddStaff() {
   // Get current departments based on selected designation
   const currentDepartments = roleDepartments[data.designation] || [];
 
+    // --- SECURITY CHECK: ADMIN ONLY ---
+  if (userData && userData.designation !== 'Admin') {
+    return <AccessDenied />;
+  }
+
   return (
     <>
       <div className="flex flex-wrap justify-between items-center mb-6">
@@ -145,7 +144,7 @@ function AddStaff() {
                 <button type="button" onClick={() => profilePhotoRef.current.click()} className="bg-white border border-gray-400 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-50">
                   Choose Photo
                 </button>
-                <span className="text-xs text-gray-500 truncate max-w-[150px]">{files.profilePhoto ? files.profilePhoto.name : "No file chosen"}</span>
+                <span className="text-xs text-gray-500 truncate max-w-37.5">{files.profilePhoto ? files.profilePhoto.name : "No file chosen"}</span>
                 <input type="file" ref={profilePhotoRef} onChange={(e) => handleFileChange(e, 'profilePhoto')} accept="image/*" className="hidden" />
             </div>
 

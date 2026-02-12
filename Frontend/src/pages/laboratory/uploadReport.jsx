@@ -1,9 +1,7 @@
-import React, { useState, useContext, useEffect } from "react";
-import { Upload, FileText, X, CheckCircle, Calendar, User, FlaskConical, Hash, Keyboard, ArrowLeft, AlertCircle } from "lucide-react";
+import React, { useState, useContext } from "react";
+import { Upload, FileText, X, CheckCircle, Calendar, User, Keyboard, ArrowLeft, AlertCircle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { LabContext } from "../../context/LabContext";
-import { PatientContext } from "../../context/PatientContext";
-import { StaffContext } from "../../context/StaffContext";
 import { AppContext } from "../../context/AppContext"; // Import AppContext
 import AccessDenied from "../../components/AccessDenied"; // Import AccessDenied
 
@@ -12,11 +10,6 @@ export default function UploadReport() {
   const location = useLocation();
   const { uploadLabReport, loading } = useContext(LabContext);
   const { userData } = useContext(AppContext); // Get User Data
-
-  // --- SECURITY CHECK: TECHNICIAN ONLY ---
-  if (userData && userData.designation !== 'Technician') {
-    return <AccessDenied />;
-  }
 
   // Get data passed from the list
   const reportData = location.state?.reportData;
@@ -75,6 +68,11 @@ export default function UploadReport() {
     const success = await uploadLabReport(reportData._id, file, payload);
     if(success) navigate('/lab-reports-list');
   };
+
+  // --- SECURITY CHECK: TECHNICIAN ONLY ---
+  if (userData && userData.designation !== 'Technician') {
+    return <AccessDenied />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6 font-sans">

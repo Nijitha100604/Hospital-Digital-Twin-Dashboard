@@ -25,7 +25,7 @@ import DepartmentsList from "./pages/infrastructure/DepartmentsList";
 import FacilityMap from "./pages/infrastructure/FacilityMap";
 import IssueReport from "./pages/infrastructure/IssueReport";
 import IssuesList from "./pages/infrastructure/IssuesList";
-import AddNewMedicine from "./pages/inventory/AddNewMedicine";
+import AddNewMedicine from "./pages/inventory/addNewMedicine";
 import CreateNewSupplier from "./pages/inventory/createNewSupplier";
 import CreatePurchaseOrder from "./pages/inventory/createPurchaseOrder";
 import MedicineStocks from "./pages/inventory/medicineStocks";
@@ -41,12 +41,11 @@ import LabResultsEntry from "./pages/laboratory/labResultsEntry";
 import PatientWiseReport from "./pages/laboratory/patientWiseReports";
 import UploadReport from "./pages/laboratory/uploadReport";
 import AddStaff from "./pages/staff_management/AddStaff";
-import AssignShift from "./pages/staff_management/AssignShift";
+import AssignShift from "./pages/staff_management/assignShift";
 import Attendance from "./pages/staff_management/attendance";
 import LeaveManagement from "./pages/staff_management/leaveManagement";
 import ShiftPlanner from "./pages/staff_management/shiftPlanner";
 import StaffList from "./pages/staff_management/staffList";
-import StaffPerformance from "./pages/staff_management/StaffPerformance";
 import StaffProfile from "./pages/staff_management/staffProfile";
 import VitalsEntry from "./pages/patient_management/VitalsEntry";
 import Consultations from "./pages/patient_management/Consultations";
@@ -128,7 +127,7 @@ function App() {
 
 
             {/* Inventory */}
-            <Route path="/add-new-medicine" element={<AddNewMedicine />} />
+            <Route path="/add-new-medicine" element={<addNewMedicine />} />
             <Route path="/create-new-supplier" element={<CreateNewSupplier />}/>
             <Route path="/create-purchase-order" element={<CreatePurchaseOrder />}/>
             <Route path="/medicine-stocks" element={<MedicineStocks />} />
@@ -157,9 +156,8 @@ function App() {
             <Route path="/leave-management" element={<LeaveManagement />} />
             <Route path="/shift-planner" element={<ShiftPlanner />} />
             <Route path="/staff-list" element={<StaffList />} />
-            <Route path="/staff-performance" element={<StaffPerformance />} />
             <Route path="/staff-profile" element={<StaffProfile />} />
-            <Route path="/staff-profile/:id" element={<StaffProfile />} />{" "}
+            <Route path="/staff-profile/:id" element={<StaffProfile />} />
             
           </Routes>
         </div>

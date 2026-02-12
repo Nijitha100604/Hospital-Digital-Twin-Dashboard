@@ -34,12 +34,6 @@ function AssignShift() {
   const [conflict, setConflict] = useState(null); 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- SECURITY CHECK ---
-  // If the user data is loaded and they are NOT an Admin, block access.
-  if (userData && userData.designation !== 'Admin') {
-    return <AccessDenied />;
-  }
-
   // --- INITIAL LOAD ---
   useEffect(() => {
     if (staffs.length === 0) fetchStaffs();
@@ -161,6 +155,12 @@ function AssignShift() {
       navigate('/shift-planner');
     }
   };
+
+   // --- SECURITY CHECK ---
+  // If the user data is loaded and they are NOT an Admin, block access.
+  if (userData && userData.designation !== 'Admin') {
+    return <AccessDenied />;
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen font-sans animate-in fade-in duration-300">

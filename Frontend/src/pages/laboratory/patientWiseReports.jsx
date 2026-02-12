@@ -39,6 +39,7 @@ export default function PatientWiseReport() {
   // --- AUTO-FETCH & LOAD DATA ---
   useEffect(() => {
     if (reports.length === 0) fetchLabReports();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); 
 
   useEffect(() => {
@@ -142,8 +143,8 @@ export default function PatientWiseReport() {
 
       {/* --- IMAGE MODAL --- */}
       {isImageModalOpen && reportData?.reportDocument && (
-        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200 no-print" onClick={() => setIsImageModalOpen(false)}>
-            <button onClick={() => setIsImageModalOpen(false)} className="absolute top-4 right-4 text-white/70 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all z-[110]"><X size={28}/></button>
+        <div className="fixed inset-0 z-100 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200 no-print" onClick={() => setIsImageModalOpen(false)}>
+            <button onClick={() => setIsImageModalOpen(false)} className="absolute top-4 right-4 text-white/70 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all z-110"><X size={28}/></button>
             <img src={reportData.reportDocument} alt="Full Report" className="max-w-full max-h-[95vh] object-contain rounded shadow-2xl" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
@@ -190,7 +191,7 @@ export default function PatientWiseReport() {
         {loading && !reportData ? (
           <div className="flex justify-center p-12"><Loader2 className="animate-spin text-purple-600" size={32} /></div>
         ) : !reportData ? (
-          <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
+          <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-12 text-center flex flex-col items-center justify-center min-h-100">
             <div className="bg-slate-50 p-4 rounded-full mb-4"><User size={32} className="text-slate-400" /></div>
             <h3 className="text-lg font-semibold text-slate-700">No Report Selected</h3>
             <p className="text-slate-500 text-sm mt-1 max-w-xs">Enter a Report ID or Patient ID in the search bar above to view.</p>
@@ -284,7 +285,7 @@ export default function PatientWiseReport() {
 
             {/* RIGHT: REPORT CONTENT */}
             <div className="lg:col-span-8">
-              <div id="printable-report" className="bg-white rounded-2xl shadow-sm border border-slate-200 min-h-[500px] flex flex-col">
+              <div id="printable-report" className="bg-white rounded-2xl shadow-sm border border-slate-200 min-h-125 flex flex-col">
                 <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
                     <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2"><FileText className="text-indigo-500" size={20} />{reportData.testName}</h3>
@@ -325,7 +326,7 @@ export default function PatientWiseReport() {
                           </div>
                         ) : (
                           <div className="rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-black/5 cursor-zoom-in group relative" onClick={() => setIsImageModalOpen(true)}>
-                            <img src={reportData.reportDocument} alt="Lab Report" className="w-full h-auto object-contain max-h-[500px] group-hover:opacity-95 transition-opacity" />
+                            <img src={reportData.reportDocument} alt="Lab Report" className="w-full h-auto object-contain max-h-125 group-hover:opacity-95 transition-opacity" />
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20"><div className="bg-white/90 text-slate-800 px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2 text-sm backdrop-blur-sm"><Maximize2 size={16}/> Click to Expand</div></div>
                           </div>
                         )}

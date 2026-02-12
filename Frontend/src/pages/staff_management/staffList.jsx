@@ -183,7 +183,7 @@ function StaffList() {
 
       {/* TABLE SECTION */}
       <div className="mt-6 bg-white rounded-xl shadow-sm p-4 border border-gray-200">
-        <div className="w-full overflow-x-auto min-h-[400px]">
+        <div className="w-full overflow-x-auto min-h-100">
           <table className="w-full min-w-max text-sm">
             <thead className="bg-gray-50 text-gray-700 border-b border-gray-200">
               <tr>
