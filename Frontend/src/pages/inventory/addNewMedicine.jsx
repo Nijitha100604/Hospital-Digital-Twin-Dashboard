@@ -45,6 +45,7 @@ const AddNewMedicine = () => {
 
   /* ---------- Optional Fields ---------- */
   const [packSize, setPackSize] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [prescriptionRequired, setPrescriptionRequired] = useState("No");
   const [minimumThreshold, setMinimumThreshold] = useState("");
   const [storageLocation, setStorageLocation] = useState("");

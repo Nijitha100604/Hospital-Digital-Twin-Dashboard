@@ -22,6 +22,7 @@ const EditSupplierDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const csvFileRef = useRef(null);
+  // eslint-disable-next-line no-unused-vars
   const docFileRef = useRef(null);
 
   const { getSupplierById, updateSupplier } = useContext(MedicineContext);
@@ -33,8 +34,10 @@ const EditSupplierDetails = () => {
   const [csvFile, setCsvFile] = useState(null);
 
   // Document Upload State
+  // eslint-disable-next-line no-unused-vars
   const [docFileName, setDocFileName] = useState("");
   const [docFile, setDocFile] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [existingDocName, setExistingDocName] = useState(""); // Store DB file name
 
   /* Form Fields */
@@ -141,6 +144,7 @@ const EditSupplierDetails = () => {
   };
 
   // Handle Document Selection (For saving file)
+  // eslint-disable-next-line no-unused-vars
   const handleDocChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {

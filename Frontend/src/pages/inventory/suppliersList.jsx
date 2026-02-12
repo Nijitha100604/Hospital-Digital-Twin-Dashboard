@@ -83,6 +83,7 @@ const SuppliersList = () => {
 
   // Reset pagination when filters change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [search, statusFilter, categoryFilter]);
 

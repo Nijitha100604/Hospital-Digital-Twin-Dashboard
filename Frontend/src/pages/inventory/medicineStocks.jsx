@@ -75,6 +75,7 @@ const MedicineStocks = () => {
   }, [search, categoryFilter, statusFilter, medicineList]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVisibleCount(8);
   }, [search, categoryFilter, statusFilter]);
 

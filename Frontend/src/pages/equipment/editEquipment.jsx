@@ -4,7 +4,6 @@ import { EquipmentContext } from "../../context/EquipmentContext";
 import Loading from "../Loading";
 import { toast } from "react-toastify";
 import {
-  FaEdit,
   FaUpload,
   FaSave,
   FaTimes,

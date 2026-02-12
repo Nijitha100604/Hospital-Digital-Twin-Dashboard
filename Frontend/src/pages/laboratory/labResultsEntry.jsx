@@ -129,6 +129,7 @@ export default function LabResultEntry() {
   const { id } = useParams(); 
   const navigate = useNavigate();
   const location = useLocation();
+  // eslint-disable-next-line no-unused-vars
   const dropdownRef = useRef(null);
   
   const { submitLabResults, fetchReportById, loading } = useContext(LabContext);

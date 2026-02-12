@@ -78,6 +78,7 @@ const CreatePurchaseOrder = () => {
       setUnitPrice(Number(found.costPerUnit) || 0);
       if (quantity === 0) setQuantity(found.minimumThreshold * 2);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [medicineId, medicines, existingOrder]);
 
   /* ---------- CALCULATIONS ---------- */
@@ -372,6 +373,7 @@ const SearchableDropdown = ({
         if (secondaryLabel && selectedItem[secondaryLabel]) {
           display += ` (${selectedItem[secondaryLabel]})`;
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setQuery(display);
       }
     } else if (!selectedVal) {

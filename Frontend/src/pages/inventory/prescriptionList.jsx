@@ -19,7 +19,6 @@ import { MedicineContext } from "../../context/MedicineContext";
 import Loading from "../Loading";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { toast } from "react-toastify";
 
 const PrescriptionList = () => {
   const {
@@ -62,6 +61,7 @@ const PrescriptionList = () => {
 
   // Reset pagination when filters change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
 

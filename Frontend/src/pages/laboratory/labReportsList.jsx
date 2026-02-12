@@ -133,11 +133,11 @@ export default function LabReportList() {
            <p className="text-xs md:text-sm text-gray-500 mt-1">Real-time lab requests from doctor consultations.</p>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-4">
-           <div className="bg-green-50 border border-green-200 px-3 py-2 md:px-6 md:py-3 rounded-xl shadow-sm flex flex-col items-center justify-center min-w-[120px]">
+           <div className="bg-green-50 border border-green-200 px-3 py-2 md:px-6 md:py-3 rounded-xl shadow-sm flex flex-col items-center justify-center min-w-30">
               <span className="text-[10px] md:text-xs font-bold text-green-800 uppercase tracking-wide">Completed</span>
               <span className="text-2xl md:text-3xl font-bold text-green-600 mt-1">{completedCount}</span>
            </div>
-           <div className="bg-red-50 border border-red-200 px-3 py-2 md:px-6 md:py-3 rounded-xl shadow-sm flex flex-col items-center justify-center min-w-[120px]">
+           <div className="bg-red-50 border border-red-200 px-3 py-2 md:px-6 md:py-3 rounded-xl shadow-sm flex flex-col items-center justify-center min-w-30">
               <span className="text-[10px] md:text-xs font-bold text-red-800 uppercase tracking-wide">Pending</span>
               <span className="text-2xl md:text-3xl font-bold text-red-600 mt-1">{pendingCount}</span>
            </div>
@@ -186,7 +186,7 @@ export default function LabReportList() {
       </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col min-h-[400px]">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col min-h-100">
         
         {loading ? (
             <div className="flex-1 flex items-center justify-center">

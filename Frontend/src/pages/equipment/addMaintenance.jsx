@@ -34,6 +34,7 @@ const AddMaintenance = ({ onClose, onSave, initialData, selectedEquipment }) => 
 
   useEffect(() => {
     if (initialData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEquipmentInput(`${initialData.equipmentName} (${initialData.equipmentId})`);
       setEquipmentId(initialData.equipmentId);
       setEquipmentName(initialData.equipmentName);
