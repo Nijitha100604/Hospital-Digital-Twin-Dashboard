@@ -12,7 +12,7 @@ import AllAppointments from "./pages/patient_management/AllAppointments";
 import DischargeSummary from "./pages/patient_management/DischargeSummary";
 import ViewAppointment from "./pages/patient_management/ViewAppointment";
 import EquipmentList from "./pages/equipment/equipmentList";
-import AddEquipment from "./pages/equipment/AddEquipment";
+import AddEquipment from "./pages/equipment/addEquipment";
 import AddMaintenance from "./pages/equipment/addMaintenance";
 import CalibrationScheduleList from "./pages/equipment/calibrationScheduleList";
 import MaintenanceLog from "./pages/equipment/maintenanceLog";
@@ -127,7 +127,7 @@ function App() {
 
 
             {/* Inventory */}
-            <Route path="/add-new-medicine" element={<addNewMedicine />} />
+            <Route path="/add-new-medicine" element={<AddNewMedicine />} />
             <Route path="/create-new-supplier" element={<CreateNewSupplier />}/>
             <Route path="/create-purchase-order" element={<CreatePurchaseOrder />}/>
             <Route path="/medicine-stocks" element={<MedicineStocks />} />
