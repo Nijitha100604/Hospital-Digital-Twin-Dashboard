@@ -95,7 +95,7 @@ function Login() {
 
     <form 
         onSubmit={isForgotPassword ? changePasswordHandler : onSubmitHandler} 
-        className="flex flex-col justify-center items-center border border-fuchsia-400 rounded-lg px-5 py-5 md:w-9/12 md:max-w-sm shadow-sm shadow-fuchsia-500"
+        className="flex flex-col justify-center items-center border border-fuchsia-400 rounded-lg px-5 py-5 md:w-10/12 md:max-w-sm w-72 shadow-sm shadow-fuchsia-500"
     >
         <h1 className="text-white font-bold text-xl mb-4"> {isForgotPassword ? "RESET PASSWORD" : "LOGIN"}</h1>
         <div className="flex flex-col gap-4 mb-8 w-full">
@@ -110,7 +110,7 @@ function Login() {
                     value={email}
                     onChange={(e)=>setEmail(e.target.value)}
                     placeholder="Enter your email"
-                    className="w-full pl-9 pr-3 py-3 rounded-full bg-gray-300 text-sm focus:outline-none"
+                    className="w-full pl-6 pr-3 py-3 rounded-full bg-gray-300 text-sm focus:outline-none"
                 />
             </div>
 
@@ -127,7 +127,7 @@ function Login() {
                     value={password}
                     onChange={(e)=>setPassword(e.target.value)}
                     placeholder="Enter your password"
-                    className="w-full pl-9 pr-3 py-3 rounded-full bg-gray-300 text-sm focus:outline-none"
+                    className="w-full pl-6 pr-3 py-3 rounded-full bg-gray-300 text-sm focus:outline-none"
                 />
             </div> )
             }
@@ -156,7 +156,7 @@ function Login() {
                             value={newPassword}
                             onChange={(e)=>setNewPassword(e.target.value)}
                             placeholder="Create new password"
-                            className="w-full pl-9 pr-3 py-3 rounded-full bg-gray-300 text-sm focus:outline-none"
+                            className="w-full pl-6 pr-3 py-3 rounded-full bg-gray-300 text-sm focus:outline-none"
                         />
                     </div>
 
@@ -171,7 +171,7 @@ function Login() {
                             value={confirmPassword}
                             onChange={(e)=>setConfirmPassword(e.target.value)}
                             placeholder="Confirm new password"
-                            className="w-full pl-9 pr-3 py-3 rounded-full bg-gray-300 text-sm focus:outline-none"
+                            className="w-full pl-6 pr-3 py-3 rounded-full bg-gray-300 text-sm focus:outline-none"
                         />
                     </div>
                 </>

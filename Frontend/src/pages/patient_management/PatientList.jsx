@@ -119,7 +119,7 @@ function PatientList() {
     <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
 
       {/* Top Section */}
-      <div className="w-full px-4 py-4 gap-3 flex flex-wrap justify-between items-center">
+      <div className="w-full py-4 gap-3 flex flex-wrap justify-between items-center">
         
         {/* Page description */}
         <div className="flex flex-col gap-1">
@@ -326,7 +326,7 @@ function PatientList() {
       </div>
 
       {/* Patient List */}
-      <div className="mt-2 rounded-lg bg-white-50 p-4">
+      <div className="mt-2 rounded-lg bg-white-50 py-4">
         <div className="w-full overflow-x-auto">
 
           {/* patient records table */}
