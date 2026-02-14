@@ -26,10 +26,10 @@ function Login() {
             if(data.success){
                 localStorage.setItem('token', data.token);
                 setToken(data.token);
-                await fetchUserProfile(data.token);
+                navigate('/');
+                fetchUserProfile(data.token);
                 setEmail('');
                 setPassword('');
-                navigate('/');
             } else{
                 toast.error(data.message);
             }
