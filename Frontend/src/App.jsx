@@ -71,19 +71,19 @@ function App() {
   }
 
   return (
-    <div>
+    <div className="h-screen overflow-hidden">
       <ToastContainer />
       <TopNavbar
         isSidebarOpen={isSidebarOpen} 
         setIsSidebarOpen={setIsSidebarOpen} 
       />
-      <div className="flex items-start">
+      <div className="flex h-[calc(100vh-4rem)] mt-16">
         <SideNavbar
           isSidebarOpen={isSidebarOpen}
           setIsSidebarOpen={setIsSidebarOpen}
         />
 
-        <div className="flex-1 ml-0 mt-16 p-4">
+        <div className="flex-1 p-4 overflow-y-auto">
           <Routes>
 
             {/* Admin Dashboard */}
