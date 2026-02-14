@@ -157,7 +157,7 @@ function DepartmentsList() {
           <p className="text-sm font-medium text-gray-600">Departments</p>
           <p className="text-xl font-bold text-gray-900">{totalDept}</p>
         </div>
-        <div className="bg-blue-200 px-3 py-3 rounded-lg border border-blue-300">
+        <div className="bg-blue-200 px-3 py-3 rounded-lg border border-blue-300 hidden md:flex">
           <FaHospital size={20} className="text-blue-800"/>
         </div>
       </div>
@@ -168,7 +168,7 @@ function DepartmentsList() {
           <p className="text-sm font-medium text-gray-600">Active Departments</p>
           <p className="text-xl font-bold text-gray-900">{activeDept}</p>
         </div>
-        <div className="bg-green-200 px-3 py-3 rounded-lg border border-green-300">
+        <div className="bg-green-200 px-3 py-3 rounded-lg border border-green-300 hidden md:flex">
           <FaCheckCircle size={20} className="text-green-800"/>
         </div>
       </div>
@@ -179,7 +179,7 @@ function DepartmentsList() {
           <p className="text-sm font-medium text-gray-600">Inactive Departments</p>
           <p className="text-xl font-bold text-gray-900">{inactiveDept}</p>
         </div>
-        <div className="bg-red-200 px-3 py-3 rounded-lg border border-red-300">
+        <div className="bg-red-200 px-3 py-3 rounded-lg border border-red-300 hidden md:flex">
           <FaTimesCircle size={20} className="text-red-800"/>
         </div>
       </div>
@@ -190,7 +190,7 @@ function DepartmentsList() {
           <p className="text-sm font-medium text-gray-600">Laboratories</p>
           <p className="text-xl font-bold text-gray-900">{labUnits}</p>
         </div>
-        <div className="bg-yellow-200 px-3 py-3 rounded-lg border border-yellow-300">
+        <div className="bg-yellow-200 px-3 py-3 rounded-lg border border-yellow-300 hidden md:flex">
           <FaFlask size={20} className="text-yellow-800"/>
         </div>
       </div>
@@ -207,7 +207,7 @@ function DepartmentsList() {
           <input 
             type="text" 
             placeholder = "Search by Dept Name or Dept ID"
-            className="w-lg pl-9 pr-3 py-2.5 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-fuchsia-700 bg-gray-300 rounded-lg"
+            className="md:w-full w-68 pl-9 pr-3 py-2.5 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-fuchsia-700 bg-gray-300 rounded-lg"
             value={searchTerm}
             onChange={(e)=>{
               setSearchTerm(e.target.value);
@@ -217,7 +217,7 @@ function DepartmentsList() {
       </div>
               
       {/* Filters */}
-      <div ref={filterRef} className = "flex gap-3">
+      <div ref={filterRef} className = "flex flex-wrap gap-3">
            
         {/* Floor Filter */}
         <div className="relative">
@@ -397,7 +397,7 @@ function DepartmentsList() {
 
     {/* Bottom of the table */}
 
-    <div className="flex justify-between items-center mt-4">
+    <div className="flex flex-wrap gap-3 justify-between items-center mt-4">
         
       <div className="text-gray-600 text-sm">
         Showing {paginatedData.length} of {filteredData.length} records

@@ -143,7 +143,7 @@ function AddNewPatient() {
       )}
 
       {/* Top Section */}
-      <div className="flex flex-wrap justify-between items-center gap-2">
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-3">
 
       <div className="flex flex-col gap-1">
         <div className="flex gap-3 items-center">
@@ -387,7 +387,7 @@ function AddNewPatient() {
       </div>
 
       {/* Action Buttons */}
-      <div className="mt-10 flex gap-4 items-center justify-end mb-5">
+      <div className="mt-10 flex flex-wrap gap-4 items-center md:justify-end mb-5">
 
         {/* cancel button */}
         <button 

@@ -147,7 +147,7 @@ function PatientList() {
         }
         
         {/* Search and filters */}
-        <div className="w-full flex flex-wrap gap-4 items-center">
+        <div className="w-full flex flex-wrap gap-4 items-center mt-3">
 
           {/* Search button */}
 
@@ -388,7 +388,7 @@ function PatientList() {
         </div>
 
         {/* table bottom */}
-        <div className="flex justify-between items-center mt-4">
+        <div className="flex flex-wrap gap-3 justify-between items-center mt-4">
 
           <div className="text-gray-600 text-sm">
             Showing {paginatedData.length} of {filteredData.length} records

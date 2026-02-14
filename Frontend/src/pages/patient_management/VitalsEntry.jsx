@@ -160,7 +160,7 @@ function VitalsEntry() {
                 <p className="text-sm font-medium text-gray-600">Appointments</p>
                 <p className="text-xl font-bold text-gray-900">{totalAppointments}</p>
             </div>
-            <div className="bg-blue-200 px-3 py-3 rounded-lg border border-blue-300">
+            <div className="bg-blue-200 px-3 py-3 rounded-lg border border-blue-300 hidden md:flex">
                 <FaCalendarAlt size={20} className="text-blue-800"/>
             </div>
         </div>
@@ -170,7 +170,7 @@ function VitalsEntry() {
                 <p className="text-sm font-medium text-gray-600">Completed</p>
                 <p className="text-xl font-bold text-gray-900">{completed}</p>
             </div>
-            <div className="bg-green-200 px-3 py-3 rounded-lg border border-green-300">
+            <div className="bg-green-200 px-3 py-3 rounded-lg border border-green-300 hidden md:flex">
                 <FaCheckCircle size={20} className="text-green-800"/>
             </div>
         </div>
@@ -180,7 +180,7 @@ function VitalsEntry() {
                 <p className="text-sm font-medium text-gray-600">Pending</p>
                 <p className="text-xl font-bold text-gray-900">{pending}</p>
             </div>
-            <div className="bg-orange-200 px-3 py-3 rounded-lg border border-orange-300">
+            <div className="bg-orange-200 px-3 py-3 rounded-lg border border-orange-300 hidden md:flex">
                 <FaHourglassHalf size={20} className="text-orange-600"/>
             </div>
         </div>
@@ -188,7 +188,7 @@ function VitalsEntry() {
     </div>
 
     {/* Search and Filters */}
-    <div className="w-full flex flex-wrap gap-4 items-center">
+    <div className="w-full flex flex-wrap gap-3 justify-between items-center">
           
         {/* Search button */}
           
@@ -197,7 +197,7 @@ function VitalsEntry() {
                 <input 
                 type="text" 
                 placeholder = "Search by Patient Name or Patient ID"
-                className="w-lg pl-9 pr-3 py-2.5 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-fuchsia-700 bg-gray-300 rounded-lg"
+                className="md:w-lg w-68 pl-9 pr-3 py-2.5 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-fuchsia-700 bg-gray-300 rounded-lg"
                 value={searchTerm}
                 onChange={(e)=>{
                 setSearchTerm(e.target.value);
@@ -358,7 +358,7 @@ function VitalsEntry() {
     </div>
 
     {/* Bottom of the page */}
-    <div className="flex justify-between items-center mt-4">
+    <div className="flex flex-wrap gap-4 justify-between items-center mt-4">
     
       <div className="text-gray-600 text-sm">
         Showing {paginatedData.length} of {filteredData.length} records

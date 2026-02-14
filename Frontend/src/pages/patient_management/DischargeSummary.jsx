@@ -62,10 +62,9 @@ function DischargeSummary() {
   }
 
   const handleDownload = () =>{
+  if(!patient) return;
   
   const element = pdfRef.current;
-
-  if(!patient) return;
 
   element.classList.add("pdf-safe");
 
@@ -79,7 +78,7 @@ function DischargeSummary() {
         scrollY: 0,
         useCORS: true
       },
-      jsPDF: { format: "a3", unit: "mm", orientation: "portrait" }
+      jsPDF: { format: "a4", unit: "mm", orientation: "portrait" }
     })
     .save()
     .then(() => {
@@ -188,34 +187,34 @@ function DischargeSummary() {
             Patient Information
           </h3>
           
-          <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="mt-5 grid md:grid-cols-2 gap-3">
             
-            <div className="flex justify-between px-4 py-1 ">
+            <div className="flex flex-wrap gap-2 justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Name :</p>
               <p className="text-sm font-semibold text-gray-900">{patient?.personal?.name}</p>
             </div>
 
-            <div className="flex justify-between px-4 py-1 ">
+            <div className="flex flex-wrap gap-2 justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Age :</p>
               <p className="text-sm font-semibold text-gray-900">{patient?.personal?.age}</p>
             </div>
 
-            <div className="flex justify-between px-4 py-1 ">
+            <div className="flex flex-wrap gap-2 justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Gender :</p>
               <p className="text-sm font-semibold text-gray-900">{patient?.personal?.gender}</p>
             </div>
 
-            <div className="flex justify-between px-4 py-1 ">
+            <div className="flex flex-wrap gap-2 justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Contact :</p>
               <p className="text-sm font-semibold text-gray-900">{patient?.personal?.contact}</p>
             </div>
 
-            <div className="flex justify-between px-4 py-1 ">
+            <div className="flex flex-wrap gap-2 justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Patient ID :</p>
               <p className="text-sm font-semibold text-gray-900">{patient?.patientId}</p>
             </div>
 
-            <div className="flex justify-between px-4 py-1 ">
+            <div className="flex flex-wrap gap-2 justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Blood Group:</p>
               <p className="text-sm font-semibold text-gray-900">{patient?.personal?.bloodGroup}</p>
             </div>
@@ -233,34 +232,34 @@ function DischargeSummary() {
             Appointment Details
           </h3>
           
-          <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="mt-5 grid md:grid-cols-2 gap-3">
             
-            <div className="flex justify-between px-4 py-1 ">
+            <div className="flex flex-wrap gap-2 justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Apt ID :</p>
               <p className="text-sm font-semibold text-gray-900">{appointment?.appointmentId}</p>
             </div>
 
-            <div className="flex justify-between px-4 py-1 ">
+            <div className="flex flex-wrap gap-2 justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Apt Type :</p>
               <p className="text-sm font-semibold text-gray-900">{appointment?.appointmentType}</p>
             </div>
 
-            <div className="flex justify-between px-4 py-1 ">
+            <div className="flex flex-wrap gap-2 justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Slot :</p>
               <p className="text-sm font-semibold text-gray-900">{appointment?.timeSlot}</p>
             </div>
 
-            <div className="flex justify-between px-4 py-1 ">
+            <div className="flex flex-wrap gap-2 justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Date :</p>
               <p className="text-sm font-semibold text-gray-900">{formatDate(appointment?.date)}</p>
             </div>
 
-            <div className="flex justify-between px-4 py-1 ">
+            <div className="flex flex-wrap gap-2 justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Visit :</p>
               <p className="text-sm font-semibold text-gray-900">{appointment?.consultationType}</p>
             </div>
 
-            <div className="flex justify-between px-4 py-1 ">
+            <div className="flex flex-wrap gap-2 justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Status :</p>
               <p className="text-sm font-semibold text-gray-900">{appointment?.status}</p>
             </div>
@@ -284,17 +283,17 @@ function DischargeSummary() {
 
           <div className="mt-5 grid grid-cols-1 gap-3">
             
-            <div className="flex justify-between px-4 py-1 ">
+            <div className="flex flex-wrap gap-2 justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Doctor :</p>
               <p className="text-sm font-semibold text-gray-900">{appointment?.doctorName}</p>
             </div>
 
-            <div className="flex justify-between px-4 py-1 ">
+            <div className="flex flex-wrap gap-2 justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Doctor ID :</p>
               <p className="text-sm font-semibold text-gray-900">{appointment?.docId}</p>
             </div>
 
-            <div className="flex justify-between px-4 py-1 ">
+            <div className="flex flex-wrap gap-2 justify-between px-4 py-1 ">
               <p className="text-gray-600 text-sm font-medium">Specialization :</p>
               <p className="text-sm font-semibold text-gray-900">{doctor?.specialization || "Not Available"}</p>
             </div>
@@ -324,7 +323,7 @@ function DischargeSummary() {
                     return(
                     <div 
                       key={index}
-                      className="flex justify-between px-4 py-1 "
+                      className="flex flex-wrap gap-2 justify-between px-4 py-1 "
                     >
                       <p className="text-gray-600 text-sm font-medium">{item.testName}</p>
                       <p className={`text-sm px-2 py-1 rounded-lg font-semibold ${ report?.status === "Completed" ? "bg-green-200 text-green-700" : report?.status === "Pending" ? "bg-yellow-200 text-yellow-700" : "bg-gray-200 text-gray-700" }`}>{report?.status || "Not Available"}</p>
@@ -433,6 +432,8 @@ function DischargeSummary() {
           Discharge Details
         </h3>
 
+        <div className="overflow-x-auto">
+          <div className="min-w-250">
         {
           admissions.length > 0 ? (
             admissions.map((item, index)=>{
@@ -447,7 +448,7 @@ function DischargeSummary() {
                   </div>
 
                   {/* Admission Info */}
-                  <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                  <div className="grid grid-cols-6 gap-3">
 
                     <div className="flex flex-col gap-1">
                       <p className="text-sm text-gray-500">Admitted Date</p>
@@ -549,6 +550,8 @@ function DischargeSummary() {
             </p>
           )
         }
+          </div>
+        </div>
 
       </div>
 

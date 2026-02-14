@@ -117,7 +117,7 @@ const BedAvailability = () => {
     <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
 
     {/* Heading */}
-    <div className="flex justify-between items-center gap-4">
+    <div className="flex flex-wrap gap-3 justify-between items-center">
 
       <div className="flex flex-col gap-1">
         <p className="text-gray-800 font-bold text-lg">Bed Availability</p>
@@ -148,7 +148,7 @@ const BedAvailability = () => {
           <p className="text-sm font-medium text-gray-600">Total Beds</p>
           <p className="text-xl font-bold text-gray-900">{totalBeds}</p>
         </div>
-        <div className="bg-blue-200 px-3 py-3 rounded-lg border border-blue-300">
+        <div className="bg-blue-200 px-3 py-3 rounded-lg border border-blue-300 hidden md:flex">
           <FaBed size={20} className="text-blue-800"/>
         </div>
       </div>
@@ -159,7 +159,7 @@ const BedAvailability = () => {
           <p className="text-sm font-medium text-gray-600">Occupied Beds</p>
           <p className="text-xl font-bold text-gray-900">{occupiedBeds}</p>
         </div>
-        <div className="bg-red-200 px-3 py-3 rounded-lg border border-red-300">
+        <div className="bg-red-200 px-3 py-3 rounded-lg border border-red-300 hidden md:flex">
           <FaMinusCircle size={20} className="text-red-800"/>
         </div>
       </div>
@@ -170,7 +170,7 @@ const BedAvailability = () => {
           <p className="text-sm font-medium text-gray-600">Available Beds</p>
           <p className="text-xl font-bold text-gray-900">{availableBeds}</p>
         </div>
-        <div className="bg-green-200 px-3 py-3 rounded-lg border border-green-300">
+        <div className="bg-green-200 px-3 py-3 rounded-lg border border-green-300 hidden md:flex">
           <FaCheckCircle size={20} className="text-green-800"/>
         </div>
       </div>
@@ -182,7 +182,7 @@ const BedAvailability = () => {
           <p className="text-sm font-medium text-gray-600">Occupancy Rate</p>
           <p className="text-xl font-bold text-gray-900">{occupancyRate} %</p>
         </div>
-        <div className="bg-yellow-200 px-3 py-3 rounded-lg border border-yellow-300">
+        <div className="bg-yellow-200 px-3 py-3 rounded-lg border border-yellow-300 hidden md:flex">
           <FaChartPie size={20} className="text-yellow-800"/>
         </div>
       </div>
@@ -241,7 +241,7 @@ const BedAvailability = () => {
           return(
             <div
               key={deptIndex}
-              className="bg-white border border-gray-300 rounded-xl p-4"
+              className="bg-white border border-gray-300 rounded-xl px-3 py-4"
             >
 
               {/* Bed header */}
@@ -270,7 +270,7 @@ const BedAvailability = () => {
                           );
                           setShowModal(true);
                         }}
-                        className={`flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-md border cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95
+                        className={`w-18 flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-md border cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95
                           ${isMismatch ? "opacity-40 cursor-not-allowed" : ""}
                           ${getBedStyle(bed.bedType, bed.status)}`}
                       >

@@ -9,9 +9,6 @@ import {
   FaUniversity,
   FaTag,
   FaMoneyBill,
-  FaFileAlt,
-  FaBoxOpen,
-  FaExternalLinkAlt,
   FaDownload,
   FaFileCsv 
 } from "react-icons/fa";
@@ -21,6 +18,8 @@ import { jsPDF } from "jspdf";
 
 const ViewSupplierModal = ({ supplier, onClose, onEdit }) => {
   const reportRef = useRef(null); 
+  const [visibleCount, setVisibleCount] = useState(10);
+  const { userData } = useContext(AppContext);
   
   if (!supplier) return null;
 
@@ -39,11 +38,9 @@ const ViewSupplierModal = ({ supplier, onClose, onEdit }) => {
     bankDetails,
     itemsSupplied,
     totalSupplies,
+    // eslint-disable-next-line no-unused-vars
     documentUrl,
   } = supplier;
-
-  const [visibleCount, setVisibleCount] = useState(10);
-  const { userData } = useContext(AppContext);
 
   // --- PDF DOWNLOAD HANDLER ---
   const handleDownloadPdf = async () => {

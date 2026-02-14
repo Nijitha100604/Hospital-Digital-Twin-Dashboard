@@ -390,7 +390,7 @@ function PatientConsultation() {
 
         <div className="mb-3">
           <p className="text-fuchsia-900 text-sm font-semibold">Patient Details</p>
-          <div className="mt-2 flex flex-wrap justify-between items-center">
+          <div className="mt-2 flex flex-wrap gap-2 justify-between items-center">
             <div className="flex flex-col gap-1">
               <p className="text-sm text-gray-700">Name</p>
               <p className="text-sm font-bold text-gray-900">{patient?.personal?.name}</p>
@@ -429,7 +429,7 @@ function PatientConsultation() {
           </div>
         </div>
 
-        <div className="flex gap-2 mt-3 items-center">
+        <div className="flex flex-wrap gap-2 mt-3 items-center">
           <p className="text-red-600 text-sm">Consultation remarks :</p>
           <p className="text-sm text-gray-800">{appointment?.remarks}</p>
         </div>
@@ -794,7 +794,7 @@ function PatientConsultation() {
       {appointment?.status !== "Completed" && (
       <>
         <p className="mt-3 text-gray-600 text-sm font-medium">Request Lab Reports</p>
-        <div className="mt-4 flex gap-3 items-end">
+        <div className="mt-4 flex flex-wrap gap-3 items-end">
 
         <div className="relative">
   <label className="text-sm text-gray-800 font-medium">
@@ -905,12 +905,12 @@ function PatientConsultation() {
             <p className="text-sm font-semibold text-gray-700 mb-3">Request Admission</p>
             <div className="flex flex-wrap items-center gap-3">
 
-              <div className="flex gap-3 items-center">
+              <div className="flex flex-wrap gap-3 items-center">
                 <label className="text-sm font-medium text-gray-700">Bed Type <span className="text-red-600">*</span></label>
                 <select
                   value = {bedType}
                   onChange={(e)=>setBedType(e.target.value)}
-                  className = {`w-xs bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${bedType === "" ? "text-gray-500" : "text-gray-900"}`}
+                  className = {`w-full bg-gray-50 mt-1 border border-gray-500 rounded-md px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-fuchsia-700 ${bedType === "" ? "text-gray-500" : "text-gray-900"}`}
                 >
                   <option value="">Select</option>
                   <option value="General">General</option>
@@ -961,7 +961,7 @@ function PatientConsultation() {
 
                 {
                   (isAdmitted || isDischarged) && (
-                    <div className="grid grid-cols-3 gap-3 mb-3 px-3">
+                    <div className="grid md:grid-cols-3 grid-cols-2 gap-3 mb-3 px-3">
                       <div>
                         <p className="text-xs text-gray-500">Block</p>
                         <p className="text-sm font-bold">{item.allocation.block || "-"}</p>
@@ -1059,7 +1059,7 @@ function PatientConsultation() {
     <div className="w-full flex justify-end items-center mt-5 gap-3">
 
     {appointment?.status === "Scheduled" && (
-      <div className="flex gap-4 items-center">
+      <div className="flex flex-wrap gap-4 items-center">
         <p className="flex gap-2 items-center text-sm text-blue-700"><FaInfoCircle size={18}/>{appointment?.status}</p>
         <button
           onClick={() => handleAppointmentAction("In Progress")}
@@ -1071,7 +1071,7 @@ function PatientConsultation() {
     )}
 
     {appointment?.status === "In Progress" && (
-    <div className="flex gap-4 items-center">
+    <div className="flex flex-wrap gap-4 items-center">
     <p className="flex gap-2 items-center text-sm text-orange-700"><FaInfoCircle size={18}/>{appointment?.status}</p>
 
     <button

@@ -121,7 +121,8 @@ export default function FacilityMap() {
             Block
           </p>
 
-          <div className="grid grid-cols-4 gap-4">
+          <div className="overflow-x-auto">
+          <div className="grid grid-cols-4 gap-4 min-w-150">
 
             {/* Row  */}
             {topRow.map((dept) => (
@@ -175,6 +176,7 @@ export default function FacilityMap() {
                 getDeptStyle={getDeptStyle}
               />
             ))}
+          </div>
           </div>
         </div>
 

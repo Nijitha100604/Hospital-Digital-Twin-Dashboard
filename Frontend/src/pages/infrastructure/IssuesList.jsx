@@ -220,7 +220,7 @@ function IssuesList() {
         <p className="text-sm font-medium text-gray-600">Total Issues</p>
         <p className="text-xl font-bold text-gray-900">{totalIssues}</p>
       </div>
-      <div className="bg-blue-200 px-3 py-3 rounded-lg border border-blue-300">
+      <div className="bg-blue-200 px-3 py-3 rounded-lg border border-blue-300 hidden md:flex">
         <FaBug size={20} className="text-blue-800"/>
       </div>
     </div>
@@ -231,7 +231,7 @@ function IssuesList() {
         <p className="text-sm font-medium text-gray-600">Completed</p>
         <p className="text-xl font-bold text-gray-900">{completed}</p>
       </div>
-      <div className="bg-green-200 px-3 py-3 rounded-lg border border-green-300">
+      <div className="bg-green-200 px-3 py-3 rounded-lg border border-green-300 hidden md:flex">
         <FaCheckCircle size={20} className="text-green-800"/>
       </div>
     </div>
@@ -242,7 +242,7 @@ function IssuesList() {
         <p className="text-sm font-medium text-gray-600">Pending</p>
         <p className="text-xl font-bold text-gray-900">{pending}</p>
       </div>
-      <div className="bg-orange-200 px-3 py-3 rounded-lg border border-orange-300">
+      <div className="bg-orange-200 px-3 py-3 rounded-lg border border-orange-300 hidden md:flex">
         <FaClock size={20} className="text-orange-800"/>
       </div>
     </div>
@@ -253,7 +253,7 @@ function IssuesList() {
         <p className="text-sm font-medium text-gray-600">In Progress</p>
         <p className="text-xl font-bold text-gray-900">{inProgress}</p>
       </div>
-      <div className="bg-cyan-200 px-3 py-3 rounded-lg border border-cyan-300">
+      <div className="bg-cyan-200 px-3 py-3 rounded-lg border border-cyan-300 hidden md:flex">
         <FaSpinner size={20} className="text-cyan-800"/>
       </div>
     </div>
@@ -264,7 +264,7 @@ function IssuesList() {
         <p className="text-sm font-medium text-gray-600">On Hold</p>
         <p className="text-xl font-bold text-gray-900">{onHold}</p>
       </div>
-      <div className="bg-red-200 px-3 py-3 rounded-lg border border-red-300">
+      <div className="bg-red-200 px-3 py-3 rounded-lg border border-red-300 hidden md:flex">
         <FaPauseCircle size={20} className="text-red-800"/>
       </div>
     </div>
@@ -280,7 +280,7 @@ function IssuesList() {
         <input 
           type="text" 
           placeholder = "Search by Issue Type"
-          className="w-lg pl-9 pr-3 py-2.5 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-fuchsia-700 bg-gray-300 rounded-lg"
+          className="w-68 pl-9 pr-3 py-2.5 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-fuchsia-700 bg-gray-300 rounded-lg"
           value={searchTerm}
           onChange={(e)=>{
             setSearchTerm(e.target.value);
@@ -454,9 +454,9 @@ function IssuesList() {
 
               </div>
 
-              <div className="w-full px-3 flex justify-between flex-wrap items-center mb-1 mt-2">
+              <div className="w-full px-3 flex gap-3 justify-between flex-wrap items-center mb-1 mt-2">
 
-                <div className="flex gap-2 items-center">
+                <div className="flex flex-wrap gap-2 items-center">
                   <p className="text-sm px-2 py-1 bg-cyan-200 text-gray-900 rounded-md">{item?.block}</p>
                   <p className="text-sm font-medium text-gray-700">{item?.description}</p>
                 </div>
@@ -508,7 +508,7 @@ function IssuesList() {
     }
 
     {/* Bottom */}
-    <div className="flex justify-between items-center mt-4">
+    <div className="flex flex-wrap gap-3 justify-between items-center mt-4">
         
       <div className="text-gray-600 text-sm">
         Showing {paginatedData.length} of {filteredData.length} records

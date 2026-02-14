@@ -163,7 +163,7 @@ function AllAppointments() {
     <div className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
 
       {/* Header and book appointment */}
-      <div className="flex flex-wrap justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-3">
 
       {/* Header */}
       <div className="flex flex-col gap-1">
@@ -199,7 +199,7 @@ function AllAppointments() {
             <p className="text-sm font-medium text-gray-600">Appointments</p>
             <p className="text-xl font-bold text-gray-900">{totalAppointments}</p>
           </div>
-          <div className="bg-fuchsia-200 px-3 py-3 rounded-lg border border-fuchsia-300">
+          <div className="hidden md:flex bg-fuchsia-200 px-3 py-3 rounded-lg border border-fuchsia-300">
             <FaRegCalendarCheck size={20} className="text-fuchsia-800"/>
           </div>
         </div>
@@ -209,7 +209,7 @@ function AllAppointments() {
             <p className="text-sm font-medium text-gray-600">Completed</p>
             <p className="text-xl font-bold text-gray-900">{completedAppointments}</p>
           </div>
-          <div className="bg-green-200 px-3 py-3 rounded-lg border border-green-300">
+          <div className="bg-green-200 px-3 py-3 rounded-lg border border-green-300 hidden md:flex">
             <FaCheckCircle size={20} className="text-green-800"/>
           </div>
         </div>
@@ -219,7 +219,7 @@ function AllAppointments() {
             <p className="text-sm font-medium text-gray-600">Scheduled</p>
             <p className="text-xl font-bold text-gray-900">{scheduledAppointments}</p>
           </div>
-          <div className="bg-blue-200 px-3 py-3 rounded-lg border border-blue-300">
+          <div className="bg-blue-200 px-3 py-3 rounded-lg border border-blue-300 hidden md:flex">
             <MdSchedule size={20} className="text-blue-800"/>
           </div>
         </div>
@@ -229,7 +229,7 @@ function AllAppointments() {
             <p className="text-sm font-medium text-gray-600">In Progress</p>
             <p className="text-xl font-bold text-gray-900">{inProgressAppointments}</p>
           </div>
-          <div className="bg-yellow-200 px-3 py-3 rounded-lg border border-yellow-300">
+          <div className="bg-yellow-200 px-3 py-3 rounded-lg border border-yellow-300 hidden md:flex">
             <FaRedo size={20} className="text-yellow-700"/>
           </div>
         </div>
@@ -239,7 +239,7 @@ function AllAppointments() {
             <p className="text-sm font-medium text-gray-600">Cancelled</p>
             <p className="text-xl font-bold text-gray-900">{cancelledAppointments}</p>
           </div>
-          <div className="bg-red-200 px-3 py-3 rounded-lg border border-red-300">
+          <div className="bg-red-200 px-3 py-3 rounded-lg border border-red-300 hidden md:flex">
             <FaCalendarTimes size={20} className="text-red-700"/>
           </div>
         </div>
@@ -256,7 +256,7 @@ function AllAppointments() {
             <input 
               type="text" 
               placeholder = "Search by Patient Name or Patient ID"
-              className="w-lg pl-9 pr-3 py-2.5 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-fuchsia-700 bg-gray-300 rounded-lg"
+              className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-fuchsia-700 bg-gray-300 rounded-lg"
               value={searchTerm}
               onChange={(e)=>{
                 setSearchTerm(e.target.value);
@@ -266,7 +266,7 @@ function AllAppointments() {
         </div>
       
         {/* Filters */}
-        <div ref={filterRef} className = "flex gap-3">
+        <div ref={filterRef} className = "flex flex-wrap gap-3">
       
           {/* Date */}
           <div className="relative flex flex-col">
@@ -478,7 +478,7 @@ function AllAppointments() {
       }
 
       {/* table bottom */}
-      <div className="flex justify-between items-center mt-4">
+      <div className="flex flex-wrap gap-3 justify-between items-center mt-4">
 
           <div className="text-gray-600 text-sm">
             Showing {paginatedData.length} of {filteredData.length} records

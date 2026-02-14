@@ -30,6 +30,21 @@ body {
   color: #000 !important;
   background-color: transparent !important;
   border-color: #000 !important;
+  width: 100% !important;
+  overflow: visible !important;
+}
+
+.pdf-safe .overflow-x-auto {
+  overflow: visible !important;
+}
+
+.pdf-safe [class*="min-w-"] {
+  min-width: 0 !important;
+}
+
+.pdf-safe table {
+  width: 100% !important;
+  table-layout: auto !important;
 }
 
 .pdf-page {

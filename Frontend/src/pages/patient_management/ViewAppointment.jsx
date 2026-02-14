@@ -152,7 +152,7 @@ function ViewAppointment() {
     <div className="bg-gray-50 rounded-lg px-3 py-4 border border-gray-300">
 
     {/* Top Section */}
-    <div className="flex flex-wrap justify-between items-center mb-4">
+    <div className="flex flex-wrap gap-3 justify-between items-center mb-4">
     
       {/* Header */}
       <div className="flex flex-col gap-1">
@@ -251,7 +251,7 @@ function ViewAppointment() {
         <p className="text-sm font-medium text-fuchsia-700">{appData?.appointmentId}</p>
         </div>
 
-        <div className=" mt-5 grid grid-cols-2 gap-3 px-2">
+        <div className=" mt-5 grid md:grid-cols-2 gap-3 px-2">
 
           <div className="flex justify-between py-1 ">
             <p className="text-gray-600 text-sm font-medium">Doctor:</p>
@@ -290,7 +290,7 @@ function ViewAppointment() {
     </div>
 
     {/* Consultation remarks */}
-    <div className="mt-3 px-2 w-full flex gap-3 items-center">
+    <div className="mt-3 px-2 w-full flex flex-wrap gap-3 items-center">
       <p className="text-red-600 text-sm">Consultation Remarks : </p>
       <p className="text-gray-900 font-medium text-sm">{appData?.remarks}</p>
     </div>
@@ -309,7 +309,7 @@ function ViewAppointment() {
       <div>
         {
           vitals?.vitalsData?.length > 0 ? 
-          <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex flex-wrap md:gap-2 gap-4 items-center">
             {
               vitals?.vitalsData?.map((item, index)=>(
                 <div 
@@ -356,9 +356,9 @@ function ViewAppointment() {
       {
       (conData?.doctor?.diagnosis || conData?.doctor?.remarks) ? 
        
-        <div className="flex gap-4">
-        <p className="px-3 py-1 border border-gray-100 bg-gray-200 rounded-lg text-sm text-gray-900"><span className="font-medium">Diagnosis :</span> {conData?.doctor?.diagnosis}</p>
-        <p className="px-3 py-1 border border-gray-100 bg-gray-200 rounded-lg text-sm text-gray-900"><span className="font-medium">Remarks :</span> {conData?.doctor?.remarks}</p>
+        <div className="flex flex-wrap gap-4">
+        <p className="w-full px-3 py-1 border border-gray-100 bg-gray-200 rounded-lg text-sm text-gray-900"><span className="font-medium">Diagnosis :</span> {conData?.doctor?.diagnosis}</p>
+        <p className="w-full px-3 py-1 border border-gray-100 bg-gray-200 rounded-lg text-sm text-gray-900"><span className="font-medium">Remarks :</span> {conData?.doctor?.remarks}</p>
         </div>
       :
       <div className="flex mt-2 gap-3 px-6 items-center">
@@ -445,6 +445,7 @@ function ViewAppointment() {
           <p className="font-medium text-gray-700 text-md">Lab Reports</p>
         </div>
 
+        
         {
           conData?.labReports?.length > 0 ? (
             <div className="w-full mt-4 grid sm:grid-cols-1 md:grid-cols-2 gap-5">
@@ -452,7 +453,7 @@ function ViewAppointment() {
             conData?.labReports?.map((item, index)=>(
               <div 
                 key={index}
-                className="flex justify-between items-center border border-gray-300 bg-gray-50 px-3 py-2 rounded-lg hover:bg-gray-300 cursor-pointer"
+                className="flex flex-wrap gap-2 justify-between items-center border border-gray-300 bg-gray-50 px-3 py-2 rounded-lg hover:bg-gray-300 cursor-pointer"
               >
                 <p className="text-sm font-semibold text-gray-900">{item.testName}</p>
                 <p className={`px-3 py-2 text-sm text-white font-medium rounded-lg ${getReportStatus(item.labReportId) === "Completed" ? "bg-green-600": "bg-yellow-600"}`}>{getReportStatus(item.labReportId)}</p>
@@ -545,7 +546,7 @@ function ViewAppointment() {
 
             {/* ALLOCATION DETAILS */}
             {(isAdmitted || isDischarged) && (
-              <div className="grid grid-cols-3 gap-3 mb-3 px-3">
+              <div className="grid md:grid-cols-3 grid-cols-2 gap-3 mb-3 px-3">
                 <div>
                   <p className="text-xs text-gray-500">Block</p>
                   <p className="text-sm font-bold">

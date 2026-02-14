@@ -208,7 +208,7 @@ function PatientProfile() {
 
     <div className="w-full flex flex-wrap gap-4 mt-4">
 
-      <div className="w-full lg:flex-1 px-2 py-4 flex flex-row justify-center items-center gap-4 bg-white rounded-lg border border-gray-500">
+      <div className="w-full lg:flex-1 px-2 py-4 flex flex-wrap justify-center items-center gap-4 bg-white rounded-lg border border-gray-500">
       
       {/* Profile photo and name */}
       <div className="flex flex-col gap-2 px-4 items-center">
@@ -456,8 +456,9 @@ function PatientProfile() {
         />
         <p className="font-medium text-gray-900 text-lg">Lab Reports</p>
       </div>
-
-      <div className="mt-4 flex flex-col gap-3 px-2">
+      
+      <div className="overflow-x-auto">
+      <div className="mt-4 flex flex-col gap-3 px-2 min-w-225">
         {
           totalLabReports === 0 ? (
           <p className="text-center text-gray-500 text-sm font-medium py-4">
@@ -466,6 +467,7 @@ function PatientProfile() {
           ) : (
           consultation.flatMap(c => 
           c?.labReports.map((item, index)=>(
+            
             <div 
               key={index}
               className="w-full grid grid-cols-5 items-center border py-2 px-2 rounded-lg border-gray-500 bg-blue-50"
@@ -522,10 +524,12 @@ function PatientProfile() {
               </div>
 
             </div>
+            
           )) 
           )
           )
         }
+      </div>
       </div>
 
     </div>
@@ -540,8 +544,9 @@ function PatientProfile() {
         />
         <p className="font-medium text-gray-900 text-lg">Admission Details</p>
       </div>
-
-      <div className="flex flex-col gap-3 mt-4">
+      
+      <div className="overflow-x-auto">
+      <div className="flex flex-col gap-3 mt-4 min-w-225">
         {
           totalAdmissions === 0 ? (
             <p className="text-center text-gray-500 text-sm font-medium py-4">
@@ -556,12 +561,12 @@ function PatientProfile() {
             return(
             <div 
               key={index}
-              className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-6 gap-3 border-b border-b-gray-600 py-2"
+              className="grid grid-cols-6 gap-3 border-b border-b-gray-600 py-2"
             >
 
               <div className="flex flex-col gap-2">
                 <p className="text-sm text-gray-600 font-medium">Admitted on</p>
-                <p className="text-sm font-bold text-gray-900">{admittedOn ? formatDate(admittedOn) : "—"}</p>
+                <p className="text-sm font-bold text-gray-900">{admittedOn ? formatDate(admittedOn) : "Admission Requested"}</p>
               </div>
 
               <div className="flex flex-col gap-2">
@@ -600,6 +605,7 @@ function PatientProfile() {
           }) )
           )
         }
+      </div>
       </div>
     </div>
 

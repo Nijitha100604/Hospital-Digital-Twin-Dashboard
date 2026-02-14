@@ -703,7 +703,7 @@ function AdminDashboard() {
     <div className="w-full px-5 py-3 mt-8 border border-gray-300 rounded-xl bg-white">
 
     {/* heading */}
-    <div className="px-1 flex justify-between items-center">
+    <div className="px-1 flex flex-wrap gap-3 justify-between items-center">
       <div className="flex gap-3 items-center">
         <div className={`p-1 rounded-lg text-xl bg-fuchsia-100 text-fuchsia-600 border border-fuchsia-300`}>
           <FaBed size={18}/>
@@ -713,7 +713,7 @@ function AdminDashboard() {
       <p className="bg-fuchsia-200 border-fuchsia-700 text-fuchsia-600 px-3 py-1 rounded-lg text-xs font-medium">Real-Time</p>
     </div>
 
-    <div className="grid md:grid-cols-3 grid-cols-2 gap-3 mt-4 mb-3">
+    <div className="grid md:grid-cols-3 grid-cols-1 gap-3 mt-4 mb-3">
     {
       departmentStats?.map((dept, index)=>(
         <div
@@ -790,7 +790,7 @@ function AdminDashboard() {
         Quick Actions
       </h3>
 
-      <div className="grid md:grid-cols-6 grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-6 grid-cols-2 gap-4">
         {actions.map((item, index) => (
           <div
             key={index}
