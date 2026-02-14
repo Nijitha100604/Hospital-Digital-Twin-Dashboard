@@ -156,7 +156,7 @@ function PatientList() {
             <input 
               type="text" 
               placeholder = "Search by Patient Name or Patient ID"
-              className="w-lg pl-9 pr-3 py-2.5 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-fuchsia-700 bg-gray-300 rounded-lg"
+              className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-fuchsia-700 bg-gray-300 rounded-lg"
               value={searchTerm}
               onChange={(e)=>{
                 setSearchTerm(e.target.value);
@@ -166,7 +166,7 @@ function PatientList() {
           </div>
 
           {/* Filters */}
-          <div ref={filterRef} className = "flex gap-3">
+          <div ref={filterRef} className = "flex flex-wrap gap-3">
 
             {/* Date */}
             <div className="relative flex flex-col">

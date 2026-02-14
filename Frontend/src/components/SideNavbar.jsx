@@ -115,7 +115,7 @@ function SideNavbar({ isSidebarOpen, setIsSidebarOpen }) {
   return (
     <div
       className={`
-        fixed md:sticky top-16 left-0
+        fixed md:sticky top-16 left-0 pb-8
         w-52 h-[calc(100vh-4rem)]
         bg-white border border-gray-300
         py-4 z-40 overflow-y-auto hide-scrollbar
