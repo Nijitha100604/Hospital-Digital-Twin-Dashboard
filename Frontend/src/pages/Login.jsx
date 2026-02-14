@@ -95,7 +95,7 @@ function Login() {
 
     <form 
         onSubmit={isForgotPassword ? changePasswordHandler : onSubmitHandler} 
-        className="flex flex-col justify-center items-center border border-fuchsia-400 rounded-lg px-5 py-5 w-9/12 max-w-sm shadow-sm shadow-fuchsia-500"
+        className="flex flex-col justify-center items-center border border-fuchsia-400 rounded-lg px-5 py-5 md:w-9/12 md:max-w-sm shadow-sm shadow-fuchsia-500"
     >
         <h1 className="text-white font-bold text-xl mb-4"> {isForgotPassword ? "RESET PASSWORD" : "LOGIN"}</h1>
         <div className="flex flex-col gap-4 mb-8 w-full">
