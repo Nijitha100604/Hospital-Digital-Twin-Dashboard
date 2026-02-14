@@ -178,7 +178,7 @@ function AddNewPatient() {
       {/* Personal Information */}
       <p className="text-gray-900 font-semibold text-md mb-3">Personal Information</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 
         {/* Full Name */}
         <div>
@@ -273,7 +273,7 @@ function AddNewPatient() {
       </div>
 
       {/* Address */}
-      <div className="mt-3 mb-3 px-3">
+      <div className="mt-3 mb-3">
         <label className="text-sm text-gray-800 font-medium">Address <span className="text-red-600">*</span></label>
         <textarea 
           rows={2}
@@ -288,7 +288,7 @@ function AddNewPatient() {
       {/* Guardian Information */}
       <p className="text-gray-900 font-semibold text-md mb-3">Guardian Information</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 
         {/* Guardian Name */}
         <div>
@@ -320,7 +320,7 @@ function AddNewPatient() {
       {/* Medical Information */}
       <p className="text-gray-900 font-semibold text-md mb-3 mt-4">Medical Information</p>
 
-      <div className="flex flex-col gap-3 px-3">
+      <div className="flex flex-col gap-3">
         
         {/* Allergies */}
         <div>
@@ -354,7 +354,7 @@ function AddNewPatient() {
 
         <div
         onClick={() => fileRef.current.click()}
-        className="border-2 mt-2 mx-3 border-dashed bg-gray-50 border-gray-500 rounded-xl p-6 cursor-pointer
+        className="border-2 mt-2 border-dashed bg-gray-50 border-gray-500 rounded-xl p-6 cursor-pointer
                    hover:border-fuchsia-700 transition flex flex-col items-center gap-2"
       >
         <FaUpload className="text-2xl text-gray-700" />
