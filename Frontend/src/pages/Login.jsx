@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { AppContext } from './../context/AppContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import Loading from './Loading';
 
 function Login() {
     const navigate = useNavigate();
@@ -15,6 +16,8 @@ function Login() {
     const [isForgotPassword, setIsForgotPassword] = useState(false);
     const [confirmPassword, setConfirmPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
+    const [imageLoaded, setImageLoaded] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const onSubmitHandler = async(event) =>{
 
@@ -22,14 +25,13 @@ function Login() {
 
         try{
             
+            setIsSubmitting(true);
             const {data} = await axios.post(backendUrl + '/api/login', {email, password});
             if(data.success){
                 localStorage.setItem('token', data.token);
                 setToken(data.token);
+                await fetchUserProfile(data.token);
                 navigate('/');
-                fetchUserProfile(data.token);
-                setEmail('');
-                setPassword('');
             } else{
                 toast.error(data.message);
             }
@@ -37,6 +39,8 @@ function Login() {
         } catch(error){
             console.log(error);
             toast.error(error.message);
+        } finally{
+            setIsSubmitting(false);
         }
 
     }
@@ -78,10 +82,18 @@ function Login() {
 
     {/* Left login Image */}
     <div className="hidden md:flex w-2/4 items-center justify-center bg-gray-100">
+
+        {!imageLoaded && (
+            <div className="absolute inset-0 bg-gray-300 animate-pulse"></div>
+        )}
+
         <img 
-            src={assets.login_image} 
+            src={assets.login_image}
+            onLoad={() => setImageLoaded(true)}
             alt="login-image"
-            className="w-full h-full object-cover"
+             className={`w-full h-full object-cover transition-opacity duration-500 ${
+            imageLoaded ? "opacity-100" : "opacity-0"
+            }`}
         />
     </div>
 
@@ -180,9 +192,9 @@ function Login() {
         </div>
         <button 
         type = "submit"
-        className="bg-fuchsia-600 w-full mb-3 border border-fuchsia-700 cursor-pointer text-white font-semibold text-sm px-6 py-2 rounded-lg"
+        className="bg-fuchsia-600 w-full mb-3 border border-fuchsia-700 cursor-pointer text-white font-semibold text-sm px-6 py-2 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
         >
-            {isForgotPassword ? "Reset Password" : "Login"}
+            {isSubmitting ? "Please wait..." : isForgotPassword ? "Reset Password" : "Login"}
         </button>
         <p className="text-sm text-center text-gray-300">
             {isForgotPassword 
