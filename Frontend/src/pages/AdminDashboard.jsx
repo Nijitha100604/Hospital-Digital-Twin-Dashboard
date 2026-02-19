@@ -28,6 +28,7 @@ import { MedicineContext } from '../context/MedicineContext';
 import { EquipmentContext } from '../context/EquipmentContext';
 import { DeptContext } from '../context/DeptContext';
 import AccessDenied from '../components/AccessDenied';
+import Loading from './Loading';
 
 // Helper to get today's date in YYYY-MM-DD format (Same as Attendance Page)
 const getToday = () => {
@@ -65,8 +66,6 @@ function AdminDashboard() {
     const { equipments, fetchEquipments, maintenanceLogs, fetchMaintenanceLogs } = useContext(EquipmentContext);
     
     const { departments, fetchDepartments, beds, fetchBeds, issues, fetchIssues } = useContext(DeptContext);
-
-    const role = userData?.designation
     
     // patients data
     const totalPatients = patients?.length || 0;
@@ -265,7 +264,11 @@ function AdminDashboard() {
     }
     ];
 
-    if(role !== "Admin"){
+    if(!userData) {
+      return <Loading />
+    }
+
+    if(userData.designation !== "Admin"){
       return <AccessDenied />
     }
 

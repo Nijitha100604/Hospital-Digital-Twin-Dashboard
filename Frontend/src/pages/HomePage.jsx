@@ -150,7 +150,7 @@ const HomePage = ({ setActiveCategory }) => {
       
       {/* --- HERO BANNER --- */}
       <div className="bg-fuchsia-900 rounded-2xl p-6 md:p-8 text-white shadow-lg mb-8 flex flex-col md:flex-row justify-between items-center gap-4 animate-fade-in">
-        <div>
+        <div className="flex flex-col items-center md:items-start">
           <p className="text-fuchsia-200 text-sm mb-1 font-medium tracking-wide">Welcome back,</p>
           <h1 className="text-2xl md:text-3xl font-bold">{userData?.fullName || "-"}</h1>
           <div className="mt-2 inline-block px-3 py-1 bg-fuchsia-800 rounded-full text-xs font-semibold border border-fuchsia-600">
