@@ -903,7 +903,7 @@ function PatientConsultation() {
         appointment?.status !== "Completed" && (
           <div>
             <p className="text-sm font-semibold text-gray-700 mb-3">Request Admission</p>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-end gap-3">
 
               <div className="flex flex-wrap gap-3 items-center">
                 <label className="text-sm font-medium text-gray-700">Bed Type <span className="text-red-600">*</span></label>
